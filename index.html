@@ -7,7 +7,6 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="logo.png">
 <meta name="theme-color" content="#134e8a">
-<script src="anggota.js"></script>
 <style>
 *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
 body{margin:0;background:#eef5ff;color:#0f2d4a;overflow-x:hidden}
@@ -122,8 +121,9 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
   <div class="card">
     <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
     <b>1. Cek NIK Karyawan</b>
-    <p class="small">Masukkan NIK, sistem otomatis cek Tgl Masuk & Masa Kerja dari database 118 anggota.</p>
-    <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Contoh: 91207191" autocomplete="off" oninput="cekNIK()">
+    <p class="small">Masukkan NIK, sistem otomatis cek Tgl Masuk &amp; Masa Kerja dari database anggota.</p>
+    <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')cekNIK()">
+    <button class="btn" id="btnCekNik" onclick="cekNIK()" style="margin-top:8px">🔍 Cek NIK</button>
     <div id="hasilCek" style="margin-top:8px"></div>
   </div>
 
@@ -191,70 +191,24 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
   <div class="card"><button class="btn" onclick="muatStatus()">📋 Lihat Status Pengajuan</button></div>
 </div>
 
-<!-- HALAMAN PENGURUS LOGIN -->
+<!-- HALAMAN PENGURUS -->
 <div id="pagePengurus" class="hidden">
   <div class="card">
     <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
-    <b>Login Pengurus Koperasi</b>
-    <p class="small">Pilih nama pengurus dan masukkan password percobaan <b>2027</b>.</p>
-    
-    <label>Nama Pengurus</label>
-    <select id="pengurusNama">
-      <option value="">-- Pilih Pengurus --</option>
-      <option value="Akhmad Sofyan">Akhmad Sofyan</option>
-      <option value="Mahmudi">Mahmudi</option>
-      <option value="Mulyana">Mulyana</option>
-      <option value="Vivi Atvilina">Vivi Atvilina</option>
-    </select>
-
-    <label>Password</label>
-    <div class="pass-wrap">
-      <input id="pengurusPass" type="password" placeholder="Password: 2027">
-      <button type="button" class="eye-btn" onclick="togglePass()" id="eyeBtn">👁️</button>
-    </div>
-
-    <button class="btn btn-yellow" onclick="loginPengurus()">Masuk sebagai Pengurus</button>
-    <div id="loginMsg" style="margin-top:10px"></div>
-    <p class="small" style="margin-top:10px">Password percobaan tahap awal: <b>2027</b></p>
+    <b>Pengurus Koperasi</b>
+    <p class="small">Persetujuan pengajuan dilakukan melalui <b>email</b> (tombol Setuju / Tolak di email yang diterima pengurus dan pimpinan).</p>
+    <p class="small">Dashboard pengurus di aplikasi akan tersedia pada tahap berikutnya.</p>
   </div>
-
-  <!-- GAMBAR PULAU TOWER DI HALAMAN PENGURUS JUGA -->
   <div class="hero hero-small">
     <img src="hero-tower.png" alt="Pulau Tower">
     <div class="hero-overlay" style="padding:12px">
       <b style="font-size:14px">Monitoring Tower - Koperasi Intisel</b>
-      <p style="font-size:10px">Kelola & pantau pinjaman anggota dengan amanah</p>
-    </div>
-  </div>
-
-  <div id="pengurusDashboard" class="hidden">
-    <div class="card">
-      <b>Dashboard Pengurus - <span id="pengurusActive"></span></b>
-      <p class="small">Kelola 118 anggota, cek masa kerja & limit otomatis.</p>
-      <div class="kpi">
-        <div><span>TOTAL ANGGOTA</span><b>118</b></div>
-        <div><span>LAYAK PINJAM ≥2TH</span><b id="statLayak">-</b></div>
-        <div><span>BELUM LAYAK &lt;2TH</span><b id="statBelum">-</b></div>
-      </div>
-      <div class="search-box">
-        <input id="searchAnggota" type="text" placeholder="Cari NIK / Nama / Jabatan..." oninput="filterAnggota()">
-        <button class="btn" style="width:auto;padding:10px 16px" onclick="filterAnggota()">Cari</button>
-      </div>
-      <div class="table-wrap">
-        <table class="table-ref" id="tabelAnggota">
-          <thead><tr><th>NIK</th><th>Nama</th><th>Jabatan</th><th>Tgl Masuk</th><th>Masa Kerja</th><th>Limit</th><th>Tenor Maks</th></tr></thead>
-          <tbody id="tbodyAnggota"></tbody>
-        </table>
-      </div>
-      <button class="btn" style="margin-top:12px;background:#6c757d" onclick="logoutPengurus()">Keluar / Ganti Pengurus</button>
-      <div style="margin-top:8px"><div class="back-link" onclick="navigateLanding()" style="width:100%;justify-content:center">← Kembali ke Menu Utama</div></div>
+      <p style="font-size:10px">Kelola &amp; pantau pinjaman anggota dengan amanah</p>
     </div>
   </div>
 </div>
 
 <script>
-const GFORM_VIEW = "https://docs.google.com/forms/d/1jOW2zOAwsdsRpfibXglEUa2jv7Azzjleo-1iluj-LDg/viewform";
-const PASS_PENGURUS = "2027";
 let anggotaAktif=null;
 let limitAktif={maxNominal:0,maxTenor:0};
 let currentPage='landing';
@@ -304,19 +258,11 @@ window.addEventListener('popstate', (e)=>{
 });
 window.addEventListener('load',()=>{
   history.replaceState({page:'landing'},'', '#landing');
-  let saved = localStorage.getItem('pengurus_login');
-  if(saved){document.getElementById('pengurusNama').value=saved}
   // handle direct hash
   if(location.hash==='#anggota') navigateAnggota();
   if(location.hash==='#pengurus') navigatePengurus();
 });
 
-function togglePass(){
-  let inp=document.getElementById('pengurusPass');
-  let btn=document.getElementById('eyeBtn');
-  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
-  else { inp.type='password'; btn.textContent='👁️'; }
-}
 
 function getLimitByMasaKerja(mk){
   if(mk >= 10) return {maxNominal:5000000, maxTenor:10, bracket:"10 TAHUN"};
@@ -328,62 +274,69 @@ function getLimitByMasaKerja(mk){
 }
 function rp(n){return 'Rp '+n.toLocaleString('id-ID')}
 
-function cekNIK(){
- let v=document.getElementById('nikInput').value.trim();
- let hasil=document.getElementById('hasilCek'), form=document.getElementById('formPinjam');
- if(v.length<3){hasil.innerHTML='';form.style.display='none';return}
- let found=ANGGOTA.find(a=>a.nik===v || a.nama.toLowerCase().includes(v.toLowerCase()));
- if(!found){
-   anggotaAktif=null;
-   hasil.innerHTML=`<div class="err">❌ NIK tidak ada di daftar 118 anggota</div>`;
-   form.style.display='none';
-   return;
- }
- anggotaAktif=found;
- let mk = found.masaKerja;
- let mkBulat = found.masaKerjaTahun;
- limitAktif = getLimitByMasaKerja(mk);
+let cekBusy=false;
+function resetNik(){
+  let el=document.getElementById('nikInput'); el.value=el.value.replace(/\D/g,'');
+  anggotaAktif=null;
+  document.getElementById('hasilCek').innerHTML='';
+  document.getElementById('formPinjam').style.display='none';
+}
+async function cekNIK(){
+ if(cekBusy) return;
+ let v=document.getElementById('nikInput').value.replace(/\D/g,'');
+ let hasil=document.getElementById('hasilCek'), form=document.getElementById('formPinjam'), btnCek=document.getElementById('btnCekNik');
+ if(v.length<4){hasil.innerHTML='<div class="err">Masukkan NIK berupa angka</div>';form.style.display='none';return}
+ cekBusy=true; btnCek.disabled=true; btnCek.innerText='Memeriksa...';
+ try{
+   let r=await (await fetch(API_URL+'?a=cek&nik='+encodeURIComponent(v))).json();
+   if(!r.ok){
+     anggotaAktif=null; form.style.display='none';
+     hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'NIK tidak ditemukan')+'</div>';
+     return;
+   }
+   anggotaAktif={nik:v,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
+   let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
+   limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 
- hasil.innerHTML=`<div class="ok">✅ <b>${found.nama}</b> - ${found.jabatan}<br><span class="small">Tgl Masuk: ${found.tglMasuk} | Masa kerja: ${mk.toFixed(1)} tahun (${mkBulat} tahun)</span></div>`;
- document.getElementById('namaAnggota').innerText=found.nama;
- document.getElementById('jabAnggota').innerText=found.jabatan;
- document.getElementById('tglMasukTxt').innerText=`Tgl Masuk Kerja: ${found.tglMasuk} • Masa Kerja Real: ${mk.toFixed(1)} tahun`;
- document.getElementById('mkTxt').innerText= mkBulat + " Th (" + mk.toFixed(1) +")";
- document.getElementById('limitTxt').innerText= rp(limitAktif.maxNominal);
- document.getElementById('tenorMaxTxt').innerText= limitAktif.maxTenor + " Bln";
+   hasil.innerHTML=`<div class="ok">✅ <b>${esc(r.nama)}</b> - ${esc(r.jabatan)}<br><span class="small">Tgl Masuk: ${r.tglMasuk} | Masa kerja: ${mk.toFixed(1)} tahun (${mkBulat} tahun)</span></div>`;
+   document.getElementById('namaAnggota').innerText=r.nama;
+   document.getElementById('jabAnggota').innerText=r.jabatan;
+   document.getElementById('tglMasukTxt').innerText=`Tgl Masuk Kerja: ${r.tglMasuk} • Masa Kerja Real: ${mk.toFixed(1)} tahun`;
+   document.getElementById('mkTxt').innerText= mkBulat + " Th (" + mk.toFixed(1) +")";
+   document.getElementById('limitTxt').innerText= rp(limitAktif.maxNominal);
+   document.getElementById('tenorMaxTxt').innerText= limitAktif.maxTenor + " Bln";
 
- if(limitAktif.notEligible){
-   document.getElementById('limitInfo').innerHTML=`❌ Masa kerja < 2 tahun (${mk.toFixed(1)} th) belum bisa pinjam sesuai kebijakan. Minimal 2 tahun.`;
+   if(limitAktif.notEligible){
+     document.getElementById('limitInfo').innerHTML=`❌ Masa kerja < 2 tahun (${mk.toFixed(1)} th) belum bisa pinjam sesuai kebijakan. Minimal 2 tahun.`;
+     form.style.display='block';
+     document.getElementById('btnKirim').disabled=true;
+     document.getElementById('btnKirim').innerText='Belum Memenuhi Syarat';
+     return;
+   }
+   document.getElementById('btnKirim').disabled=false;
+   document.getElementById('btnKirim').innerText='Kirim Pengajuan';
+   document.getElementById('limitInfo').innerHTML=`Masa kerja <b>${mk.toFixed(1)} tahun</b> (bracket <b>${limitAktif.bracket}</b>) → <b>Limit Maks ${rp(limitAktif.maxNominal)} tenor maks ${limitAktif.maxTenor} bulan</b>. Kamu boleh pinjam di bawah itu dan tenor lebih cepat. Contoh: kerja 5 tahun → limit 3,5jt/7 bln, boleh ambil 3jt/6 bln.`;
+
+   let range=document.getElementById('nomRange');
+   range.max=limitAktif.maxNominal; range.min=500000;
+   if(parseInt(range.value)>limitAktif.maxNominal) range.value=limitAktif.maxNominal;
+   if(parseInt(range.value)<500000) range.value=limitAktif.maxNominal;
+   document.getElementById('nomMaxTxt').innerText="Maks "+rp(limitAktif.maxNominal);
+
+   let tenorSel=document.getElementById('tenor'); tenorSel.innerHTML="";
+   for(let i=3;i<=limitAktif.maxTenor;i++){
+     let opt=document.createElement('option'); opt.value=i;
+     opt.text=i+" Bulan"+(i===limitAktif.maxTenor?" (Maks)":" (Boleh lebih cepat)");
+     if(i===limitAktif.maxTenor) opt.selected=true;
+     tenorSel.appendChild(opt);
+   }
+   updateNominal();
    form.style.display='block';
-   document.getElementById('btnKirim').disabled=true;
-   document.getElementById('btnKirim').innerText='Belum Memenuhi Syarat';
-   return;
+ }catch(e){
+   hasil.innerHTML='<div class="err">❌ Gagal terhubung ke server. Periksa internet lalu coba lagi.</div>';
+ }finally{
+   cekBusy=false; btnCek.disabled=false; btnCek.innerText='🔍 Cek NIK';
  }
- document.getElementById('btnKirim').disabled=false;
- document.getElementById('btnKirim').innerText='Kirim Pengajuan';
-
- document.getElementById('limitInfo').innerHTML=`Masa kerja <b>${mk.toFixed(1)} tahun</b> (bracket <b>${limitAktif.bracket}</b>) → <b>Limit Maks ${rp(limitAktif.maxNominal)} tenor maks ${limitAktif.maxTenor} bulan</b>. Kamu boleh pinjam di bawah itu dan tenor lebih cepat. Contoh: kerja 5 tahun → limit 3,5jt/7 bln, boleh ambil 3jt/6 bln.`;
-
- let range = document.getElementById('nomRange');
- range.max = limitAktif.maxNominal;
- range.min = 500000;
- if(parseInt(range.value) > limitAktif.maxNominal) range.value = limitAktif.maxNominal;
- if(parseInt(range.value) < 500000) range.value = limitAktif.maxNominal;
-
- document.getElementById('nomMaxTxt').innerText = "Maks " + rp(limitAktif.maxNominal);
-
- let tenorSel = document.getElementById('tenor');
- tenorSel.innerHTML = "";
- for(let i=3;i<=limitAktif.maxTenor;i++){
-   let opt = document.createElement('option');
-   opt.value=i;
-   opt.text = i + " Bulan" + (i===limitAktif.maxTenor ? " (Maks)" : " (Boleh lebih cepat)");
-   if(i===limitAktif.maxTenor) opt.selected=true;
-   tenorSel.appendChild(opt);
- }
-
- updateNominal();
- form.style.display='block';
 }
 
 function updateNominal(){
@@ -400,65 +353,7 @@ function hitungAngsuran(){
   document.getElementById('tenorInfo').innerText = `Tenor ${tenor} bulan (maks ${limitAktif.maxTenor} bulan) - angsuran ${rp(angs)}/bulan - 0% bunga`;
 }
 
-function directKeGform(){
- if(!anggotaAktif){alert('Cek NIK dulu');return}
- let tujuan=document.getElementById('tujuan').value;
- if(!tujuan){alert('Isi tujuan dulu');return}
- let nom = document.getElementById('nomRange').value;
- let tenor = document.getElementById('tenor').value;
 
- if(parseInt(nom) > limitAktif.maxNominal){alert('Nominal melebihi limit masa kerja! Maks ' + rp(limitAktif.maxNominal));return}
- if(parseInt(tenor) > limitAktif.maxTenor){alert('Tenor melebihi limit! Maks ' + limitAktif.maxTenor + ' bulan');return}
-
- localStorage.setItem('intisel_nama', anggotaAktif.nama);
- localStorage.setItem('intisel_nik', anggotaAktif.nik);
- localStorage.setItem('intisel_masaKerja', anggotaAktif.masaKerja);
- localStorage.setItem('intisel_nominal', nom);
- localStorage.setItem('intisel_tenor', tenor);
- localStorage.setItem('intisel_tujuan', tujuan);
-
- window.location.href = GFORM_VIEW;
-}
-
-// PENGURUS
-function loginPengurus(){
-  let nama = document.getElementById('pengurusNama').value;
-  let pass = document.getElementById('pengurusPass').value;
-  let msg = document.getElementById('loginMsg');
-  if(!nama){msg.innerHTML='<div class="err">Pilih nama pengurus dulu</div>';return}
-  if(pass !== PASS_PENGURUS){msg.innerHTML='<div class="err">❌ Password salah! Gunakan password percobaan: 2027</div>';return}
-  msg.innerHTML='<div class="ok">✅ Login berhasil sebagai '+nama+'</div>';
-  document.getElementById('pengurusActive').innerText = nama;
-  document.getElementById('pengurusDashboard').classList.remove('hidden');
-  renderAnggotaTable(ANGGOTA);
-  let layak = ANGGOTA.filter(a=>a.masaKerja>=2).length;
-  let belum = ANGGOTA.length - layak;
-  document.getElementById('statLayak').innerText = layak;
-  document.getElementById('statBelum').innerText = belum;
-  localStorage.setItem('pengurus_login', nama);
-}
-function logoutPengurus(){
-  document.getElementById('pengurusDashboard').classList.add('hidden');
-  document.getElementById('loginMsg').innerHTML='';
-  document.getElementById('pengurusPass').value='';
-  localStorage.removeItem('pengurus_login');
-}
-function renderAnggotaTable(list){
-  let tbody = document.getElementById('tbodyAnggota');
-  tbody.innerHTML='';
-  list.forEach(a=>{
-    let lim = getLimitByMasaKerja(a.masaKerja);
-    let tr = document.createElement('tr');
-    tr.innerHTML = `<td>${a.nik||'-'}</td><td style="text-align:left">${a.nama}</td><td>${a.jabatan}</td><td>${a.tglMasuk}</td><td>${a.masaKerjaTahun} Th (${a.masaKerja.toFixed(1)})</td><td>${lim.notEligible?'<span style="color:#c0392b">Belum layak</span>':rp(lim.maxNominal)}</td><td>${lim.notEligible?'-':lim.maxTenor+' Bln'}</td>`;
-    tbody.appendChild(tr);
-  });
-}
-function filterAnggota(){
-  let q = document.getElementById('searchAnggota').value.toLowerCase();
-  if(!q){renderAnggotaTable(ANGGOTA);return}
-  let filtered = ANGGOTA.filter(a=> (a.nik+a.nama+a.jabatan).toLowerCase().includes(q));
-  renderAnggotaTable(filtered);
-}
 </script>
 <script src="pengajuan.js"></script>
 </body>
