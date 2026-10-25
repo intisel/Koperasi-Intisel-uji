@@ -84,7 +84,8 @@ async function kirimPengajuan(){
 }
 
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui', DITOLAK:'❌ Ditolak'};
-const ICON = v => v==='Y' ? '✅' : v==='N' ? '❌' : '⏳';
+const ICON = (v, selesai) => v==='Y' ? '✅' : v==='N' ? '❌' : (selesai ? '➖' : '⏳');
+const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${esc(a)}”</i></div>` : '';
 
 async function muatStatus(){
   const nik = (anggotaAktif && anggotaAktif.nik) || localStorage.getItem('intisel_nik');
@@ -95,14 +96,16 @@ async function muatStatus(){
     const r = await (await fetch(API_URL + '?a=status&nik=' + encodeURIComponent(nik))).json();
     if(!r.list || !r.list.length){ box.innerHTML = '<p class="small">Belum ada pengajuan.</p>'; return; }
     box.innerHTML = r.list.map(p => {
+      const selesai = p.status === 'DITOLAK' || p.status === 'DISETUJUI';
       const done = p.pengurus.filter(x => x.v==='Y').length;
+      const tampilPimpinan = p.status !== 'REVIEW_PENGURUS';
       return `<div class="ok" style="margin-bottom:10px;background:#fff">
         <b>${esc(p.id)}</b> • ${esc(p.waktu)}<br>Rp ${p.nominal.toLocaleString('id-ID')} / ${p.tenor} bln<br>
         <b>${LABEL[p.status]||esc(p.status)}</b>
         <div class="small" style="margin-top:6px">
-          ${p.pengurus.map(x => ICON(x.v)+' '+esc(x.nama)).join('<br>')}
-          <br>${p.status==='REVIEW_PENGURUS' ? 'Review pengurus: '+done+'/3' : ICON(p.pimpinan)+' Persetujuan Pimpinan'}
-          ${p.alasanTolak ? '<br><b>Catatan:</b> '+esc(p.alasanTolak) : ''}
+          ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${esc(x.nama)}</div>${KOMEN(x.a)}`).join('')}
+          ${p.status==='REVIEW_PENGURUS' ? '<div>Review pengurus: '+done+'/3</div>' : ''}
+          ${tampilPimpinan ? `<div>${ICON(p.pimpinan, selesai)} ${esc(p.pimpinanNama||'Pimpinan')} (Pimpinan)</div>${KOMEN(p.pimpinanA)}` : ''}
         </div></div>`;
     }).join('');
   }catch(e){ box.innerHTML = '<p class="small">Gagal memuat status.</p>'; }
