@@ -3,6 +3,20 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwuBNxy2l1jlKwTyANiqEr9
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* ===== PILIHAN TANGGAL LAHIR ===== */
+function initLahir(){
+  const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const opt=(sel,ph,items)=>{ sel.innerHTML='<option value="">'+ph+'</option>'+items.map(([v,t])=>`<option value="${v}">${t}</option>`).join(''); };
+  opt($('lhTgl'),'Tgl',Array.from({length:31},(_,i)=>[i+1,i+1]));
+  opt($('lhBln'),'Bulan',BLN.map((b,i)=>[i+1,b]));
+  const y=new Date().getFullYear();
+  opt($('lhThn'),'Tahun',Array.from({length:54},(_,i)=>[y-17-i,y-17-i]));
+}
+function lahirVal(){
+  const d=$('lhTgl').value,m=$('lhBln').value,y=$('lhThn').value;
+  if(!d||!m||!y) return '';
+  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
 function togglePernah(){ $('tglLunasWrap').style.display = $('pernahPinjam').value === 'Ya' ? 'block' : 'none'; }
 
 /* ===== FORMAT & VALIDASI INPUT ===== */
@@ -48,7 +62,7 @@ function initFmt(){
     el.addEventListener('blur', () => { el.dataset.touched = '1'; showErr(el, validate(el)); });
   });
 }
-document.addEventListener('DOMContentLoaded', initFmt);
+document.addEventListener('DOMContentLoaded', () => { initFmt(); initLahir(); });
 
 async function kirimPengajuan(){
   if(!anggotaAktif){ alert('Cek NIK dulu'); return; }
@@ -62,7 +76,7 @@ async function kirimPengajuan(){
   if(first){ first.scrollIntoView({behavior:'smooth', block:'center'}); first.focus(); alert('Periksa kolom yang berwarna merah.'); return; }
   const g = id => $(id).value.trim();
   const d = {
-    a:'ajukan', nik:anggotaAktif.nik, nominal:g('nomRange'), tenor:g('tenor'),
+    a:'ajukan', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, nominal:g('nomRange'), tenor:g('tenor'),
     alasan:g('tujuan'), alamat:g('alamat'), hp:g('hp'), email:g('email'), rek:onlyDigits(g('rek')), gajiUnder:g('gajiUnder'),
     infaq:moneyVal('infaq'), pernahPinjam:g('pernahPinjam'), tglLunas:g('tglLunas'),
     jmlDitahan:g('jmlDitahan'), gajiDitahan:g('gajiDitahan')||(g('jmlDitahan')==='0'?'Tidak ada':''),
@@ -74,7 +88,6 @@ async function kirimPengajuan(){
   try{
     const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify(d)})).json();
     if(r.ok){
-      localStorage.setItem('intisel_nik', anggotaAktif.nik);
       alert('✅ Pengajuan terkirim. No: ' + r.id);
       $('formPinjam').style.display = 'none';
       muatStatus();
@@ -88,12 +101,12 @@ const ICON = (v, selesai) => v==='Y' ? '✅' : v==='N' ? '❌' : (selesai ? '➖
 const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${esc(a)}”</i></div>` : '';
 
 async function muatStatus(){
-  const nik = (anggotaAktif && anggotaAktif.nik) || localStorage.getItem('intisel_nik');
   const box = $('statusBox'); $('statusCard').style.display = 'block';
-  if(!nik){ box.innerHTML = '<p class="small">Masukkan NIK dulu.</p>'; return; }
+  if(!anggotaAktif){ box.innerHTML = '<p class="small">Isi NIK dan tanggal lahir, lalu tekan Cek NIK.</p>'; return; }
   box.innerHTML = '<p class="small">Memuat...</p>';
   try{
-    const r = await (await fetch(API_URL + '?a=status&nik=' + encodeURIComponent(nik))).json();
+    const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'status', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir})})).json();
+    if(!r.ok){ box.innerHTML = '<p class="small">'+esc(r.msg)+'</p>'; return; }
     if(!r.list || !r.list.length){ box.innerHTML = '<p class="small">Belum ada pengajuan.</p>'; return; }
     box.innerHTML = r.list.map(p => {
       const selesai = p.status === 'DITOLAK' || p.status === 'DISETUJUI';

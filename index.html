@@ -121,8 +121,15 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
   <div class="card">
     <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
     <b>1. Cek NIK Karyawan</b>
-    <p class="small">Masukkan NIK, sistem otomatis cek Tgl Masuk &amp; Masa Kerja dari database anggota.</p>
+    <p class="small">Masukkan NIK dan tanggal lahir, sistem otomatis cek Tgl Masuk &amp; Masa Kerja dari database anggota.</p>
     <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')cekNIK()">
+    <label style="margin-top:10px">Tanggal Lahir</label>
+    <div style="display:flex;gap:6px">
+      <select id="lhTgl" onchange="resetNik()" style="flex:1"></select>
+      <select id="lhBln" onchange="resetNik()" style="flex:2"></select>
+      <select id="lhThn" onchange="resetNik()" style="flex:2"></select>
+    </div>
+    <p class="small">Tanggal lahir dipakai untuk memastikan Anda benar-benar anggota yang bersangkutan.</p>
     <button class="btn" id="btnCekNik" onclick="cekNIK()" style="margin-top:8px">🔍 Cek NIK</button>
     <div id="hasilCek" style="margin-top:8px"></div>
   </div>
@@ -285,16 +292,18 @@ async function cekNIK(){
  if(cekBusy) return;
  let v=document.getElementById('nikInput').value.replace(/\D/g,'');
  let hasil=document.getElementById('hasilCek'), form=document.getElementById('formPinjam'), btnCek=document.getElementById('btnCekNik');
- if(v.length<4){hasil.innerHTML='<div class="err">Masukkan NIK berupa angka</div>';form.style.display='none';return}
+ let lahir=lahirVal();
+ if(v.length<4||!lahir){hasil.innerHTML='<div class="err">Isi NIK dan tanggal lahir dengan lengkap</div>';form.style.display='none';return}
  cekBusy=true; btnCek.disabled=true; btnCek.innerText='Memeriksa...';
  try{
-   let r=await (await fetch(API_URL+'?a=cek&nik='+encodeURIComponent(v))).json();
+   let r=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({a:'cek',nik:v,lahir:lahir})})).json();
    if(!r.ok){
      anggotaAktif=null; form.style.display='none';
      hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'NIK tidak ditemukan')+'</div>';
      return;
    }
-   anggotaAktif={nik:v,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
+   anggotaAktif={nik:v,lahir:lahir,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
+   muatStatus();
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 
