@@ -1,8 +1,8 @@
 // Layanan anggota: menu, kasbon, status approval, pinjaman berjalan, laporan pembayaran + foto bukti
 let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoData = '';
-const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar'};
-const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar'};
-const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar'];
+const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKontak:'anggota-kontak'};
+const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-kontak':'vKontak'};
+const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar', 'vKontak'];
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'💸 Disetujui - Menunggu Pencairan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v === 'Y' ? '✅' : v === 'N' ? '❌' : (selesai ? '➖' : '⏳');
@@ -18,6 +18,24 @@ function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
   VIEWS.forEach(id => { const el = $(id); if(el) el.style.display = id === v ? 'block' : 'none'; });
   if(v === 'vKasbon') kbUpdate();
   if(v === 'vBayar') renderBayar();
+  if(v === 'vKontak') renderKontak();
+}
+/* ===== KONTAK & BANTUAN ===== */
+const KONTAK = [
+  {jabatan:'Pimpinan', nama:'Mahmudi', hp:'6281271418883', tampil:'+62 812-7141-8883'},
+  {jabatan:'Penasehat', nama:'Akhmad Sofyan', hp:'6281222225985', tampil:'+62 812-2222-5985'},
+  {jabatan:'Ketua', nama:'Mulyana', hp:'6285215315314', tampil:'+62 852-1531-5314'},
+  {jabatan:'Bendahara', nama:'Vivi Atvilina', hp:'628976099332', tampil:'+62 897-6099-332'}
+];
+function renderKontak(){
+  const a = anggotaAktif, saya = a ? a.nama + ' (NIK ' + a.nik + ')' : '';
+  $('kontakList').innerHTML = KONTAK.map(k => {
+    const pesan = 'Assalamualaikum ' + k.jabatan + ' ' + k.nama + ', saya ' + saya + ' dari aplikasi Koperasi Intisel. Saya ingin bertanya: ';
+    return `<div class="ok" style="background:#fff;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><div class="small" style="color:#5a7aa0">${esc(k.jabatan)}</div><b>${esc(k.nama)}</b><div class="small" style="white-space:nowrap">${esc(k.tampil)}</div></div>
+      <a href="https://wa.me/${k.hp}?text=${encodeURIComponent(pesan)}" target="_blank" rel="noopener" style="text-decoration:none;background:#16a34a;color:#fff;font-weight:800;padding:10px 10px;border-radius:10px;font-size:14px">💬 WA</a>
+      <a href="tel:+${k.hp}" style="text-decoration:none;background:#134e8a;color:#fff;padding:10px 12px;border-radius:10px;font-size:14px" aria-label="Telepon ${esc(k.nama)}">📞</a></div>`;
+  }).join('');
 }
 function anggotaRender(name){ // dipanggil router
   if(name === 'anggota'){ resetAnggota(); return; }

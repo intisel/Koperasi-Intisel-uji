@@ -157,7 +157,20 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
       <button class="mtile" onclick="bukaMenu('vApproval')"><span class="ic">📋</span><b>Status Approval</b><span class="sub" id="tlApprovalSub">Koperasi / Kasbon</span></button>
       <button class="mtile" onclick="bukaMenu('vBerjalan')"><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub" id="tlBerjalanSub"></span></button>
       <button class="mtile wide" onclick="bukaMenu('vBayar')"><span class="ic">🧾</span><b>Laporan Pembayaran Angsuran</b><span class="sub" id="tlBayarSub">Upload foto bukti transaksi</span></button>
+      <button class="mtile wide" onclick="bukaMenu('vKontak')"><span class="ic">📞</span><b>Kontak &amp; Bantuan</b><span class="sub">Hubungi pengurus lewat WhatsApp</span></button>
     </div>
+  </div>
+
+  <!-- KONTAK & BANTUAN -->
+  <div class="card view" id="vKontak" style="display:none">
+    <b style="font-size:16px">📞 Kontak &amp; Bantuan</b>
+    <p class="small" style="margin:4px 0 10px">Ada pertanyaan soal pengajuan, angsuran, atau pencairan? Hubungi pengurus langsung lewat WhatsApp.</p>
+    <div id="kontakList"></div>
+    <div class="ok" style="margin-top:12px;line-height:1.6"><b>Info singkat</b><br>
+      • Angsuran dibayar tanggal 1–5 setiap bulan.<br>
+      • Pencairan reguler tanggal 6; pencairan urgen maksimal 2 hari kerja.<br>
+      • Kasbon: maksimal Rp 500.000, 30 hari (masa kerja &lt; 2 tahun).<br>
+      • Pinjaman koperasi: masa kerja ≥ 2 tahun, masa tunggu 3 bulan setelah lunas.</div>
   </div>
 
   <!-- KASBON -->
@@ -381,8 +394,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','pengurus','pengurus-dashboard'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
