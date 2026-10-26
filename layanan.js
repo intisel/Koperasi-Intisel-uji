@@ -1,5 +1,7 @@
 // Layanan anggota: menu, kasbon, status approval, pinjaman berjalan, laporan pembayaran + foto bukti
-let dataSaya = {list: [], laporan: []}, fotoData = '';
+let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoData = '';
+const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar'};
+const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar'};
 const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar'];
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
@@ -11,18 +13,33 @@ const hariIniStr = () => { const d = new Date(); return d.getFullYear() + '-' + 
 const apiPost = async body => (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
 const badgeJenis = j => j === 'KASBON' ? '<span class="badge" style="background:#fff3cd;color:#8a6100">KASBON</span>' : '<span class="badge">KOPERASI</span>';
 
-/* ===== NAVIGASI ===== */
-function tampilView(v){
+/* ===== NAVIGASI (router ada di index.html; tiap layar = 1 entri riwayat) ===== */
+function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
   VIEWS.forEach(id => { const el = $(id); if(el) el.style.display = id === v ? 'block' : 'none'; });
   if(v === 'vKasbon') kbUpdate();
-  if(v === 'vBayar') { renderBayar(); }
-  window.scrollTo(0, 0);
+  if(v === 'vBayar') renderBayar();
 }
-function bukaMenu(v){
+function anggotaRender(name){ // dipanggil router
+  if(name === 'anggota'){ resetAnggota(); return; }
+  $('loginForm').style.display = 'none'; $('sesiBar').style.display = 'flex';
+  tampilView(ROUTE2VIEW[name]);
+  muatData().then(terapkanBlokir);
+}
+function resetAnggota(){ // layar Cek NIK: sesi anggota dibersihkan
+  anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';
+  $('nikInput').value = ''; ['lhTgl', 'lhBln', 'lhThn'].forEach(i => $(i).value = '');
+  $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
+  VIEWS.forEach(id => $(id).style.display = 'none');
+}
+async function bukaMenu(v){
   if(v === 'vKasbon' && $('tlKasbon').classList.contains('off')) { alert('Kasbon khusus karyawan dengan masa kerja di bawah 2 tahun.'); return; }
   if(v === 'formPinjam' && $('tlKoperasi').classList.contains('off')) { alert('Pengajuan Koperasi khusus karyawan dengan masa kerja minimal 2 tahun.'); return; }
-  tampilView(v);
-  if(v === 'vApproval' || v === 'vBerjalan' || v === 'vBayar') muatData();
+  if(v === 'vKasbon' || v === 'formPinjam'){ // cek pinjaman berjalan / pengajuan ganda sebelum membuka formulir
+    if(!dataSaya.loaded) await muatData();
+    const m = blokir(v === 'vKasbon' ? 'KASBON' : 'KOPERASI');
+    if(m){ alert(m); return; }
+  }
+  go(VIEW2ROUTE[v]);
 }
 function masukMenu(){
   const a = anggotaAktif, koperasiOk = !limitAktif.notEligible;
@@ -31,16 +48,31 @@ function masukMenu(){
   $('tlKoperasi').classList.toggle('off', !koperasiOk); $('tlKasbon').classList.toggle('off', koperasiOk);
   $('tlKoperasiSub').innerText = koperasiOk ? 'Maks ' + rpf(limitAktif.maxNominal) + ' • ' + limitAktif.maxTenor + ' bln' : 'Khusus masa kerja ≥ 2 tahun';
   $('tlKasbonSub').innerText = koperasiOk ? 'Khusus masa kerja < 2 tahun' : 'Maks Rp 500.000 • 30 hari';
-  $('loginForm').style.display = 'none'; $('sesiBar').style.display = 'flex';
   $('sbNama').innerText = a.nama; $('sbInfo').innerText = 'NIK ' + a.nik + ' • ' + a.jabatan;
-  tampilView('menuCard'); muatData();
+  go('anggota-menu');
 }
-function keluarAnggota(){
-  anggotaAktif = null; dataSaya = {list: [], laporan: []}; fotoData = '';
-  $('nikInput').value = ''; ['lhTgl', 'lhBln', 'lhThn'].forEach(i => $(i).value = '');
-  $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
-  VIEWS.forEach(id => $(id).style.display = 'none');
-  window.scrollTo(0, 0);
+function keluarAnggota(){ // mundur ke layar Cek NIK (sesi dibersihkan oleh router)
+  const lv = (typeof ROUTE_LEVEL !== 'undefined' && ROUTE_LEVEL[currentRoute]) || 0;
+  if(lv > 0) history.go(-lv); else renderRoute('anggota');
+}
+
+/* ===== CEGAH PINJAMAN GANDA ===== */
+function blokir(jenis){ // '' bila boleh mengajukan, selain itu pesan alasan
+  const L = dataSaya.list, today = hariIniStr();
+  const proses = L.find(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN');
+  if(proses) return 'Anda masih memiliki pengajuan yang sedang diproses (' + proses.id + '). Tunggu keputusan pengurus dan pimpinan sebelum mengajukan lagi.';
+  const bj = L.find(p => p.status === 'DISETUJUI');
+  if(bj) return 'Anda masih memiliki pinjaman berjalan (' + bj.id + ', sisa ' + rpf(bj.angsuran ? bj.angsuran.sisa : 0) + '). Pengajuan baru bisa dilakukan setelah lunas' + (jenis === 'KOPERASI' ? ' dan melewati masa tunggu 3 bulan.' : '.');
+  if(jenis === 'KOPERASI' && dataSaya.bolehKoperasi && today < dataSaya.bolehKoperasi) return 'Masa tunggu 3 bulan setelah pelunasan. Pengajuan Koperasi bisa dilakukan mulai ' + tglf(dataSaya.bolehKoperasi) + '.';
+  return '';
+}
+function terapkanBlokir(){
+  if(!anggotaAktif) return;
+  [['KASBON', 'kbBlok', 'btnKb'], ['KOPERASI', 'kpBlok', 'btnKirim']].forEach(([j, bid, btn]) => {
+    const m = blokir(j), el = $(bid);
+    el.style.display = m ? 'block' : 'none'; el.innerText = m;
+    if(!(j === 'KOPERASI' && limitAktif.notEligible)) $(btn).disabled = !!m;
+  });
 }
 
 /* ===== DATA SAYA (status, pinjaman, laporan) ===== */
@@ -49,15 +81,21 @@ async function muatData(){
   try{
     const r = await apiPost({a:'status', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir});
     if(!r.ok){ $('apBox').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    dataSaya = {list: r.list || [], laporan: r.laporan || []};
+    dataSaya = {list: r.list || [], laporan: r.laporan || [], bolehKoperasi: r.bolehKoperasi || '', loaded: true};
   }catch(e){ $('apBox').innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; return; }
-  renderApproval(); renderBerjalan(); renderBayar(); renderSub();
+  renderApproval(); renderBerjalan(); renderBayar(); renderSub(); terapkanBlokir();
 }
 function renderSub(){
   const proses = dataSaya.list.filter(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN').length;
   $('tlApprovalSub').innerText = proses ? proses + ' sedang diproses' : 'Koperasi / Kasbon';
   const bj = dataSaya.list.filter(p => p.status === 'DISETUJUI'), sisa = bj.reduce((t, p) => t + (p.angsuran ? p.angsuran.sisa : 0), 0);
   $('tlBerjalanSub').innerText = bj.length ? 'Sisa ' + rpf(sisa) : 'Tidak ada pinjaman berjalan';
+  const st = $('mnStatus'), sedangProses = dataSaya.list.find(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN');
+  let info = '';
+  if(bj.length){ const p = bj[0], a = p.angsuran; info = `📌 Pinjaman berjalan <b>${esc(p.id)}</b>: sisa <b>${rpf(sisa)}</b>` + (a && a.berikut ? ` • jatuh tempo berikutnya ${tglf(a.berikut.due)}` : '') + '. Pengajuan baru dapat dilakukan setelah lunas.'; }
+  else if(sedangProses) info = `⏳ Pengajuan <b>${esc(sedangProses.id)}</b> sedang diproses. Pengajuan baru belum dapat dibuat.`;
+  else if(dataSaya.bolehKoperasi && hariIniStr() < dataSaya.bolehKoperasi && !limitAktif.notEligible) info = `⏳ Masa tunggu 3 bulan setelah pelunasan. Pengajuan Koperasi bisa dilakukan mulai <b>${tglf(dataSaya.bolehKoperasi)}</b>.`;
+  st.style.display = info ? 'block' : 'none'; st.innerHTML = info;
   const tunggu = dataSaya.laporan.filter(l => l.status === 'MENUNGGU').length;
   $('tlBayarSub').innerText = tunggu ? tunggu + ' menunggu verifikasi' : 'Upload foto bukti transaksi';
 }
@@ -91,7 +129,7 @@ function renderBerjalan(){
       <span class="small">${rpf(p.nominal)} • ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bulan'}</span>
       <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
       <div class="small"><b>${a.lunas}/${a.total} lunas</b> • sisa ${rpf(a.sisa)}${a.berikut ? '<br>Berikutnya: ke-' + a.berikut.ke + ', jatuh tempo <b>' + tglf(a.berikut.due) + '</b> (' + rpf(a.berikut.jumlah) + ')' : ''}</div>
-      <button class="btn" style="margin-top:10px;padding:12px;font-size:14px" onclick="tampilView('vBayar')">🧾 Lapor Pembayaran</button>
+      <button class="btn" style="margin-top:10px;padding:12px;font-size:14px" onclick="goReplace('anggota-bayar')">🧾 Lapor Pembayaran</button>
       <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>${jadwalTabel(a)}</details>
     </div>`;
   }).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';
@@ -113,13 +151,14 @@ async function kirimKasbon(){
   const d = {a:'ajukan', jenis:'KASBON', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, nominal:parseInt($('kbNominal').value, 10), tenor:1,
     alasan:g('kbAlasan'), alamat:g('kbAlamat'), hp:g('kbHp'), email:g('kbEmail'), rek:onlyDigits(g('kbRek')), gajiUnder:g('kbGajiUnder'), gaji1:moneyVal('kbGaji1'),
     namaDarurat:g('kbNamaD'), hpDarurat:g('kbHpD'), hubungan:g('kbHub')};
+  const mb = blokir('KASBON'); if(mb){ alert(mb); return; }
   const btn = $('btnKb'); btn.disabled = true; btn.innerText = 'Mengirim...';
   try{
     const r = await apiPost(d);
-    if(r.ok){ alert('✅ Pengajuan kasbon terkirim. No: ' + r.id); await muatData(); tampilView('vApproval'); }
+    if(r.ok){ alert('✅ Pengajuan kasbon terkirim. No: ' + r.id); await muatData(); goReplace('anggota-approval'); }
     else alert('❌ ' + r.msg);
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
-  btn.disabled = false; btn.innerText = 'Kirim Pengajuan Kasbon';
+  btn.innerText = 'Kirim Pengajuan Kasbon'; terapkanBlokir();
 }
 
 /* ===== LAPORAN PEMBAYARAN ===== */

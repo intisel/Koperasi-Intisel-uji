@@ -126,7 +126,6 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 <!-- HALAMAN ANGGOTA -->
 <div id="pageAnggota" class="hidden">
   <div class="card" id="loginCard">
-    <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
     <div id="sesiBar" style="display:none;justify-content:space-between;align-items:center;gap:8px;margin-top:6px">
       <div>✅ <b id="sbNama"></b><div class="small" id="sbInfo"></div></div>
       <span class="back-link" style="margin:0" onclick="keluarAnggota()">Keluar</span>
@@ -151,6 +150,7 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
   <div class="card" id="menuCard" style="display:none">
     <b id="mnNama" style="font-size:17px"></b> <span class="badge" id="mnJab"></span>
     <p class="small" id="mnMasa" style="margin:4px 0 0"></p>
+    <div class="warn" id="mnStatus" style="display:none;margin-top:8px"></div>
     <div class="mgrid">
       <button class="mtile" id="tlKasbon" onclick="bukaMenu('vKasbon')"><span class="ic">💸</span><b>Pengajuan Kasbon</b><span class="sub" id="tlKasbonSub"></span></button>
       <button class="mtile" id="tlKoperasi" onclick="bukaMenu('formPinjam')"><span class="ic">🏦</span><b>Pengajuan Koperasi</b><span class="sub" id="tlKoperasiSub"></span></button>
@@ -162,8 +162,8 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 
   <!-- KASBON -->
   <div class="card view" id="vKasbon" style="display:none">
-    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
     <b style="font-size:16px">💸 Pengajuan Kasbon</b>
+    <div class="err" id="kbBlok" style="display:none;margin-top:8px"></div>
     <div class="warn" style="margin:8px 0">Khusus masa kerja di bawah 2 tahun. Maksimal <b>Rp 500.000</b>, jangka waktu <b>30 hari</b> (1 bulan), dikembalikan sekaligus.</div>
     <label>Nominal Kasbon</label>
     <input type="range" id="kbNominal" min="50000" max="500000" step="50000" value="300000" oninput="kbUpdate()">
@@ -186,7 +186,6 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 
   <!-- STATUS APPROVAL -->
   <div class="card view" id="vApproval" style="display:none">
-    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
     <b style="font-size:16px">📋 Status Approval</b>
     <p class="small">Pengajuan pinjaman koperasi dan kasbon Anda.</p>
     <div id="apBox"></div>
@@ -194,14 +193,12 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 
   <!-- PINJAMAN BERJALAN -->
   <div class="card view" id="vBerjalan" style="display:none">
-    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
     <b style="font-size:16px">📊 Pinjaman Berjalan</b>
     <div id="bjBox" style="margin-top:8px"></div>
   </div>
 
   <!-- LAPORAN PEMBAYARAN -->
   <div class="card view" id="vBayar" style="display:none">
-    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
     <b style="font-size:16px">🧾 Laporan Pembayaran Angsuran</b>
     <div id="byInfo" class="small" style="margin:6px 0"></div>
     <div id="byForm">
@@ -228,8 +225,8 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
   </div>
 
   <div class="card view" id="formPinjam" style="display:none">
-    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
     <b>🏦 Pengajuan Koperasi - <span id="namaAnggota"></span> <span class="badge" id="jabAnggota"></span></b>
+    <div class="err" id="kpBlok" style="display:none;margin-top:8px"></div>
     <p class="small" id="tglMasukTxt"></p>
     <div class="kpi">
       <div><span>MASA KERJA</span><b id="mkTxt">-</b></div>
@@ -291,7 +288,6 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 <!-- HALAMAN PENGURUS -->
 <div id="pagePengurus" class="hidden">
   <div class="card" id="pkLogin">
-    <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
     <div style="font-weight:800;font-size:17px;margin:2px 0 8px">Masuk Pengurus / Pimpinan</div>
     <label style="display:block;margin-top:4px">Email terdaftar</label>
     <input id="pkEmail" type="email" inputmode="email" autocapitalize="none" autocomplete="username" placeholder="email@contoh.com">
@@ -325,7 +321,6 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
       <input id="pkBaru2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')pkAtur()">
       <label class="small" style="display:flex;gap:6px;align-items:center;margin:-4px 0 10px"><input type="checkbox" style="width:auto;margin:0" onchange="pkLihat(['pkBaru','pkBaru2'],this.checked)"> Tampilkan password</label>
       <button class="btn" id="pkBtnAtur" onclick="pkAtur()">Simpan &amp; Masuk</button>
-      <p class="small" style="margin-top:10px"><a href="#" onclick="pkTab('pw');return false">← Kembali</a></p>
     </div>
     <div id="pkPesan" style="margin-top:10px"></div>
   </div>
@@ -335,7 +330,6 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
         <div><b id="pkNama"></b><div class="small" id="pkPeran"></div></div>
         <div style="display:flex;gap:6px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkGantiTampil()">🔑</span><span class="back-link" style="margin:0" onclick="pkKeluar()">Keluar</span></div>
       </div>
-      <div class="back-link" style="margin-top:10px" onclick="navigateLanding()">← Menu Utama</div>
       <div id="pkRekap" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
       <p class="small" id="pkRekapCatatan"></p>
     </div>
@@ -366,54 +360,45 @@ let anggotaAktif=null;
 let limitAktif={maxNominal:0,maxTenor:0};
 let currentPage='landing';
 
-// NAVIGATION WITH HISTORY FIX
-function showLandingNoPush(){
-  document.getElementById('landing').classList.remove('hidden');
-  document.getElementById('pageAnggota').classList.add('hidden');
-  document.getElementById('pagePengurus').classList.add('hidden');
-  currentPage='landing';
-  window.scrollTo(0,0);
-}
-function showAnggotaNoPush(){
-  document.getElementById('landing').classList.add('hidden');
-  document.getElementById('pageAnggota').classList.remove('hidden');
-  document.getElementById('pagePengurus').classList.add('hidden');
-  currentPage='anggota';
-  window.scrollTo(0,0);
-}
-function showPengurusNoPush(){
-  document.getElementById('landing').classList.add('hidden');
-  document.getElementById('pageAnggota').classList.add('hidden');
-  document.getElementById('pagePengurus').classList.remove('hidden');
-  currentPage='pengurus';
-  window.scrollTo(0,0);
-}
-function navigateLanding(){
-  if(currentPage!=='landing'){
-    history.pushState({page:'landing'},'', '#landing');
+// ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
+// landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
+// landing > pengurus (Login) > pengurus-dashboard
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','pengurus','pengurus-dashboard'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2};
+let currentRoute='landing';
+function renderRoute(name,fromPop){
+  if(ROUTES.indexOf(name)<0) name='landing';
+  if(name.indexOf('anggota-')===0 && !anggotaAktif){ // layar terlindungi tanpa sesi
+    if(fromPop){ history.back(); return; }
+    history.replaceState({r:'anggota'},'','#anggota'); name='anggota';
   }
-  showLandingNoPush();
+  if(name==='pengurus-dashboard' && !(typeof pkToken!=='undefined' && pkToken)){
+    if(fromPop){ history.back(); return; }
+    history.replaceState({r:'pengurus'},'','#pengurus'); name='pengurus';
+  }
+  const grp=name.split('-')[0];
+  document.getElementById('landing').classList.toggle('hidden',grp!=='landing');
+  document.getElementById('pageAnggota').classList.toggle('hidden',grp!=='anggota');
+  document.getElementById('pagePengurus').classList.toggle('hidden',grp!=='pengurus');
+  currentRoute=name; currentPage=grp;
+  if(grp==='anggota' && typeof anggotaRender==='function') anggotaRender(name);
+  if(grp==='pengurus' && typeof pengurusRender==='function') pengurusRender(name);
+  window.scrollTo(0,0);
 }
-function navigateAnggota(){
-  history.pushState({page:'anggota'},'', '#anggota');
-  showAnggotaNoPush();
-}
-function navigatePengurus(){
-  history.pushState({page:'pengurus'},'', '#pengurus');
-  showPengurusNoPush();
-}
-window.addEventListener('popstate', (e)=>{
-  let state = e.state;
-  if(!state){ showLandingNoPush(); return; }
-  if(state.page==='anggota') showAnggotaNoPush();
-  else if(state.page==='pengurus') showPengurusNoPush();
-  else showLandingNoPush();
-});
-window.addEventListener('load',()=>{
-  history.replaceState({page:'landing'},'', '#landing');
-  // handle direct hash
-  if(location.hash==='#anggota') navigateAnggota();
-  if(location.hash==='#pengurus') navigatePengurus();
+function go(name){ history.pushState({r:name},'','#'+name); renderRoute(name); }          // layar baru (tombol back kembali ke layar ini)
+function goReplace(name){ history.replaceState({r:name},'','#'+name); renderRoute(name); } // ganti layar tanpa menambah riwayat
+function navigateAnggota(){ go('anggota'); }
+function navigatePengurus(){ go('pengurus'); }
+window.addEventListener('popstate',e=>{ renderRoute((e.state&&e.state.r)||location.hash.replace('#',''),true); });
+window.addEventListener('DOMContentLoaded',()=>{
+  const start=location.hash.replace('#','');
+  history.replaceState({r:'landing'},'','#landing'); renderRoute('landing');
+  if(start.indexOf('anggota')===0) go('anggota');
+  else if(start==='pengurus') go('pengurus');
+  else if(start==='pengurus-dashboard'){
+    if(typeof pkToken!=='undefined' && pkToken){ history.pushState({r:'pengurus'},'','#pengurus'); go('pengurus-dashboard'); } // sisipkan entri Login di bawah dasbor tanpa menghapus sesi
+    else go('pengurus');
+  }
 });
 
 

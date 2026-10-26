@@ -12,24 +12,25 @@ const pkEmailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 const pkPwErr = p => p.length < 8 ? 'Password minimal 8 karakter.' : (!/[A-Za-z]/.test(p) || !/\d/.test(p)) ? 'Password harus berisi huruf dan angka.' : '';
 function pkLihat(ids, on){ ids.forEach(i => $(i).type = on ? 'text' : 'password'); }
 
-// tampilkan login / dasbor saat halaman Pengurus dibuka
-const _showPk = showPengurusNoPush;
-showPengurusNoPush = function(){ _showPk(); pkMulai(); };
-
-function pkMulai(){
-  if(pkToken){ $('pkLogin').classList.add('hidden'); $('pkDash').classList.remove('hidden'); pkMuat(); }
-  else { $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); pkTab('kode'); }
+// dipanggil router: 'pengurus' = layar login (sesi lama dibersihkan), 'pengurus-dashboard' = dasbor
+function pengurusRender(name){
+  if(name === 'pengurus'){
+    if(pkToken) pkApi({a:'keluar', token:pkToken}).catch(() => {});
+    pkToken = ''; sessionStorage.removeItem('pk_token');
+    $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); pkTab('kode');
+  } else {
+    $('pkLogin').classList.add('hidden'); $('pkDash').classList.remove('hidden'); pkMuat();
+  }
 }
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
-  document.querySelector('#pkLogin .pktab').parentElement.classList.toggle('hidden', t === 'atur');
   pkPesan('');
 }
 function pkMasuk(r){ // sesi berhasil dibuat
   pkToken = r.token; sessionStorage.setItem('pk_token', pkToken);
   ['pkKode','pkPw','pkAturKode','pkBaru','pkBaru2'].forEach(i => $(i).value = ''); $('pkKodeWrap').classList.add('hidden');
-  pkMulai();
+  go('pengurus-dashboard');
 }
 
 /* --- login kode email --- */
@@ -113,9 +114,10 @@ async function pkGantiSimpan(){
 }
 async function pkKeluar(){
   try{ await pkApi({a:'keluar', token:pkToken}); }catch(e){}
-  pkToken = ''; sessionStorage.removeItem('pk_token'); pkMulai();
+  pkToken = ''; sessionStorage.removeItem('pk_token');
+  if(currentRoute === 'pengurus-dashboard') history.back(); else goReplace('pengurus');
 }
-function pkExpired(){ pkToken = ''; sessionStorage.removeItem('pk_token'); pkMulai(); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
+function pkExpired(){ pkToken = ''; sessionStorage.removeItem('pk_token'); goReplace('pengurus'); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
 
 /* --- dasbor --- */
 async function pkMuat(){
@@ -257,5 +259,3 @@ async function pkVerif(lid, v){
   pkMuat();
 }
 
-// buka langsung lewat #pengurus (halaman sudah tampil sebelum file ini dimuat)
-if(typeof currentPage !== 'undefined' && currentPage === 'pengurus') pkMulai();

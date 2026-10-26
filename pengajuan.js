@@ -77,6 +77,7 @@ async function kirimPengajuan(){
   if(!anggotaAktif){ alert('Cek NIK dulu'); return; }
   if(API_URL.startsWith('GANTI')){ alert('API_URL belum diisi'); return; }
   // validasi semua kolom berformat
+  const mb = blokir('KOPERASI'); if(mb){ alert(mb); return; }
   if(!validasiForm($('formPinjam'))) return;
   const g = id => $(id).value.trim();
   const d = {
@@ -93,9 +94,9 @@ async function kirimPengajuan(){
     const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify(d)})).json();
     if(r.ok){
       alert('✅ Pengajuan terkirim. No: ' + r.id);
-      muatData().then(() => tampilView('vApproval'));
+      muatData().then(() => goReplace('anggota-approval'));
     } else alert('❌ ' + r.msg);
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
-  btn.disabled = false; btn.innerText = 'Kirim Pengajuan';
+  btn.innerText = 'Kirim Pengajuan'; if(typeof terapkanBlokir === 'function') terapkanBlokir(); else btn.disabled = false;
 }
 
