@@ -49,6 +49,12 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .choice-card b{display:block;color:#134e8a;font-size:15px}
 .choice-card p{font-size:11px;color:#5a7aa0;margin:6px 0 0;line-height:1.3}
 .hidden{display:none!important}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.mtile{border:1.5px solid #b9d2f0;background:#fff;border-radius:16px;padding:14px 10px;text-align:center;cursor:pointer;color:#134e8a;font-family:inherit}
+.mtile .ic{font-size:30px;display:block}.mtile b{display:block;font-size:14px;margin:4px 0 2px}.mtile span.sub{display:block;font-size:11px;color:#5a7aa0;line-height:1.3}
+.mtile.off{opacity:.45;cursor:not-allowed;background:#eef3f9}.mtile.wide{grid-column:1/3}
+.vback{display:inline-flex;margin-bottom:8px}
+.fotobtn{flex:1;padding:12px 6px;border-radius:12px;border:1.5px dashed #134e8a;background:#f1f8ff;color:#134e8a;font-weight:800;font-size:14px;text-align:center;cursor:pointer}
 .pktab{flex:1;padding:10px;border-radius:10px;border:1.5px solid #b9d2f0;background:#eef5ff;color:#134e8a;font-weight:800;font-size:14px;cursor:pointer}.pktab.on{background:#134e8a;color:#fff}
 .back-link{display:inline-flex;align-items:center;gap:6px;color:#134e8a;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:10px;background:#eef5ff;border:1px solid #b9d2f0;padding:6px 12px;border-radius:20px}
 .search-box{display:flex;gap:8px;margin:10px 0}
@@ -119,33 +125,111 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 
 <!-- HALAMAN ANGGOTA -->
 <div id="pageAnggota" class="hidden">
-  <div class="card">
+  <div class="card" id="loginCard">
     <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
-    <b>1. Cek NIK Karyawan</b>
+    <div id="sesiBar" style="display:none;justify-content:space-between;align-items:center;gap:8px;margin-top:6px">
+      <div>✅ <b id="sbNama"></b><div class="small" id="sbInfo"></div></div>
+      <span class="back-link" style="margin:0" onclick="keluarAnggota()">Keluar</span>
+    </div>
+    <div id="loginForm">
+    <div style="font-weight:800;font-size:17px;margin:2px 0 6px">Masuk Anggota</div>
     <p class="small">Masukkan NIK dan tanggal lahir, sistem otomatis cek Tgl Masuk &amp; Masa Kerja dari database anggota.</p>
     <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')cekNIK()">
-    <label style="margin-top:10px">Tanggal Lahir</label>
+    <label style="margin-top:10px;display:block">Tanggal Lahir</label>
     <div style="display:flex;gap:6px">
       <select id="lhTgl" onchange="resetNik()" style="flex:1"></select>
       <select id="lhBln" onchange="resetNik()" style="flex:2"></select>
       <select id="lhThn" onchange="resetNik()" style="flex:2"></select>
     </div>
     <p class="small">Tanggal lahir dipakai untuk memastikan Anda benar-benar anggota yang bersangkutan.</p>
-    <button class="btn" id="btnCekNik" onclick="cekNIK()" style="margin-top:8px">🔍 Cek NIK</button>
+    <button class="btn" id="btnCekNik" onclick="cekNIK()" style="margin-top:8px">🔍 Masuk</button>
     <div id="hasilCek" style="margin-top:8px"></div>
-  </div>
-
-  <!-- GAMBAR PULAU TOWER DI BAWAH NIK - SESUAI REQUEST -->
-  <div class="hero hero-small" style="margin:0 14px 14px">
-    <img src="hero-tower.png" alt="Pulau Tower Intisel">
-    <div class="hero-overlay" style="padding:12px">
-      <b style="font-size:14px">Pulau & Tower Intisel Lampung</b>
-      <p style="font-size:10px">Infrastruktur untuk karyawan - Sinergi untuk sejahtera</p>
     </div>
   </div>
 
-  <div class="card" id="formPinjam" style="display:none">
-    <b>2. <span id="namaAnggota"></span> <span class="badge" id="jabAnggota"></span></b>
+  <!-- MENU ANGGOTA -->
+  <div class="card" id="menuCard" style="display:none">
+    <b id="mnNama" style="font-size:17px"></b> <span class="badge" id="mnJab"></span>
+    <p class="small" id="mnMasa" style="margin:4px 0 0"></p>
+    <div class="mgrid">
+      <button class="mtile" id="tlKasbon" onclick="bukaMenu('vKasbon')"><span class="ic">💸</span><b>Pengajuan Kasbon</b><span class="sub" id="tlKasbonSub"></span></button>
+      <button class="mtile" id="tlKoperasi" onclick="bukaMenu('formPinjam')"><span class="ic">🏦</span><b>Pengajuan Koperasi</b><span class="sub" id="tlKoperasiSub"></span></button>
+      <button class="mtile" onclick="bukaMenu('vApproval')"><span class="ic">📋</span><b>Status Approval</b><span class="sub" id="tlApprovalSub">Koperasi / Kasbon</span></button>
+      <button class="mtile" onclick="bukaMenu('vBerjalan')"><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub" id="tlBerjalanSub"></span></button>
+      <button class="mtile wide" onclick="bukaMenu('vBayar')"><span class="ic">🧾</span><b>Laporan Pembayaran Angsuran</b><span class="sub" id="tlBayarSub">Upload foto bukti transaksi</span></button>
+    </div>
+  </div>
+
+  <!-- KASBON -->
+  <div class="card view" id="vKasbon" style="display:none">
+    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
+    <b style="font-size:16px">💸 Pengajuan Kasbon</b>
+    <div class="warn" style="margin:8px 0">Khusus masa kerja di bawah 2 tahun. Maksimal <b>Rp 500.000</b>, jangka waktu <b>30 hari</b> (1 bulan), dikembalikan sekaligus.</div>
+    <label>Nominal Kasbon</label>
+    <input type="range" id="kbNominal" min="50000" max="500000" step="50000" value="300000" oninput="kbUpdate()">
+    <div style="display:flex;justify-content:space-between;font-weight:800"><span id="kbNomTxt">Rp 300.000</span><span class="small">Maks Rp 500.000</span></div>
+    <div class="ok" style="display:flex;justify-content:space-between;margin:10px 0"><span>Jatuh tempo</span><b id="kbTempo"></b></div>
+    <label>Alasan / Keperluan</label><textarea id="kbAlasan" rows="2" placeholder="Contoh: Kebutuhan mendadak keluarga"></textarea>
+    <label>Alamat Lengkap</label><textarea id="kbAlamat" rows="2"></textarea>
+    <label>Nomor HP</label><input id="kbHp" type="tel" inputmode="numeric" data-fmt="hp" placeholder="+62 8xx-xxxx-xxxx" autocomplete="tel">
+    <label>Email aktif</label><input id="kbEmail" type="email" data-fmt="email" inputmode="email" autocapitalize="none" placeholder="nama@email.com">
+    <label>Nomor Rekening BNI</label><input id="kbRek" type="text" inputmode="numeric" data-fmt="digits" placeholder="Hanya angka">
+    <label>Gaji Under</label><select id="kbGajiUnder"><option value="">-- Pilih --</option><option>HRD</option><option>Project</option></select>
+    <label>Gaji terakhir yang diterima (Rp)</label><input id="kbGaji1" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 2.500.000">
+    <label>Nama kontak darurat</label><input id="kbNamaD">
+    <label>No. HP kontak darurat</label><input id="kbHpD" type="tel" inputmode="numeric" data-fmt="hp" placeholder="+62 8xx-xxxx-xxxx">
+    <label>Hubungan dengan peminjam</label><input id="kbHub" list="hubList" placeholder="Istri / Suami / Orang Tua ...">
+    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input type="checkbox" id="kbSetuju" style="width:auto;margin-top:3px">
+    <span class="small">Data saya isi dengan jujur. Formulir ini berfungsi sebagai surat kuasa pemotongan gaji ke HRD bila terjadi keterlambatan.</span></label>
+    <button class="btn" id="btnKb" onclick="kirimKasbon()">Kirim Pengajuan Kasbon</button>
+  </div>
+
+  <!-- STATUS APPROVAL -->
+  <div class="card view" id="vApproval" style="display:none">
+    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
+    <b style="font-size:16px">📋 Status Approval</b>
+    <p class="small">Pengajuan pinjaman koperasi dan kasbon Anda.</p>
+    <div id="apBox"></div>
+  </div>
+
+  <!-- PINJAMAN BERJALAN -->
+  <div class="card view" id="vBerjalan" style="display:none">
+    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
+    <b style="font-size:16px">📊 Pinjaman Berjalan</b>
+    <div id="bjBox" style="margin-top:8px"></div>
+  </div>
+
+  <!-- LAPORAN PEMBAYARAN -->
+  <div class="card view" id="vBayar" style="display:none">
+    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
+    <b style="font-size:16px">🧾 Laporan Pembayaran Angsuran</b>
+    <div id="byInfo" class="small" style="margin:6px 0"></div>
+    <div id="byForm">
+      <label>Angsuran yang dibayar</label><select id="bySelect" onchange="byIsiJumlah()"></select>
+      <label>Tanggal pembayaran</label><input id="byTgl" type="date">
+      <label>Jumlah dibayar (Rp)</label><input id="byJumlah" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 500.000">
+      <label>Catatan (opsional)</label><input id="byCatatan" maxlength="200" placeholder="Contoh: Transfer BNI a.n. ...">
+      <label>Foto bukti transaksi</label>
+      <div style="display:flex;gap:8px">
+        <label class="fotobtn" for="byKamera">📷 Ambil Foto</label>
+        <label class="fotobtn" for="byGaleri">🖼️ Pilih dari Galeri</label>
+      </div>
+      <input type="file" id="byKamera" accept="image/*" capture="environment" style="display:none" onchange="pilihFoto(this)">
+      <input type="file" id="byGaleri" accept="image/*" style="display:none" onchange="pilihFoto(this)">
+      <div id="byPreviewWrap" style="display:none;margin-top:8px;text-align:center">
+        <img id="byPreview" alt="Pratinjau bukti" style="max-width:100%;max-height:260px;border-radius:12px;border:1px solid #b9d2f0">
+        <div class="small" id="byFotoInfo"></div>
+        <span class="back-link" style="margin:4px 0 0" onclick="hapusFoto()">✖ Ganti foto</span>
+      </div>
+      <button class="btn" id="btnBayar" onclick="kirimLaporan()" style="margin-top:12px">Kirim Laporan Pembayaran</button>
+    </div>
+    <div style="font-weight:800;margin-top:16px">Riwayat Laporan</div>
+    <div id="byRiwayat" style="margin-top:6px"></div>
+  </div>
+
+  <div class="card view" id="formPinjam" style="display:none">
+    <span class="back-link vback" onclick="tampilView('menuCard')">← Menu</span>
+    <b>🏦 Pengajuan Koperasi - <span id="namaAnggota"></span> <span class="badge" id="jabAnggota"></span></b>
     <p class="small" id="tglMasukTxt"></p>
     <div class="kpi">
       <div><span>MASA KERJA</span><b id="mkTxt">-</b></div>
@@ -195,8 +279,13 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
     <p class="small" style="text-align:center;margin-top:8px">Validasi: nominal ≤ limit & tenor ≤ limit maks sesuai masa kerja</p>
   </div>
 
-  <div class="card" id="statusCard" style="display:none"><b>Status Pengajuan Saya</b><div id="statusBox" style="margin-top:8px"></div></div>
-  <div class="card"><button class="btn" onclick="muatStatus()">📋 Lihat Status Pengajuan</button></div>
+  <div class="hero hero-small" style="margin:0 14px 14px">
+    <img src="hero-tower.png" alt="Pulau Tower Intisel">
+    <div class="hero-overlay" style="padding:12px">
+      <b style="font-size:14px">Pulau &amp; Tower Intisel Lampung</b>
+      <p style="font-size:10px">Infrastruktur untuk karyawan - Sinergi untuk sejahtera</p>
+    </div>
+  </div>
 </div>
 
 <!-- HALAMAN PENGURUS -->
@@ -259,6 +348,7 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
       <div id="pkGantiPesan" style="margin-top:8px"></div>
     </div>
     <div class="card"><b>Menunggu Keputusan Anda</b><div id="pkMenunggu" style="margin-top:8px"></div></div>
+    <div class="card"><b>Laporan Pembayaran (verifikasi bukti)</b><div id="pkLaporan" style="margin-top:8px"></div></div>
     <div class="card"><b>Pinjaman Berjalan</b><div id="pkPinjaman" style="margin-top:8px"></div></div>
     <div class="card"><b>Riwayat Pengajuan (30 terakhir)</b><div id="pkRiwayat" style="margin-top:8px"></div></div>
   </div>
@@ -342,7 +432,7 @@ function resetNik(){
   let el=document.getElementById('nikInput'); el.value=el.value.replace(/\D/g,'');
   anggotaAktif=null;
   document.getElementById('hasilCek').innerHTML='';
-  document.getElementById('formPinjam').style.display='none';
+  document.querySelectorAll('.view,#menuCard').forEach(v=>v.style.display='none');
 }
 async function cekNIK(){
  if(cekBusy) return;
@@ -359,7 +449,6 @@ async function cekNIK(){
      return;
    }
    anggotaAktif={nik:v,lahir:lahir,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
-   muatStatus();
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 
@@ -373,9 +462,7 @@ async function cekNIK(){
 
    if(limitAktif.notEligible){
      document.getElementById('limitInfo').innerHTML=`❌ Masa kerja < 2 tahun (${mk.toFixed(1)} th) belum bisa pinjam sesuai kebijakan. Minimal 2 tahun.`;
-     form.style.display='block';
-     document.getElementById('btnKirim').disabled=true;
-     document.getElementById('btnKirim').innerText='Belum Memenuhi Syarat';
+     masukMenu();
      return;
    }
    document.getElementById('btnKirim').disabled=false;
@@ -396,11 +483,11 @@ async function cekNIK(){
      tenorSel.appendChild(opt);
    }
    updateNominal();
-   form.style.display='block';
+   masukMenu();
  }catch(e){
    hasil.innerHTML='<div class="err">❌ Gagal terhubung ke server. Periksa internet lalu coba lagi.</div>';
  }finally{
-   cekBusy=false; btnCek.disabled=false; btnCek.innerText='🔍 Cek NIK';
+   cekBusy=false; btnCek.disabled=false; btnCek.innerText='🔍 Masuk';
  }
 }
 
@@ -421,6 +508,7 @@ function hitungAngsuran(){
 
 </script>
 <script src="pengajuan.js"></script>
+<script src="layanan.js"></script>
 <script src="pengurus.js"></script>
 </body>
 </html>

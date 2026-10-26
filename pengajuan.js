@@ -64,19 +64,23 @@ function initFmt(){
 }
 document.addEventListener('DOMContentLoaded', () => { initFmt(); initLahir(); });
 
+function validasiForm(box){ // validasi semua kolom berformat di dalam satu formulir
+  let first = null;
+  box.querySelectorAll('[data-fmt]').forEach(el => {
+    const m = validate(el); el.dataset.touched = '1'; showErr(el, m);
+    if(m && !first) first = el;
+  });
+  if(first){ first.scrollIntoView({behavior:'smooth', block:'center'}); first.focus(); alert('Periksa kolom yang berwarna merah.'); return false; }
+  return true;
+}
 async function kirimPengajuan(){
   if(!anggotaAktif){ alert('Cek NIK dulu'); return; }
   if(API_URL.startsWith('GANTI')){ alert('API_URL belum diisi'); return; }
   // validasi semua kolom berformat
-  let first = null;
-  document.querySelectorAll('[data-fmt]').forEach(el => {
-    const m = validate(el); el.dataset.touched = '1'; showErr(el, m);
-    if(m && !first) first = el;
-  });
-  if(first){ first.scrollIntoView({behavior:'smooth', block:'center'}); first.focus(); alert('Periksa kolom yang berwarna merah.'); return; }
+  if(!validasiForm($('formPinjam'))) return;
   const g = id => $(id).value.trim();
   const d = {
-    a:'ajukan', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, nominal:g('nomRange'), tenor:g('tenor'),
+    a:'ajukan', jenis:'KOPERASI', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, nominal:g('nomRange'), tenor:g('tenor'),
     alasan:g('tujuan'), alamat:g('alamat'), hp:g('hp'), email:g('email'), rek:onlyDigits(g('rek')), gajiUnder:g('gajiUnder'),
     infaq:moneyVal('infaq'), pernahPinjam:g('pernahPinjam'), tglLunas:g('tglLunas'),
     jmlDitahan:g('jmlDitahan'), gajiDitahan:g('gajiDitahan')||(g('jmlDitahan')==='0'?'Tidak ada':''),
@@ -89,38 +93,9 @@ async function kirimPengajuan(){
     const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify(d)})).json();
     if(r.ok){
       alert('✅ Pengajuan terkirim. No: ' + r.id);
-      $('formPinjam').style.display = 'none';
-      muatStatus();
+      muatData().then(() => tampilView('vApproval'));
     } else alert('❌ ' + r.msg);
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
   btn.disabled = false; btn.innerText = 'Kirim Pengajuan';
 }
 
-const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
-const ICON = (v, selesai) => v==='Y' ? '✅' : v==='N' ? '❌' : (selesai ? '➖' : '⏳');
-const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${esc(a)}”</i></div>` : '';
-
-async function muatStatus(){
-  const box = $('statusBox'); $('statusCard').style.display = 'block';
-  if(!anggotaAktif){ box.innerHTML = '<p class="small">Isi NIK dan tanggal lahir, lalu tekan Cek NIK.</p>'; return; }
-  box.innerHTML = '<p class="small">Memuat...</p>';
-  try{
-    const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'status', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir})})).json();
-    if(!r.ok){ box.innerHTML = '<p class="small">'+esc(r.msg)+'</p>'; return; }
-    if(!r.list || !r.list.length){ box.innerHTML = '<p class="small">Belum ada pengajuan.</p>'; return; }
-    box.innerHTML = r.list.map(p => {
-      const selesai = ['DITOLAK','DISETUJUI','LUNAS'].includes(p.status);
-      const done = p.pengurus.filter(x => x.v==='Y').length;
-      const tampilPimpinan = p.status !== 'REVIEW_PENGURUS';
-      return `<div class="ok" style="margin-bottom:10px;background:#fff">
-        <b>${esc(p.id)}</b> • ${esc(p.waktu)}<br>Rp ${p.nominal.toLocaleString('id-ID')} / ${p.tenor} bln<br>
-        <b>${LABEL[p.status]||esc(p.status)}</b>
-        <div class="small" style="margin-top:6px">
-          ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${esc(x.nama)}</div>${KOMEN(x.a)}`).join('')}
-          ${p.status==='REVIEW_PENGURUS' ? '<div>Review pengurus: '+done+'/3</div>' : ''}
-          ${p.angsuran ? `<div style="margin:6px 0;padding:6px 8px;background:#f1f8ff;border-radius:8px"><b>Angsuran: ${p.angsuran.lunas}/${p.angsuran.total} lunas</b> • sisa Rp ${p.angsuran.sisa.toLocaleString('id-ID')}${p.angsuran.berikut ? `<br>Berikutnya: ke-${p.angsuran.berikut.ke}, jatuh tempo ${esc(p.angsuran.berikut.due.split('-').reverse().join('/'))} (Rp ${p.angsuran.berikut.jumlah.toLocaleString('id-ID')})` : ''}${p.angsuran.terlambat ? `<br><span style="color:#c0392b"><b>⚠️ ${p.angsuran.terlambat} angsuran melewati jatuh tempo</b></span>` : ''}${p.tglLunas ? `<br>Lunas pada ${esc(p.tglLunas.split('-').reverse().join('/'))}` : ''}</div>` : ''}
-          ${tampilPimpinan ? `<div>${ICON(p.pimpinan, selesai)} ${esc(p.pimpinanNama||'Pimpinan')} (Pimpinan)</div>${KOMEN(p.pimpinanA)}` : ''}
-        </div></div>`;
-    }).join('');
-  }catch(e){ box.innerHTML = '<p class="small">Gagal memuat status.</p>'; }
-}
