@@ -3,7 +3,7 @@ let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoDa
 const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar'};
 const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar'};
 const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar'];
-const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
+const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'💸 Disetujui - Menunggu Pencairan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v === 'Y' ? '✅' : v === 'N' ? '❌' : (selesai ? '➖' : '⏳');
 const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${esc(a)}”</i></div>` : '';
@@ -60,6 +60,8 @@ function keluarAnggota(){ // mundur ke layar Cek NIK (sesi dibersihkan oleh rout
 function blokir(jenis){ // '' bila boleh mengajukan, selain itu pesan alasan
   const L = dataSaya.list, today = hariIniStr();
   const proses = L.find(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN');
+  const mc = L.find(p => p.status === 'MENUNGGU_PENCAIRAN');
+  if(mc) return 'Pengajuan Anda (' + mc.id + ') sudah disetujui dan menunggu pencairan' + (mc.pencairan ? ' (paling lambat ' + tglf(mc.pencairan.target) + ')' : '') + '. Pengajuan baru bisa dilakukan setelah pinjaman dicairkan dan lunas.';
   if(proses) return 'Anda masih memiliki pengajuan yang sedang diproses (' + proses.id + '). Tunggu keputusan pengurus dan pimpinan sebelum mengajukan lagi.';
   const bj = L.find(p => p.status === 'DISETUJUI');
   if(bj) return 'Anda masih memiliki pinjaman berjalan (' + bj.id + ', sisa ' + rpf(bj.angsuran ? bj.angsuran.sisa : 0) + '). Pengajuan baru bisa dilakukan setelah lunas' + (jenis === 'KOPERASI' ? ' dan melewati masa tunggu 3 bulan.' : '.');
@@ -90,9 +92,10 @@ function renderSub(){
   $('tlApprovalSub').innerText = proses ? proses + ' sedang diproses' : 'Koperasi / Kasbon';
   const bj = dataSaya.list.filter(p => p.status === 'DISETUJUI'), sisa = bj.reduce((t, p) => t + (p.angsuran ? p.angsuran.sisa : 0), 0);
   $('tlBerjalanSub').innerText = bj.length ? 'Sisa ' + rpf(sisa) : 'Tidak ada pinjaman berjalan';
-  const st = $('mnStatus'), sedangProses = dataSaya.list.find(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN');
+  const st = $('mnStatus'), menungguCair = dataSaya.list.find(p => p.status === 'MENUNGGU_PENCAIRAN'), sedangProses = dataSaya.list.find(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN');
   let info = '';
   if(bj.length){ const p = bj[0], a = p.angsuran; info = `📌 Pinjaman berjalan <b>${esc(p.id)}</b>: sisa <b>${rpf(sisa)}</b>` + (a && a.berikut ? ` • jatuh tempo berikutnya ${tglf(a.berikut.due)}` : '') + '. Pengajuan baru dapat dilakukan setelah lunas.'; }
+  else if(menungguCair) info = `💸 Pengajuan <b>${esc(menungguCair.id)}</b> sudah disetujui, <b>menunggu pencairan</b>` + (menungguCair.pencairan ? ' (paling lambat ' + tglf(menungguCair.pencairan.target) + ')' : '') + '. Pengajuan baru belum dapat dibuat.';
   else if(sedangProses) info = `⏳ Pengajuan <b>${esc(sedangProses.id)}</b> sedang diproses. Pengajuan baru belum dapat dibuat.`;
   else if(dataSaya.bolehKoperasi && hariIniStr() < dataSaya.bolehKoperasi && !limitAktif.notEligible) info = `⏳ Masa tunggu 3 bulan setelah pelunasan. Pengajuan Koperasi bisa dilakukan mulai <b>${tglf(dataSaya.bolehKoperasi)}</b>.`;
   st.style.display = info ? 'block' : 'none'; st.innerHTML = info;
@@ -102,10 +105,11 @@ function renderSub(){
 function renderApproval(){
   const L = dataSaya.list;
   $('apBox').innerHTML = L.length ? L.map(p => {
-    const selesai = ['DITOLAK', 'DISETUJUI', 'LUNAS'].includes(p.status), done = p.pengurus.filter(x => x.v === 'Y').length;
+    const selesai = ['DITOLAK', 'MENUNGGU_PENCAIRAN', 'DISETUJUI', 'LUNAS'].includes(p.status), done = p.pengurus.filter(x => x.v === 'Y').length;
     return `<div class="ok" style="margin-bottom:10px;background:#fff">
       ${badgeJenis(p.jenis)} <b>${esc(p.id)}</b> • ${esc(p.waktu)}<br>${rpf(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'}<br>
       <b>${LABEL[p.status] || esc(p.status)}</b>
+      ${p.pencairan ? `<div class="small" style="margin-top:4px;color:#134e8a">💸 ${esc(p.pencairan.label)}${p.pencairan.tglCair ? '<br>✅ Dicairkan ' + tglf(p.pencairan.tglCair) : ''}</div>` : ''}
       <div class="small" style="margin-top:6px">
         ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${esc(x.nama)}</div>${KOMEN(x.a)}`).join('')}
         ${p.status === 'REVIEW_PENGURUS' ? '<div>Review pengurus: ' + done + '/3</div>' : ''}
