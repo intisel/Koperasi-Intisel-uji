@@ -19,9 +19,16 @@ function pengurusRender(name){
     pkToken = ''; sessionStorage.removeItem('pk_token');
     $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); pkTab('kode');
   } else {
-    $('pkLogin').classList.add('hidden'); $('pkDash').classList.remove('hidden'); pkMuat();
+    $('pkLogin').classList.add('hidden'); $('pkDash').classList.remove('hidden');
+    const v = PK_VIEW[name] || 'pkvMenu';
+    document.querySelectorAll('#pkDash .pkv').forEach(e => e.classList.toggle('hidden', e.id !== v));
+    if(name === 'pengurus-statistik') pkStatMuat();
+    else if(name === 'pengurus-anggota') agMuat();
+    else if(name === 'pengurus-laporan') lpInit();
+    else pkMuat();
   }
 }
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-bayar':'pkvBayar', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
@@ -115,7 +122,8 @@ async function pkGantiSimpan(){
 async function pkKeluar(){
   try{ await pkApi({a:'keluar', token:pkToken}); }catch(e){}
   pkToken = ''; sessionStorage.removeItem('pk_token');
-  if(currentRoute === 'pengurus-dashboard') history.back(); else goReplace('pengurus');
+  const lv = ROUTE_LEVEL[currentRoute] || 0;
+  if(lv > 0) history.go(-lv); else goReplace('pengurus');
 }
 function pkExpired(){ pkToken = ''; sessionStorage.removeItem('pk_token'); goReplace('pengurus'); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
 
@@ -135,12 +143,14 @@ async function pkMuat(){
       (bj.terlambat ? `<div class="err" style="grid-column:1/3;text-align:center"><b>⚠️ ${bj.terlambat} pinjaman memiliki angsuran melewati jatuh tempo</b></div>` : '');
     $('pkRekapCatatan').innerText = `Ditolak: ${c.DITOLAK} • Total pengajuan: ${r.rekap.total}. Angsuran jatuh tempo tgl 5 (bayar tgl 1-5).`;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
+    pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbBayar', r.laporan.length); pkBadge2('pbCair', r.pencairan.length); pkBadge2('pbBerjalan', bj.terlambat);
     $('pkPencairan').innerHTML = r.pencairan.length ? r.pencairan.map(pkCairKartu).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>';
     $('pkLaporan').innerHTML = r.laporan.length ? r.laporan.map(pkLaporanKartu).join('') : '<p class="small">Tidak ada laporan pembayaran yang menunggu verifikasi.</p>';
     $('pkPinjaman').innerHTML = r.pinjaman.length ? r.pinjaman.map(pkPinjamanKartu).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';
     $('pkRiwayat').innerHTML = r.riwayat.length ? r.riwayat.map(pkBaris).join('') : '<p class="small">Belum ada pengajuan.</p>';
   }catch(e){ $('pkMenunggu').innerHTML = '<div class="err">Gagal memuat data. Coba ↻ Muat ulang.</div>'; }
 }
+function pkBadge2(id, n){ const e = $(id); e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; }
 function pkVotes(p){
   const k = x => `<div>${pkIc(x.v)} ${esc(x.nama)}</div>` + (x.a ? `<div style="margin:0 0 4px 22px"><i>“${esc(x.a)}”</i></div>` : '');
   return p.pengurus.map(k).join('') + (p.status !== 'REVIEW_PENGURUS' ? k(p.pimpinan) : '');
@@ -231,6 +241,7 @@ function pkPinjamanKartu(p){
     <span class="small">${pkRp(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'} • angsuran ${pkRp(p.angsuran)}</span>
     <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
     <div class="small"><b>${p.lunas}/${p.total} lunas</b> • sisa ${pkRp(p.sisa)}${p.berikut ? '<br>Berikutnya: ke-' + p.berikut.ke + ', jatuh tempo ' + pkTgl(p.berikut.due) + ' (' + pkRp(p.berikut.jumlah) + ')' : ''}</div>
+    ${pkIngatkan(p)}
     ${aksi}
     <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>
       <table class="small" style="margin-top:6px;border-collapse:collapse"><tr style="color:#5a7aa0"><td>Ke</td><td>Jatuh tempo</td><td>Jumlah</td><td>Status</td></tr>${baris}</table>

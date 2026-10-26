@@ -52,6 +52,14 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .mtile{border:1.5px solid #b9d2f0;background:#fff;border-radius:16px;padding:14px 10px;text-align:center;cursor:pointer;color:#134e8a;font-family:inherit}
 .mtile .ic{font-size:30px;display:block}.mtile b{display:block;font-size:14px;margin:4px 0 2px}.mtile span.sub{display:block;font-size:11px;color:#5a7aa0;line-height:1.3}
+.mtile{position:relative}.pbadge{position:absolute;top:8px;right:10px;background:#dc2626;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:800;display:none}
+.chip{border:1.5px solid #b9d2f0;background:#fff;color:#134e8a;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.stt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.stt>div{border:1.5px solid #d6e6f8;border-radius:12px;padding:10px;text-align:center;background:#fff}.stt b{display:block;font-size:17px}
+.agr{border-bottom:1px solid #d6e6f8;padding:8px 0}.agr summary{cursor:pointer;list-style:none}.agr summary::-webkit-details-marker{display:none}
+.tag{display:inline-block;border-radius:99px;font-size:11px;font-weight:800;padding:2px 8px;margin:2px 4px 0 0;background:#e8f1fc;color:#134e8a}.tag.w{background:#fff3cd;color:#8a6100}.tag.r{background:#fde2e2;color:#b42318}.tag.g{background:#dcfce7;color:#166534}
+#cetakArea{display:none}
+@media print{@page{size:A4 landscape;margin:12mm}body.cetak>*:not(#cetakArea){display:none!important}body.cetak #cetakArea{display:block!important;font:11px Arial,sans-serif;color:#000}
+#cetakArea h2{margin:0 0 4px;font-size:16px}#cetakArea h3{margin:14px 0 4px;font-size:13px}#cetakArea table{border-collapse:collapse;width:100%;margin-bottom:6px}#cetakArea th,#cetakArea td{border:1px solid #888;padding:3px 5px;text-align:left;vertical-align:top}#cetakArea th{background:#e8f1fc}#cetakArea td.n{text-align:right}}
 .mtile.off{opacity:.45;cursor:not-allowed;background:#eef3f9}.mtile.wide{grid-column:1/3}
 .vback{display:inline-flex;margin-bottom:8px}
 .fotobtn{flex:1;padding:12px 6px;border-radius:12px;border:1.5px dashed #134e8a;background:#f1f8ff;color:#134e8a;font-weight:800;font-size:14px;text-align:center;cursor:pointer}
@@ -343,8 +351,6 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
         <div><b id="pkNama"></b><div class="small" id="pkPeran"></div></div>
         <div style="display:flex;gap:6px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkGantiTampil()">🔑</span><span class="back-link" style="margin:0" onclick="pkKeluar()">Keluar</span></div>
       </div>
-      <div id="pkRekap" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
-      <p class="small" id="pkRekapCatatan"></p>
     </div>
     <div class="card hidden" id="pkGanti">
       <b>Ganti Password</b>
@@ -354,11 +360,70 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
       <div style="display:flex;gap:8px"><button class="btn" onclick="pkGantiSimpan()">Simpan</button><button class="btn" style="background:#6b7f99" onclick="pkGantiTampil(false)">Batal</button></div>
       <div id="pkGantiPesan" style="margin-top:8px"></div>
     </div>
-    <div class="card"><b>Menunggu Keputusan Anda</b><div id="pkMenunggu" style="margin-top:8px"></div></div>
-    <div class="card"><b>Menunggu Pencairan</b><div id="pkPencairan" style="margin-top:8px"></div></div>
-    <div class="card"><b>Laporan Pembayaran (verifikasi bukti)</b><div id="pkLaporan" style="margin-top:8px"></div></div>
-    <div class="card"><b>Pinjaman Berjalan</b><div id="pkPinjaman" style="margin-top:8px"></div></div>
-    <div class="card"><b>Riwayat Pengajuan (30 terakhir)</b><div id="pkRiwayat" style="margin-top:8px"></div></div>
+    <!-- MENU UTAMA PENGURUS -->
+    <div class="pkv" id="pkvMenu">
+      <div class="card"><b>Ringkasan</b>
+        <div id="pkRekap" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"></div>
+        <p class="small" id="pkRekapCatatan"></p>
+      </div>
+      <div class="card"><b>Menu Pengurus</b>
+        <div class="mgrid">
+          <button class="mtile" onclick="go('pengurus-validasi')"><span class="pbadge" id="pbValidasi"></span><span class="ic">✅</span><b>Validasi Pinjaman</b><span class="sub">Tinjau, setujui, atau tolak pengajuan</span></button>
+          <button class="mtile" onclick="go('pengurus-bayar')"><span class="pbadge" id="pbBayar"></span><span class="ic">🧾</span><b>Validasi Pembayaran</b><span class="sub">Verifikasi bukti transfer angsuran</span></button>
+          <button class="mtile" onclick="go('pengurus-cair')"><span class="pbadge" id="pbCair"></span><span class="ic">💸</span><b>Pencairan Dana</b><span class="sub">Pinjaman disetujui, siap dicairkan</span></button>
+          <button class="mtile" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub">Catat angsuran &amp; pelunasan</span></button>
+          <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
+          <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
+          <button class="mtile wide" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Unduh Excel atau cetak PDF</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="pkv hidden" id="pkvValidasi">
+      <div class="card"><b>✅ Validasi Pinjaman</b><p class="small" style="margin:2px 0 8px">Tinjau, setujui, atau tolak pengajuan yang menunggu keputusan Anda.</p><div id="pkMenunggu"></div></div>
+      <div class="card"><b>Riwayat Pengajuan (30 terakhir)</b><div id="pkRiwayat" style="margin-top:8px"></div></div>
+    </div>
+    <div class="pkv hidden" id="pkvBayar">
+      <div class="card"><b>🧾 Validasi Pembayaran Angsuran</b><p class="small" style="margin:2px 0 8px">Cocokkan bukti transfer anggota dengan rekening koperasi.</p><div id="pkLaporan"></div></div>
+    </div>
+    <div class="pkv hidden" id="pkvCair">
+      <div class="card"><b>💸 Pencairan Dana</b><p class="small" style="margin:2px 0 8px">Pinjaman yang sudah disetujui pimpinan. Setelah transfer, tandai sudah dicairkan.</p><div id="pkPencairan"></div></div>
+    </div>
+    <div class="pkv hidden" id="pkvBerjalan">
+      <div class="card"><b>📊 Pinjaman Berjalan</b><p class="small" style="margin:2px 0 8px">Catat angsuran/pelunasan dan ingatkan anggota lewat WhatsApp.</p><div id="pkPinjaman"></div></div>
+    </div>
+    <div class="pkv hidden" id="pkvStatistik">
+      <div class="card"><b>📈 Dasbor &amp; Grafik</b><div id="pkStat" style="margin-top:8px"><p class="small">Memuat...</p></div></div>
+    </div>
+    <div class="pkv hidden" id="pkvAnggota">
+      <div class="card"><b>👥 Database Anggota</b>
+        <input id="agCari" type="search" placeholder="Cari nama / NIK / jabatan..." oninput="agRender()" style="margin-top:8px" autocomplete="off">
+        <select id="agFilter" onchange="agRender()">
+          <option value="">Semua anggota</option><option value="berjalan">Punya pinjaman berjalan</option><option value="terlambat">Angsuran terlambat</option>
+          <option value="proses">Pengajuan sedang diproses</option><option value="Koperasi">Layanan Koperasi (≥ 2 th)</option><option value="Kasbon">Layanan Kasbon (&lt; 2 th)</option>
+        </select>
+        <p class="small" id="agInfo"></p><div id="agList"></div>
+      </div>
+    </div>
+    <div class="pkv hidden" id="pkvLaporan">
+      <div class="card"><b>📑 Laporan &amp; Ekspor</b>
+        <p class="small" style="margin:2px 0 8px">Data operasional dan rekap keuangan pada rentang tanggal tertentu.</p>
+        <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lpDari" onchange="lpStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lpSampai" onchange="lpStale()"></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px">
+          <span class="chip" onclick="lpPreset('bulan')">Bulan ini</span><span class="chip" onclick="lpPreset('3bulan')">3 bulan</span><span class="chip" onclick="lpPreset('tahun')">Tahun ini</span>
+        </div>
+        <button class="btn" id="lpBtn" onclick="lpMuat()">Tampilkan Laporan</button>
+        <div id="lpPesan" style="margin-top:8px"></div>
+      </div>
+      <div class="card hidden" id="lpHasil">
+        <div id="lpRingkas"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" style="flex:1;min-width:140px;background:#0f766e;padding:12px;font-size:14px" onclick="lpExcel()">⬇ Excel (.xlsx)</button>
+          <button class="btn" style="flex:1;min-width:140px;background:#134e8a;padding:12px;font-size:14px" onclick="lpCetak()">🖨 PDF / Cetak</button>
+        </div>
+        <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
+        <div id="lpPreview"></div>
+      </div>
+    </div>
   </div>
   <div class="hero hero-small">
     <img src="hero-tower.png" alt="Pulau Tower">
@@ -368,6 +433,8 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
     </div>
   </div>
 </div>
+
+<div id="cetakArea"></div>
 
 <!-- KONFIRMASI PENGAJUAN + TANDA TANGAN -->
 <div id="ttdModal" style="display:none;position:fixed;inset:0;background:rgba(10,30,60,.6);z-index:50;overflow-y:auto;padding:14px">
@@ -394,8 +461,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-bayar','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-bayar':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -403,7 +470,7 @@ function renderRoute(name,fromPop){
     if(fromPop){ history.back(); return; }
     history.replaceState({r:'anggota'},'','#anggota'); name='anggota';
   }
-  if(name==='pengurus-dashboard' && !(typeof pkToken!=='undefined' && pkToken)){
+  if(name.indexOf('pengurus-')===0 && !(typeof pkToken!=='undefined' && pkToken)){
     if(fromPop){ history.back(); return; }
     history.replaceState({r:'pengurus'},'','#pengurus'); name='pengurus';
   }
@@ -432,9 +499,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   history.replaceState({r:'landing'},'','#landing'); renderRoute('landing');
   if(start.indexOf('anggota')===0) go('anggota');
   else if(start==='pengurus') go('pengurus');
-  else if(start==='pengurus-dashboard'){
-    if(typeof pkToken!=='undefined' && pkToken){ history.pushState({r:'pengurus'},'','#pengurus'); go('pengurus-dashboard'); } // sisipkan entri Login di bawah dasbor tanpa menghapus sesi
-    else go('pengurus');
+  else if(start.indexOf('pengurus-')===0){
+    if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Login > Menu di bawah layar yang dibuka, tanpa menghapus sesi
+      history.pushState({r:'pengurus'},'','#pengurus');
+      if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ history.pushState({r:'pengurus-dashboard'},'','#pengurus-dashboard'); go(start); }
+      else go('pengurus-dashboard');
+    } else go('pengurus');
   }
 });
 
@@ -533,5 +603,6 @@ function hitungAngsuran(){
 <script src="ttd.js"></script>
 <script src="layanan.js"></script>
 <script src="pengurus.js"></script>
+<script src="pengurus2.js"></script>
 </body>
 </html>
