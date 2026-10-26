@@ -200,11 +200,31 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 
 <!-- HALAMAN PENGURUS -->
 <div id="pagePengurus" class="hidden">
-  <div class="card">
+  <div class="card" id="pkLogin">
     <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
-    <b>Pengurus Koperasi</b>
-    <p class="small">Persetujuan pengajuan dilakukan melalui <b>email</b> (tombol Setuju / Tolak di email yang diterima pengurus dan pimpinan).</p>
-    <p class="small">Dashboard pengurus di aplikasi akan tersedia pada tahap berikutnya.</p>
+    <b>Masuk Pengurus / Pimpinan</b>
+    <p class="small">Masukkan email Anda yang terdaftar. Kode masuk 6 angka akan dikirim ke email tersebut.</p>
+    <input id="pkEmail" type="email" inputmode="email" autocapitalize="none" placeholder="email@contoh.com" onkeydown="if(event.key==='Enter')pkMinta()">
+    <button class="btn" id="pkBtnMinta" onclick="pkMinta()">Kirim Kode</button>
+    <div id="pkKodeWrap" class="hidden" style="margin-top:14px">
+      <label>Kode 6 angka dari email</label>
+      <input id="pkKode" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:6px;text-align:center;font-size:22px" onkeydown="if(event.key==='Enter')pkVerifikasi()">
+      <button class="btn" id="pkBtnVer" onclick="pkVerifikasi()">Masuk</button>
+    </div>
+    <div id="pkPesan" style="margin-top:10px"></div>
+  </div>
+  <div id="pkDash" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div><b id="pkNama"></b><div class="small" id="pkPeran"></div></div>
+        <div style="display:flex;gap:6px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkKeluar()">Keluar</span></div>
+      </div>
+      <div class="back-link" style="margin-top:10px" onclick="navigateLanding()">← Menu Utama</div>
+      <div id="pkRekap" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+      <p class="small" id="pkRekapCatatan"></p>
+    </div>
+    <div class="card"><b>Menunggu Keputusan Anda</b><div id="pkMenunggu" style="margin-top:8px"></div></div>
+    <div class="card"><b>Riwayat Pengajuan (30 terakhir)</b><div id="pkRiwayat" style="margin-top:8px"></div></div>
   </div>
   <div class="hero hero-small">
     <img src="hero-tower.png" alt="Pulau Tower">
@@ -365,5 +385,6 @@ function hitungAngsuran(){
 
 </script>
 <script src="pengajuan.js"></script>
+<script src="pengurus.js"></script>
 </body>
 </html>
