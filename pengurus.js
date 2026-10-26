@@ -135,13 +135,7 @@ async function pkMuat(){
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni;
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.peran;
-    const c = r.rekap.cnt, bj = r.rekap.berjalan;
-    const tile = (t, v) => `<div class="ok" style="text-align:center"><div style="font-size:22px;font-weight:900">${v}</div><div class="small">${t}</div></div>`;
-    $('pkRekap').innerHTML = tile('Direview pengurus', c.REVIEW_PENGURUS) + tile('Menunggu pimpinan', c.MENUNGGU_PIMPINAN) +
-      tile('Menunggu pencairan', c.MENUNGGU_PENCAIRAN || 0) + tile('Pinjaman berjalan', c.DISETUJUI) + tile('Lunas', c.LUNAS) + `<div></div>` +
-      `<div class="ok" style="grid-column:1/3;text-align:center"><div style="font-size:18px;font-weight:900">${pkRp(bj.sisa)}</div><div class="small">Sisa pinjaman beredar • angsuran ${pkRp(bj.angsuranBulanan)}/bulan</div></div>` +
-      (bj.terlambat ? `<div class="err" style="grid-column:1/3;text-align:center"><b>⚠️ ${bj.terlambat} pinjaman memiliki angsuran melewati jatuh tempo</b></div>` : '');
-    $('pkRekapCatatan').innerText = `Ditolak: ${c.DITOLAK} • Total pengajuan: ${r.rekap.total}. Angsuran jatuh tempo tgl 5 (bayar tgl 1-5).`;
+    const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
     pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbBayar', r.laporan.length); pkBadge2('pbCair', r.pencairan.length); pkBadge2('pbBerjalan', bj.terlambat);
     $('pkPencairan').innerHTML = r.pencairan.length ? r.pencairan.map(pkCairKartu).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>';

@@ -39,26 +39,58 @@ function svgBar(judul, bulan, seri){ // seri: [{key,warna,nama}] batang berkelom
     <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(judul)}" style="background:#fff;border:1px solid #d6e6f8;border-radius:12px"><line x1="${pl}" x2="${W - pl}" y1="${H - pb}" y2="${H - pb}" stroke="#c9d8ea"></line>${g}</svg>`;
 }
 const STATUS_URUT = [['REVIEW_PENGURUS', 'Review pengurus', '#f59e0b'], ['MENUNGGU_PIMPINAN', 'Menunggu pimpinan', '#f97316'], ['MENUNGGU_PENCAIRAN', 'Menunggu pencairan', '#0ea5e9'], ['DISETUJUI', 'Berjalan', '#16a34a'], ['LUNAS', 'Lunas', '#64748b'], ['DITOLAK', 'Ditolak', '#dc2626']];
+let pkStatData = null, pkDetailAktif = '';
+const DETAIL_JUDUL = {REVIEW_PENGURUS:'Direview pengurus', MENUNGGU_PIMPINAN:'Menunggu pimpinan', MENUNGGU_PENCAIRAN:'Menunggu pencairan', DISETUJUI:'Pinjaman berjalan', LUNAS:'Lunas', DITOLAK:'Ditolak', TERLAMBAT:'Angsuran terlambat', BERJALAN_SISA:'Sisa pinjaman beredar'};
+async function pkBuka(status, kunci){
+  kunci = kunci || status; const box = $('pkDetail');
+  if(pkDetailAktif === kunci){ pkDetailAktif = ''; box.innerHTML = ''; document.querySelectorAll('#pkStat .stile').forEach(e => e.classList.remove('on')); return; }
+  pkDetailAktif = kunci; document.querySelectorAll('#pkStat .stile').forEach(e => e.classList.toggle('on', e.dataset.k === kunci));
+  box.innerHTML = '<div class="ok"><p class="small">Memuat...</p></div>';
+  try{
+    const r = await pkApi({a:'daftar_status', token:pkToken, status});
+    if(r.expired){ pkExpired(); return; }
+    if(pkDetailAktif !== kunci) return;
+    if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
+    box.innerHTML = `<div class="ok" style="background:#fff"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px">${DETAIL_JUDUL[kunci]} (${r.total})</b><span class="back-link" style="margin:0" onclick="pkBuka('${status}','${kunci}')">✕ Tutup</span></div>` +
+      (r.list.length ? r.list.map(x => pkDetailBaris(x, status)).join('') : '<p class="small">Tidak ada data.</p>') + (r.total > r.list.length ? `<p class="small">Menampilkan ${r.list.length} dari ${r.total}.</p>` : '') + '</div>';
+    box.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }catch(e){ box.innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; }
+}
+function pkDetailBaris(x, status){
+  const kas = x.jenis === 'KASBON';
+  let info = `${pkRp(x.nominal)}${kas ? ' / 30 hari' : ' / ' + x.tenor + ' bln'} • diajukan ${pkTgl(x.waktu)}`, extra = '';
+  if(status === 'MENUNGGU_PENCAIRAN') extra = `<div class="small">💸 ${x.pencairan === 'REGULER' ? 'Reguler (tgl 6)' : 'Urgen (maks 2 hari kerja)'} • target <b>${pkTgl(x.target)}</b></div>`;
+  if(status === 'DISETUJUI' || status === 'TERLAMBAT'){
+    extra = `<div class="small">Sisa <b>${pkRp(x.sisa)}</b> • ${x.lunasKe}/${x.total} lunas${x.tglCair ? ' • cair ' + pkTgl(x.tglCair) : ''}</div>` +
+      (x.berikut ? `<div class="small">Berikutnya: ${kas ? 'pelunasan' : 'ke-' + x.berikut.ke}, jatuh tempo ${pkTgl(x.berikut.due)} (${pkRp(x.berikut.jumlah)})${x.telatHari ? ' <b style="color:#b42318">terlambat ' + x.telatHari + ' hari</b>' : ''}</div>` : '');
+    if(x.telatHari) extra += `<div style="margin-top:6px">${waBtn(waTagih(x.hp, x.nama, x.berikut.ke, x.berikut.jumlah, x.berikut.due, x.telatHari, kas), 'Tagih via WA')}</div>`;
+  }
+  if(status === 'LUNAS' && x.tglLunas) extra = `<div class="small">🎉 Lunas ${pkTgl(x.tglLunas)}</div>`;
+  if(status === 'DITOLAK' && x.alasan) extra = `<div class="small"><i>“${esc(x.alasan)}”</i></div>`;
+  return `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0">${pkBadge(x.jenis)}<b style="font-size:15px">${esc(x.nama)}</b> <span class="small">${esc(x.id)}</span><div class="small">${info}</div>${extra}</div>`;
+}
 async function pkStatMuat(){
+  pkDetailAktif = '';
   $('pkStat').innerHTML = '<p class="small">Memuat...</p>';
   try{
     const r = await pkApi({a:'statistik', token:pkToken});
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ $('pkStat').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    const total = Object.values(r.status).reduce((a, b) => a + b, 0) || 1;
-    const bar = STATUS_URUT.map(([k, , w]) => r.status[k] ? `<div title="${k}" style="flex:${r.status[k]};background:${w};height:14px"></div>` : '').join('');
-    const leg = STATUS_URUT.filter(([k]) => r.status[k]).map(([k, t, w]) => `<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0"><i style="width:10px;height:10px;border-radius:3px;background:${w};display:inline-block"></i>${t}: <b>${r.status[k]}</b></span>`).join('');
+    pkStatData = r;
+    const tiles = [['REVIEW_PENGURUS', 'Direview pengurus', '#d97706'], ['MENUNGGU_PIMPINAN', 'Menunggu pimpinan', '#ea580c'], ['MENUNGGU_PENCAIRAN', 'Menunggu pencairan', '#0369a1'], ['DISETUJUI', 'Pinjaman berjalan', '#15803d'], ['LUNAS', 'Lunas', '#475569'], ['DITOLAK', 'Ditolak', '#b42318']]
+      .map(([k, t, w]) => `<button class="stile" data-k="${k}" onclick="pkBuka('${k}')"><span class="num" style="color:${w}">${r.status[k] || 0}</span><span class="lbl">${t}</span><span class="hint">Lihat daftar ›</span></button>`).join('');
+    const total = Object.values(r.status).reduce((a, b) => a + b, 0);
     const perhatian = r.perhatian.length ? r.perhatian.map(x => {
       const telat = x.telatHari > 0, url = waTagih(x.hp, x.nama, x.ke, x.jumlah, x.due, x.telatHari, x.jenis === 'KASBON');
       return `<div style="border-bottom:1px solid #d6e6f8;padding:8px 0"><b>${esc(x.nama)}</b> <span class="small">(${esc(x.id)})</span><br>
         <span class="small">${x.jenis === 'KASBON' ? 'Pelunasan kasbon' : 'Angsuran ke-' + x.ke} • ${pkRp(x.jumlah)} • jatuh tempo ${pkTgl(x.due)} ${telat ? '<b style="color:#b42318">terlambat ' + x.telatHari + ' hari</b>' : x.sisaHari === 0 ? '<b style="color:#8a6100">hari ini</b>' : '<b style="color:#8a6100">' + x.sisaHari + ' hari lagi</b>'}</span><div style="margin-top:6px">${waBtn(url, telat ? 'Tagih via WA' : 'Ingatkan via WA')}</div></div>`;
     }).join('') : '<p class="small">Tidak ada angsuran yang terlambat atau jatuh tempo dalam 3 hari. ✅</p>';
     $('pkStat').innerHTML = `
-      <div class="stt"><div><b>${pkRp(r.sisaBeredar)}</b><span class="small">Sisa pinjaman beredar</span></div>
-        <div style="${r.terlambat.n ? 'border-color:#e74c3c' : ''}"><b style="${r.terlambat.n ? 'color:#b42318' : ''}">${r.terlambat.n} angsuran</b><span class="small">Terlambat • ${pkRp(r.terlambat.total)}</span></div>
-        <div><b>${r.jenis.KOPERASI}</b><span class="small">Pengajuan Koperasi (total)</span></div><div><b>${r.jenis.KASBON}</b><span class="small">Pengajuan Kasbon (total)</span></div></div>
-      <b class="small" style="font-size:13px">Status seluruh pengajuan (${total})</b>
-      <div style="display:flex;border-radius:7px;overflow:hidden;margin:6px 0 4px">${bar}</div><div class="small">${leg}</div>
+      <b style="font-size:15px">Ringkasan</b><span class="small"> • ${total} pengajuan (${r.jenis.KOPERASI} koperasi, ${r.jenis.KASBON} kasbon). Ketuk kotak untuk melihat datanya.</span>
+      <div class="mgrid" style="margin-top:8px">${tiles}
+        <button class="stile wide" data-k="BERJALAN_SISA" onclick="pkBuka('DISETUJUI','BERJALAN_SISA')"><span class="num" style="font-size:26px;color:#134e8a">${pkRp(r.sisaBeredar)}</span><span class="lbl">Sisa pinjaman beredar</span><span class="hint">Lihat daftar ›</span></button>
+        <button class="stile wide" data-k="TERLAMBAT" onclick="pkBuka('TERLAMBAT')" style="${r.terlambat.n ? 'border-color:#e74c3c' : ''}"><span class="num" style="font-size:26px;color:${r.terlambat.n ? '#b42318' : '#15803d'}">${r.terlambat.n} angsuran</span><span class="lbl">Terlambat • ${pkRp(r.terlambat.total)}</span><span class="hint">${r.terlambat.n ? 'Lihat daftar & tagih ›' : 'Tidak ada tunggakan ✅'}</span></button></div>
+      <div id="pkDetail" style="margin-top:10px"></div>
       ${svgBar('Dana dicairkan vs angsuran masuk (6 bulan)', r.bulan, [{key:'cair', warna:'#134e8a', nama:'Dicairkan', fmt:juta}, {key:'angsuran', warna:'#16a34a', nama:'Angsuran masuk', fmt:juta}])}
       ${svgBar('Jumlah pengajuan per bulan', r.bulan, [{key:'pengajuan', warna:'#0ea5e9', nama:'Diajukan'}, {key:'disetujui', warna:'#f59e0b', nama:'Dicairkan'}])}
       <div style="margin:16px 0 4px"><b style="font-size:14px">⚠️ Perlu perhatian (terlambat / jatuh tempo ≤ 3 hari)</b></div>${perhatian}`;
