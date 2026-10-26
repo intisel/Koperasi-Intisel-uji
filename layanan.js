@@ -152,12 +152,18 @@ async function kirimKasbon(){
     alasan:g('kbAlasan'), alamat:g('kbAlamat'), hp:g('kbHp'), email:g('kbEmail'), rek:onlyDigits(g('kbRek')), gajiUnder:g('kbGajiUnder'), gaji1:moneyVal('kbGaji1'),
     namaDarurat:g('kbNamaD'), hpDarurat:g('kbHpD'), hubungan:g('kbHub')};
   const mb = blokir('KASBON'); if(mb){ alert(mb); return; }
+  const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KASBON', nominal:d.nominal, tenor:1, infaq:0});
+  if(!png) return; // dibatalkan
+  d.ttd = png; d.setuju = true;
   const btn = $('btnKb'); btn.disabled = true; btn.innerText = 'Mengirim...';
+  let sukses = false, pesan = '';
   try{
     const r = await apiPost(d);
-    if(r.ok){ alert('✅ Pengajuan kasbon terkirim. No: ' + r.id); await muatData(); goReplace('anggota-approval'); }
-    else alert('❌ ' + r.msg);
-  }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+    if(r.ok){ sukses = true; pesan = '✅ Pengajuan kasbon terkirim. No: ' + r.id; await muatData(); }
+    else pesan = '❌ ' + r.msg;
+  }catch(e){ pesan = 'Gagal terhubung ke server. Coba lagi.'; }
+  ttdTutup(sukses ? 'anggota-approval' : null);
+  alert(pesan);
   btn.innerText = 'Kirim Pengajuan Kasbon'; terapkanBlokir();
 }
 

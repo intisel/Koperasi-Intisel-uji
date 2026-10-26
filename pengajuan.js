@@ -89,14 +89,18 @@ async function kirimPengajuan(){
     namaDarurat:g('namaDarurat'), hpDarurat:g('hpDarurat'), hubungan:g('hubungan')
   };
   if(!$('setuju').checked){ alert('Centang pernyataan persetujuan dulu'); return; }
+  const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KOPERASI', nominal:parseInt(d.nominal, 10), tenor:parseInt(d.tenor, 10), infaq:d.infaq});
+  if(!png) return; // dibatalkan
+  d.ttd = png; d.setuju = true;
   const btn = $('btnKirim'); btn.disabled = true; btn.innerText = 'Mengirim...';
+  let sukses = false, pesan = '';
   try{
     const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify(d)})).json();
-    if(r.ok){
-      alert('✅ Pengajuan terkirim. No: ' + r.id);
-      muatData().then(() => goReplace('anggota-approval'));
-    } else alert('❌ ' + r.msg);
-  }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+    if(r.ok){ sukses = true; pesan = '✅ Pengajuan terkirim. No: ' + r.id; await muatData(); }
+    else pesan = '❌ ' + r.msg;
+  }catch(e){ pesan = 'Gagal terhubung ke server. Coba lagi.'; }
+  ttdTutup(sukses ? 'anggota-approval' : null);
+  alert(pesan);
   btn.innerText = 'Kirim Pengajuan'; if(typeof terapkanBlokir === 'function') terapkanBlokir(); else btn.disabled = false;
 }
 
