@@ -49,6 +49,7 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .choice-card b{display:block;color:#134e8a;font-size:15px}
 .choice-card p{font-size:11px;color:#5a7aa0;margin:6px 0 0;line-height:1.3}
 .hidden{display:none!important}
+.pktab{flex:1;padding:10px;border-radius:10px;border:1.5px solid #b9d2f0;background:#eef5ff;color:#134e8a;font-weight:800;font-size:14px;cursor:pointer}.pktab.on{background:#134e8a;color:#fff}
 .back-link{display:inline-flex;align-items:center;gap:6px;color:#134e8a;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:10px;background:#eef5ff;border:1px solid #b9d2f0;padding:6px 12px;border-radius:20px}
 .search-box{display:flex;gap:8px;margin:10px 0}
 .search-box input{flex:1}
@@ -202,14 +203,40 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 <div id="pagePengurus" class="hidden">
   <div class="card" id="pkLogin">
     <div class="back-link" onclick="navigateLanding()">← Kembali ke Menu Utama</div>
-    <b>Masuk Pengurus / Pimpinan</b>
-    <p class="small">Masukkan email Anda yang terdaftar. Kode masuk 6 angka akan dikirim ke email tersebut.</p>
-    <input id="pkEmail" type="email" inputmode="email" autocapitalize="none" placeholder="email@contoh.com" onkeydown="if(event.key==='Enter')pkMinta()">
-    <button class="btn" id="pkBtnMinta" onclick="pkMinta()">Kirim Kode</button>
-    <div id="pkKodeWrap" class="hidden" style="margin-top:14px">
+    <div style="font-weight:800;font-size:17px;margin:2px 0 8px">Masuk Pengurus / Pimpinan</div>
+    <label style="display:block;margin-top:4px">Email terdaftar</label>
+    <input id="pkEmail" type="email" inputmode="email" autocapitalize="none" autocomplete="username" placeholder="email@contoh.com">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="pktab on" id="pkTabKode" onclick="pkTab('kode')">✉️ Kode Email</button>
+      <button class="pktab" id="pkTabPw" onclick="pkTab('pw')">🔑 Password</button>
+    </div>
+    <div id="pkBoxKode">
+      <p class="small">Kode masuk 6 angka akan dikirim ke email Anda.</p>
+      <button class="btn" id="pkBtnMinta" onclick="pkMinta()">Kirim Kode</button>
+      <div id="pkKodeWrap" class="hidden" style="margin-top:14px">
+        <label>Kode 6 angka dari email</label>
+        <input id="pkKode" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:6px;text-align:center;font-size:22px" onkeydown="if(event.key==='Enter')pkVerifikasi()">
+        <button class="btn" id="pkBtnVer" onclick="pkVerifikasi()">Masuk</button>
+      </div>
+    </div>
+    <div id="pkBoxPw" class="hidden">
+      <label>Password</label>
+      <input id="pkPw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')pkLoginPw()">
+      <label class="small" style="display:flex;gap:6px;align-items:center;margin:-4px 0 10px"><input type="checkbox" style="width:auto;margin:0" onchange="pkLihat(['pkPw'],this.checked)"> Tampilkan password</label>
+      <button class="btn" id="pkBtnPw" onclick="pkLoginPw()">Masuk</button>
+      <p class="small" style="margin-top:10px">Pertama kali? Gunakan password awal dari pengurus, lalu Anda akan diminta membuat password baru. <a href="#" onclick="pkLupa();return false">Lupa password?</a></p>
+    </div>
+    <div id="pkBoxAtur" class="hidden">
+      <div class="ok" id="pkAturInfo" style="margin-bottom:8px"></div>
       <label>Kode 6 angka dari email</label>
-      <input id="pkKode" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:6px;text-align:center;font-size:22px" onkeydown="if(event.key==='Enter')pkVerifikasi()">
-      <button class="btn" id="pkBtnVer" onclick="pkVerifikasi()">Masuk</button>
+      <input id="pkAturKode" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:6px;text-align:center;font-size:22px">
+      <label>Password baru</label>
+      <input id="pkBaru" type="password" autocomplete="new-password" placeholder="Min. 8 karakter, huruf + angka">
+      <label>Ulangi password baru</label>
+      <input id="pkBaru2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')pkAtur()">
+      <label class="small" style="display:flex;gap:6px;align-items:center;margin:-4px 0 10px"><input type="checkbox" style="width:auto;margin:0" onchange="pkLihat(['pkBaru','pkBaru2'],this.checked)"> Tampilkan password</label>
+      <button class="btn" id="pkBtnAtur" onclick="pkAtur()">Simpan &amp; Masuk</button>
+      <p class="small" style="margin-top:10px"><a href="#" onclick="pkTab('pw');return false">← Kembali</a></p>
     </div>
     <div id="pkPesan" style="margin-top:10px"></div>
   </div>
@@ -217,13 +244,22 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div><b id="pkNama"></b><div class="small" id="pkPeran"></div></div>
-        <div style="display:flex;gap:6px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkKeluar()">Keluar</span></div>
+        <div style="display:flex;gap:6px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkGantiTampil()">🔑</span><span class="back-link" style="margin:0" onclick="pkKeluar()">Keluar</span></div>
       </div>
       <div class="back-link" style="margin-top:10px" onclick="navigateLanding()">← Menu Utama</div>
       <div id="pkRekap" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
       <p class="small" id="pkRekapCatatan"></p>
     </div>
+    <div class="card hidden" id="pkGanti">
+      <b>Ganti Password</b>
+      <label style="margin-top:8px">Password lama</label><input id="pkLama" type="password" autocomplete="current-password">
+      <label>Password baru</label><input id="pkGBaru" type="password" autocomplete="new-password" placeholder="Min. 8 karakter, huruf + angka">
+      <label>Ulangi password baru</label><input id="pkGBaru2" type="password" autocomplete="new-password">
+      <div style="display:flex;gap:8px"><button class="btn" onclick="pkGantiSimpan()">Simpan</button><button class="btn" style="background:#6b7f99" onclick="pkGantiTampil(false)">Batal</button></div>
+      <div id="pkGantiPesan" style="margin-top:8px"></div>
+    </div>
     <div class="card"><b>Menunggu Keputusan Anda</b><div id="pkMenunggu" style="margin-top:8px"></div></div>
+    <div class="card"><b>Pinjaman Berjalan</b><div id="pkPinjaman" style="margin-top:8px"></div></div>
     <div class="card"><b>Riwayat Pengajuan (30 terakhir)</b><div id="pkRiwayat" style="margin-top:8px"></div></div>
   </div>
   <div class="hero hero-small">

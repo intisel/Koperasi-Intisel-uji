@@ -96,7 +96,7 @@ async function kirimPengajuan(){
   btn.disabled = false; btn.innerText = 'Kirim Pengajuan';
 }
 
-const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui', DITOLAK:'❌ Ditolak'};
+const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v==='Y' ? '✅' : v==='N' ? '❌' : (selesai ? '➖' : '⏳');
 const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${esc(a)}”</i></div>` : '';
 
@@ -109,7 +109,7 @@ async function muatStatus(){
     if(!r.ok){ box.innerHTML = '<p class="small">'+esc(r.msg)+'</p>'; return; }
     if(!r.list || !r.list.length){ box.innerHTML = '<p class="small">Belum ada pengajuan.</p>'; return; }
     box.innerHTML = r.list.map(p => {
-      const selesai = p.status === 'DITOLAK' || p.status === 'DISETUJUI';
+      const selesai = ['DITOLAK','DISETUJUI','LUNAS'].includes(p.status);
       const done = p.pengurus.filter(x => x.v==='Y').length;
       const tampilPimpinan = p.status !== 'REVIEW_PENGURUS';
       return `<div class="ok" style="margin-bottom:10px;background:#fff">
@@ -118,6 +118,7 @@ async function muatStatus(){
         <div class="small" style="margin-top:6px">
           ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${esc(x.nama)}</div>${KOMEN(x.a)}`).join('')}
           ${p.status==='REVIEW_PENGURUS' ? '<div>Review pengurus: '+done+'/3</div>' : ''}
+          ${p.angsuran ? `<div style="margin:6px 0;padding:6px 8px;background:#f1f8ff;border-radius:8px"><b>Angsuran: ${p.angsuran.lunas}/${p.angsuran.total} lunas</b> • sisa Rp ${p.angsuran.sisa.toLocaleString('id-ID')}${p.angsuran.berikut ? `<br>Berikutnya: ke-${p.angsuran.berikut.ke}, jatuh tempo ${esc(p.angsuran.berikut.due.split('-').reverse().join('/'))} (Rp ${p.angsuran.berikut.jumlah.toLocaleString('id-ID')})` : ''}${p.angsuran.terlambat ? `<br><span style="color:#c0392b"><b>⚠️ ${p.angsuran.terlambat} angsuran melewati jatuh tempo</b></span>` : ''}${p.tglLunas ? `<br>Lunas pada ${esc(p.tglLunas.split('-').reverse().join('/'))}` : ''}</div>` : ''}
           ${tampilPimpinan ? `<div>${ICON(p.pimpinan, selesai)} ${esc(p.pimpinanNama||'Pimpinan')} (Pimpinan)</div>${KOMEN(p.pimpinanA)}` : ''}
         </div></div>`;
     }).join('');

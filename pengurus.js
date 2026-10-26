@@ -1,10 +1,15 @@
-// Dashboard Pengurus & Pimpinan: login kode email, daftar menunggu, setuju/tolak, riwayat, rekap
-let pkToken = sessionStorage.getItem('pk_token') || '', pkEmailAktif = '';
+// Dashboard Pengurus & Pimpinan: login (kode email / password), keputusan, angsuran & pelunasan, riwayat
+let pkToken = sessionStorage.getItem('pk_token') || '', pkEmailAktif = '', pkBisaCatat = false, pkHariIni = '';
 const pkRp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const pkIc = v => v === 'Y' ? '✅' : v === 'N' ? '❌' : '⏳';
-const pkLabel = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui', DITOLAK:'❌ Ditolak'};
+const pkTgl = s => s ? String(s).split('-').reverse().join('/') : '-';
+const pkLabel = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const pkApi = async body => (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
-const pkPesan = (m, err) => { $('pkPesan').innerHTML = m ? `<div class="${err ? 'err' : 'ok'}">${esc(m)}</div>` : ''; };
+const pkPesan = (m, err, el) => { $(el || 'pkPesan').innerHTML = m ? `<div class="${err ? 'err' : 'ok'}">${esc(m)}</div>` : ''; };
+const pkEmailVal = () => $('pkEmail').value.trim().toLowerCase();
+const pkEmailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+const pkPwErr = p => p.length < 8 ? 'Password minimal 8 karakter.' : (!/[A-Za-z]/.test(p) || !/\d/.test(p)) ? 'Password harus berisi huruf dan angka.' : '';
+function pkLihat(ids, on){ ids.forEach(i => $(i).type = on ? 'text' : 'password'); }
 
 // tampilkan login / dasbor saat halaman Pengurus dibuka
 const _showPk = showPengurusNoPush;
@@ -12,11 +17,24 @@ showPengurusNoPush = function(){ _showPk(); pkMulai(); };
 
 function pkMulai(){
   if(pkToken){ $('pkLogin').classList.add('hidden'); $('pkDash').classList.remove('hidden'); pkMuat(); }
-  else { $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); }
+  else { $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); pkTab('kode'); }
 }
+function pkTab(t){
+  $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
+  $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
+  document.querySelector('#pkLogin .pktab').parentElement.classList.toggle('hidden', t === 'atur');
+  pkPesan('');
+}
+function pkMasuk(r){ // sesi berhasil dibuat
+  pkToken = r.token; sessionStorage.setItem('pk_token', pkToken);
+  ['pkKode','pkPw','pkAturKode','pkBaru','pkBaru2'].forEach(i => $(i).value = ''); $('pkKodeWrap').classList.add('hidden');
+  pkMulai();
+}
+
+/* --- login kode email --- */
 async function pkMinta(){
-  const email = $('pkEmail').value.trim().toLowerCase();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ pkPesan('Format email tidak valid.', true); return; }
+  const email = pkEmailVal();
+  if(!pkEmailOk(email)){ pkPesan('Format email tidak valid.', true); return; }
   const b = $('pkBtnMinta'); b.disabled = true; b.innerText = 'Mengirim...';
   try{
     const r = await pkApi({a:'otp_req', email});
@@ -30,11 +48,67 @@ async function pkVerifikasi(){
   if(kode.length !== 6){ pkPesan('Masukkan 6 angka kode.', true); return; }
   const b = $('pkBtnVer'); b.disabled = true; b.innerText = 'Memeriksa...';
   try{
-    const r = await pkApi({a:'otp_ver', email:pkEmailAktif || $('pkEmail').value.trim().toLowerCase(), kode});
-    if(r.ok){ pkToken = r.token; sessionStorage.setItem('pk_token', pkToken); $('pkKode').value = ''; $('pkKodeWrap').classList.add('hidden'); pkPesan(''); pkMulai(); }
+    const r = await pkApi({a:'otp_ver', email:pkEmailAktif || pkEmailVal(), kode});
+    if(r.ok) pkMasuk(r); else pkPesan(r.msg, true);
+  }catch(e){ pkPesan('Gagal terhubung ke server.', true); }
+  b.disabled = false; b.innerText = 'Masuk';
+}
+
+/* --- login password, aktivasi, lupa password --- */
+function pkTampilAtur(info){
+  pkEmailAktif = pkEmailVal(); pkTab('atur');
+  $('pkAturInfo').innerText = info; $('pkAturKode').focus();
+}
+async function pkLoginPw(){
+  const email = pkEmailVal(), password = $('pkPw').value;
+  if(!pkEmailOk(email)){ pkPesan('Isi email dengan benar.', true); return; }
+  if(!password){ pkPesan('Isi password.', true); return; }
+  const b = $('pkBtnPw'); b.disabled = true; b.innerText = 'Memeriksa...';
+  try{
+    const r = await pkApi({a:'pw_login', email, password});
+    if(r.ok) pkMasuk(r);
+    else if(r.aktivasi){ pkTampilAtur(r.msg); }
     else pkPesan(r.msg, true);
   }catch(e){ pkPesan('Gagal terhubung ke server.', true); }
   b.disabled = false; b.innerText = 'Masuk';
+}
+async function pkLupa(){
+  const email = pkEmailVal();
+  if(!pkEmailOk(email)){ pkPesan('Isi email Anda di kolom atas terlebih dulu.', true); return; }
+  try{
+    const r = await pkApi({a:'otp_req', email});
+    if(r.ok) pkTampilAtur('Jika email terdaftar, kode 6 angka telah dikirim. Masukkan kode dan buat password baru.');
+    else pkPesan(r.msg, true);
+  }catch(e){ pkPesan('Gagal terhubung ke server.', true); }
+}
+async function pkAtur(){
+  const kode = $('pkAturKode').value.replace(/\D/g, ''), baru = $('pkBaru').value, baru2 = $('pkBaru2').value;
+  if(kode.length !== 6){ pkPesan('Masukkan 6 angka kode.', true); return; }
+  const e = pkPwErr(baru); if(e){ pkPesan(e, true); return; }
+  if(baru !== baru2){ pkPesan('Ulangi password tidak sama.', true); return; }
+  const b = $('pkBtnAtur'); b.disabled = true; b.innerText = 'Menyimpan...';
+  try{
+    const r = await pkApi({a:'pw_atur', email:pkEmailAktif || pkEmailVal(), kode, baru});
+    if(r.ok) pkMasuk(r); else pkPesan(r.msg, true);
+  }catch(e){ pkPesan('Gagal terhubung ke server.', true); }
+  b.disabled = false; b.innerText = 'Simpan & Masuk';
+}
+function pkGantiTampil(on){
+  const el = $('pkGanti'), tampil = on === undefined ? el.classList.contains('hidden') : on;
+  el.classList.toggle('hidden', !tampil); pkPesan('', false, 'pkGantiPesan');
+  ['pkLama','pkGBaru','pkGBaru2'].forEach(i => $(i).value = '');
+}
+async function pkGantiSimpan(){
+  const lama = $('pkLama').value, baru = $('pkGBaru').value;
+  if(!lama){ pkPesan('Isi password lama.', true, 'pkGantiPesan'); return; }
+  const e = pkPwErr(baru); if(e){ pkPesan(e, true, 'pkGantiPesan'); return; }
+  if(baru !== $('pkGBaru2').value){ pkPesan('Ulangi password tidak sama.', true, 'pkGantiPesan'); return; }
+  try{
+    const r = await pkApi({a:'pw_ganti', token:pkToken, lama, baru});
+    if(r.expired){ pkExpired(); return; }
+    pkPesan(r.msg, !r.ok, 'pkGantiPesan');
+    if(r.ok) ['pkLama','pkGBaru','pkGBaru2'].forEach(i => $(i).value = '');
+  }catch(e){ pkPesan('Gagal terhubung ke server.', true, 'pkGantiPesan'); }
 }
 async function pkKeluar(){
   try{ await pkApi({a:'keluar', token:pkToken}); }catch(e){}
@@ -42,19 +116,23 @@ async function pkKeluar(){
 }
 function pkExpired(){ pkToken = ''; sessionStorage.removeItem('pk_token'); pkMulai(); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
 
+/* --- dasbor --- */
 async function pkMuat(){
   $('pkMenunggu').innerHTML = '<p class="small">Memuat...</p>';
   try{
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
+    pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni;
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.peran;
     const c = r.rekap.cnt, bj = r.rekap.berjalan;
     const tile = (t, v) => `<div class="ok" style="text-align:center"><div style="font-size:22px;font-weight:900">${v}</div><div class="small">${t}</div></div>`;
     $('pkRekap').innerHTML = tile('Direview pengurus', c.REVIEW_PENGURUS) + tile('Menunggu pimpinan', c.MENUNGGU_PIMPINAN) +
-      tile('Disetujui', c.DISETUJUI) + tile('Ditolak', c.DITOLAK) +
-      `<div class="ok" style="grid-column:1/3;text-align:center"><div style="font-size:18px;font-weight:900">${pkRp(bj.total)}</div><div class="small">Pinjaman berjalan (${bj.n} pengajuan) • angsuran ${pkRp(bj.angsuranBulanan)}/bulan</div></div>`;
-    $('pkRekapCatatan').innerText = 'Pinjaman berjalan = disetujui dan belum melewati tenor (perkiraan; pencatatan pelunasan belum tersedia).';
+      tile('Pinjaman berjalan', c.DISETUJUI) + tile('Lunas', c.LUNAS) +
+      `<div class="ok" style="grid-column:1/3;text-align:center"><div style="font-size:18px;font-weight:900">${pkRp(bj.sisa)}</div><div class="small">Sisa pinjaman beredar • angsuran ${pkRp(bj.angsuranBulanan)}/bulan</div></div>` +
+      (bj.terlambat ? `<div class="err" style="grid-column:1/3;text-align:center"><b>⚠️ ${bj.terlambat} pinjaman memiliki angsuran melewati jatuh tempo</b></div>` : '');
+    $('pkRekapCatatan').innerText = `Ditolak: ${c.DITOLAK} • Total pengajuan: ${r.rekap.total}. Angsuran jatuh tempo tgl 5 (bayar tgl 1-5).`;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
+    $('pkPinjaman').innerHTML = r.pinjaman.length ? r.pinjaman.map(pkPinjamanKartu).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';
     $('pkRiwayat').innerHTML = r.riwayat.length ? r.riwayat.map(pkBaris).join('') : '<p class="small">Belum ada pengajuan.</p>';
   }catch(e){ $('pkMenunggu').innerHTML = '<div class="err">Gagal memuat data. Coba ↻ Muat ulang.</div>'; }
 }
@@ -98,6 +176,47 @@ async function pkVote(id, v){
   }catch(e){ alert('Gagal terhubung ke server.'); }
   pkMuat();
 }
+
+/* --- pinjaman berjalan: catat angsuran / pelunasan --- */
+function pkPinjamanKartu(p){
+  if(!p.total) return `<div class="ok" style="background:#fff;margin-bottom:12px"><b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)})</span><br><span class="small">Jadwal angsuran belum dibuat. Hubungi admin sistem.</span></div>`;
+  const persen = Math.round(p.lunas / p.total * 100), telat = p.terlambat > 0;
+  const baris = p.jadwal.map(j => {
+    const lewat = j.status !== 'LUNAS' && j.due < pkHariIni;
+    return `<tr><td style="padding:2px 8px 2px 0">${j.ke}</td><td style="padding:2px 8px 2px 0">${pkTgl(j.due)}</td><td style="padding:2px 8px 2px 0">${pkRp(j.jumlah)}</td>
+      <td>${j.status === 'LUNAS' ? '✅ ' + pkTgl(j.tglBayar) : (lewat ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`;
+  }).join('');
+  const aksi = pkBisaCatat ? `
+    <label class="small" style="margin:6px 0 0">Tanggal bayar</label>
+    <input type="date" id="pkT-${esc(p.id)}" value="${esc(pkHariIni)}" max="${esc(pkHariIni)}" style="margin-bottom:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" style="flex:2;min-width:160px;padding:12px;font-size:14px" onclick="pkBayar('${esc(p.id)}')">✔ Catat angsuran ke-${p.berikut ? p.berikut.ke : ''}</button>
+      <button class="btn" style="flex:1;min-width:110px;padding:12px;font-size:14px;background:#0f766e" onclick="pkLunasi('${esc(p.id)}',${p.sisa})">Lunasi semua</button>
+    </div>` : '<p class="small">Pencatatan angsuran dilakukan oleh pengurus.</p>';
+  return `<div class="ok" style="background:#fff;margin-bottom:12px${telat ? ';border-color:#e74c3c' : ''}" id="pj-${esc(p.id)}">
+    <b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)})</span>${telat ? ' <span style="color:#c0392b;font-weight:800">⚠️ TERLAMBAT</span>' : ''}<br>
+    <span class="small">${pkRp(p.nominal)} / ${p.tenor} bln • angsuran ${pkRp(p.angsuran)}</span>
+    <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
+    <div class="small"><b>${p.lunas}/${p.total} lunas</b> • sisa ${pkRp(p.sisa)}${p.berikut ? '<br>Berikutnya: ke-' + p.berikut.ke + ', jatuh tempo ' + pkTgl(p.berikut.due) + ' (' + pkRp(p.berikut.jumlah) + ')' : ''}</div>
+    ${aksi}
+    <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>
+      <table class="small" style="margin-top:6px;border-collapse:collapse"><tr style="color:#5a7aa0"><td>Ke</td><td>Jatuh tempo</td><td>Jumlah</td><td>Status</td></tr>${baris}</table>
+      ${pkBisaCatat && p.lunas > 0 ? `<button class="btn" style="margin-top:8px;padding:8px;font-size:13px;background:#6b7f99" onclick="pkBatalBayar('${esc(p.id)}')">↩ Batalkan pembayaran terakhir (salah input)</button>` : ''}
+    </details></div>`;
+}
+async function pkKirimAng(body, konfirmasi){
+  if(konfirmasi && !confirm(konfirmasi)) return;
+  document.querySelectorAll('#pj-' + body.id + ' button').forEach(b => b.disabled = true);
+  try{
+    const r = await pkApi(Object.assign({token:pkToken}, body));
+    if(r.expired){ pkExpired(); return; }
+    alert(r.ok ? r.msg : '❌ ' + r.msg);
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+  pkMuat();
+}
+function pkBayar(id){ const t = $('pkT-' + id).value; pkKirimAng({a:'bayar', id, tgl:t}, 'Catat angsuran pengajuan ' + id + ' lunas pada ' + pkTgl(t) + '?'); }
+function pkLunasi(id, sisa){ const t = $('pkT-' + id).value; pkKirimAng({a:'bayar', id, tgl:t, mode:'semua'}, 'LUNASI SEMUA sisa angsuran (' + pkRp(sisa) + ') pengajuan ' + id + ' pada ' + pkTgl(t) + '?'); }
+function pkBatalBayar(id){ pkKirimAng({a:'batal_bayar', id}, 'Batalkan pembayaran angsuran terakhir yang tercatat untuk ' + id + '?'); }
 
 // buka langsung lewat #pengurus (halaman sudah tampil sebelum file ini dimuat)
 if(typeof currentPage !== 'undefined' && currentPage === 'pengurus') pkMulai();

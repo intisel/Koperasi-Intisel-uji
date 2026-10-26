@@ -1,2 +1,2 @@
-# Koperasi-Intisel-uji
-masih ujicoba
+# Koperasi-Intisel
+Pinjaman Karyawan PT. Intisel Lampung Syariah
