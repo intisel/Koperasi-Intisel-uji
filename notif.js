@@ -36,29 +36,12 @@ async function notifAktifkan(btn){
     else alert((r && r.msg) || 'Gagal mendaftarkan notifikasi.');
   }catch(e){ alert('Notifikasi belum bisa diaktifkan di perangkat ini. Pastikan koneksi internet aktif lalu coba lagi.'); }
   if(btn && !sukses){ btn.disabled = false; btn.textContent = t0; }
-  notifRender();
   return sukses;
 }
 async function notifMatikan(){
   const tok = notifTokenSimpan();
   try{ if(tok) await notifDaftarServer(tok, true); const m = await notifMessaging(); await m.deleteToken(); }catch(e){}
   try{ localStorage.removeItem(NOTIF_KEY); }catch(e){}
-  notifRender();
-}
-function notifRender(){
-  ['notifBoxA', 'notifBoxP'].forEach(id => {
-    const box = document.getElementById(id); if(!box) return;
-    if(!notifAda() || !infoKredensialSafe()){ box.classList.add('hidden'); return; }
-    const aktif = Notification.permission === 'granted' && !!notifTokenSimpan();
-    box.classList.remove('hidden'); box.textContent = '';
-    const t = document.createElement('div'); t.className = 'nt';
-    t.textContent = aktif ? '🔔 Notifikasi aktif di perangkat ini.' : (Notification.permission === 'denied' ? '🔕 Notifikasi diblokir. Aktifkan lewat pengaturan perangkat.' : '🔔 Aktifkan notifikasi agar pengumuman & status pinjaman langsung sampai.');
-    const b = document.createElement('button');
-    if(aktif){ b.textContent = 'Matikan'; b.className = 'off'; b.onclick = notifMatikan; } else { b.textContent = 'Aktifkan'; b.onclick = notifAktifkan; if(Notification.permission === 'denied') b.style.display = 'none'; }
-    box.append(t, b);
-    const k = infoKredensialSafe();
-    if(aktif && k && k.token){ const u = document.createElement('button'); u.textContent = 'Tes'; u.onclick = async () => { u.disabled = true; try{ const r = await pkApi({a: 'notif_uji', token: k.token}); alert(r.msg || 'Selesai.'); }catch(e){ alert('Gagal terhubung ke server.'); } u.disabled = false; }; box.insertBefore(u, b); }
-  });
 }
 const notifAktifSekarang = () => Notification.permission === 'granted' && !!notifTokenSimpan();
 function notifPopupTutup(){ const e = document.getElementById('notifPopup'); if(e) e.remove(); }
@@ -85,5 +68,5 @@ async function notifSinkron(){ // token bisa berubah: daftarkan ulang diam-diam 
 }
 (function(){
   const asli = renderRoute; let sinkron = '';
-  renderRoute = function(name, fromPop){ asli(name, fromPop); try{ notifRender(); const k = infoKredensialSafe(); const id = k ? (k.token || k.nik) : ''; if(!id){ sinkron = ''; notifPopupTutup(); } else if(id !== sinkron){ sinkron = id; notifSinkron().then(() => setTimeout(notifPopup, 600)); } }catch(e){} };
+  renderRoute = function(name, fromPop){ asli(name, fromPop); try{ const k = infoKredensialSafe(); const id = k ? (k.token || k.nik) : ''; if(!id){ sinkron = ''; notifPopupTutup(); } else if(id !== sinkron){ sinkron = id; notifSinkron().then(() => setTimeout(notifPopup, 600)); } }catch(e){} };
 })();

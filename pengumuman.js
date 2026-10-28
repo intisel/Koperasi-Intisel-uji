@@ -173,3 +173,9 @@ async function bcKirim(){
   }catch(e){ bcPesan('Gagal terhubung ke server.', false); }
   finally{ btn.disabled = false; btn.textContent = '🔔 Kirim Broadcast'; }
 }
+
+async function bcTes(btn){
+  btn.disabled = true; const t0 = btn.textContent; btn.textContent = 'Mengirim...';
+  try{ const r = await infoApi({a:'notif_uji'}); bcPesan(r.msg || 'Selesai.', !!r.ok); }catch(e){ bcPesan('Gagal terhubung ke server.', false); }
+  btn.disabled = false; btn.textContent = t0;
+}

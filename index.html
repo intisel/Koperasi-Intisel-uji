@@ -230,7 +230,6 @@ body.kartu-open{overflow:hidden}
       <div style="flex:1;min-width:0"><b id="mnNama" style="font-size:17px"></b> <span class="badge" id="mnJab"></span>
         <p class="small" id="mnMasa" style="margin:4px 0 0"></p></div>
     </div>
-    <div class="notifbox hidden" id="notifBoxA"></div>
     <div style="font-weight:800;margin:14px 0 0">Pilih Layanan</div>
     <div class="warn" id="mnStatus" style="display:none;margin-top:8px"></div>
     <div class="mgrid">
@@ -442,7 +441,6 @@ body.kartu-open{overflow:hidden}
     <!-- MENU UTAMA PENGURUS -->
     <div class="pkv" id="pkvMenu">
       <div class="card"><b>Menu Pengurus</b>
-        <div class="notifbox hidden" id="notifBoxP"></div>
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-validasi')"><span class="pbadge" id="pbValidasi"></span><span class="ic">✅</span><b>Validasi Pinjaman</b><span class="sub">Tinjau, setujui, atau tolak pengajuan</span></button>
           <button class="mtile" onclick="go('pengurus-bayar')"><span class="pbadge" id="pbBayar"></span><span class="ic">🧾</span><b>Validasi Pembayaran</b><span class="sub">Verifikasi bukti transfer angsuran</span></button>
@@ -505,6 +503,7 @@ body.kartu-open{overflow:hidden}
           <label>Kirim ke</label><select id="bcSasaran"><option value="SEMUA">Semua anggota</option><option value="PENGURUS">Semua pengurus</option></select>
           <div id="bcPesan" style="display:none;margin:8px 0"></div>
           <button class="btn" id="bcBtn" onclick="bcKirim()">🔔 Kirim Broadcast</button>
+          <button class="btn" style="margin-top:8px;background:#6b7f99" onclick="bcTes(this)">Kirim tes ke perangkat saya</button>
         </div>
         <div class="card"><b>Riwayat broadcast</b><div id="bcDaftar" style="margin-top:8px"></div></div>
       </div>
