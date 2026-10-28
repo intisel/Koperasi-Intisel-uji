@@ -193,10 +193,10 @@ body.kartu-open{overflow:hidden}
   </div>
 
   <div class="card hidden" id="apkBox" style="text-align:center;border-color:#b8d96b;background:#f4fbe6">
-    <b>📲 Dapatkan Aplikasi Android</b>
-    <p class="small" style="margin:6px 0 10px">Pasang aplikasinya di HP Anda agar lebih cepat dibuka dan bisa menerima notifikasi.</p>
-    <a class="btn" id="apkBtn" href="koperasi-intisel.apk" download="Koperasi-Intisel.apk" style="display:block;text-decoration:none;text-align:center;box-sizing:border-box">⬇️ Download Aplikasi (APK)</a>
-    <p class="small" style="margin:8px 0 0">Setelah terunduh, buka file-nya lalu izinkan “Pasang dari sumber ini” bila diminta.</p>
+    <b id="apkJudul">📲 Dapatkan Aplikasi Android</b>
+    <p class="small" id="apkInfo" style="margin:6px 0 10px">Pasang aplikasinya di HP Anda agar lebih cepat dibuka dan bisa menerima notifikasi.</p>
+    <a class="btn" id="apkBtn" href="#" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center;box-sizing:border-box">⬇️ Download Aplikasi (APK)</a>
+    <p class="small" id="apkCatatan" style="margin:8px 0 0">Setelah terunduh, buka file-nya lalu izinkan “Pasang dari sumber ini” bila diminta.</p>
   </div>
 
   <div class="card">
@@ -752,12 +752,27 @@ function hitungAngsuran(){
   document.addEventListener('visibilitychange',function(){shows.forEach(function(x){document.hidden?x.stop():x.start();});});
 })();
 </script>
+<script src="apk-config.js"></script>
 <script>
-// Tombol unduh APK: hanya di browser Android (tidak tampil di aplikasi terpasang / iPhone / komputer)
+// Kartu APK (hanya Android): di browser -> "Download Aplikasi"; di dalam aplikasi terpasang -> disembunyikan, atau "Update Aplikasi" bila versi di apk-config.js lebih baru
 (function(){
   try{
-    var app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone || /^android-app:/.test(document.referrer||'');
-    if(/Android/i.test(navigator.userAgent) && !app) document.getElementById('apkBox').classList.remove('hidden');
+    if(!/Android/i.test(navigator.userAgent) || typeof APK_CFG === 'undefined') return;
+    var mm = function(q){ return window.matchMedia && matchMedia(q).matches; };
+    var diApp = mm('(display-mode: standalone)') || mm('(display-mode: fullscreen)') || mm('(display-mode: minimal-ui)') || window.navigator.standalone || /^android-app:/.test(document.referrer||'');
+    var url = String(APK_CFG.url || ''), m = /drive\.google\.com\/file\/d\/([\w-]+)/.exec(url) || /drive\.google\.com\/.*[?&]id=([\w-]+)/.exec(url);
+    if(m) url = 'https://drive.google.com/uc?export=download&id=' + m[1];
+    var box = document.getElementById('apkBox'), btn = document.getElementById('apkBtn');
+    btn.href = url;
+    if(!diApp){ box.classList.remove('hidden'); return; }
+    var pasang = 1; try{ pasang = parseInt(localStorage.getItem('apk_versi') || '1', 10) || 1; }catch(e){}
+    if((APK_CFG.versi || 1) <= pasang) return; // sudah terbaru -> tidak ada tombol
+    document.getElementById('apkJudul').textContent = '🔄 Update Aplikasi Tersedia';
+    document.getElementById('apkInfo').textContent = 'Versi baru aplikasi sudah tersedia. Unduh dan pasang untuk mendapatkan perbaikan terbaru.';
+    btn.textContent = '⬇️ Update Aplikasi';
+    document.getElementById('apkCatatan').textContent = 'Buka file yang terunduh lalu pilih “Perbarui / Instal”. Data Anda tidak hilang.';
+    btn.onclick = function(){ try{ localStorage.setItem('apk_versi', String(APK_CFG.versi)); }catch(e){} setTimeout(function(){ box.classList.add('hidden'); }, 1500); };
+    box.classList.remove('hidden');
   }catch(e){}
 })();
 </script>
