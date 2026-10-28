@@ -284,6 +284,16 @@ function kartuBuka(id){
     return `<tr><td class="c">${j.ke}</td><td>${kas ? 'Kasbon' : kDua('Angsuran Ke ' + j.ke, 'Ke ' + j.ke)}</td><td class="c">${kDua(esc(kTgl(j.due)), kTglS(j.due))}</td><td class="c">${bayar ? kDua(esc(kTgl(j.tglBayar)), kTglS(j.tglBayar)) : ''}</td>` +
       `<td class="r">${bayar ? kAngka(j.jumlah + (plus ? infaq : 0)) : ''}</td><td class="c"${!bayar && telat ? ' style="color:#c0392b;font-weight:700"' : ''}>${telat === null ? '' : telat + ' Hari'}</td><td class="c">${bayar ? (plus ? 'Lunas + Infaq' : 'Lunas') : ''}</td></tr>`;
   }).join('');
+  const nm = anggotaAktif ? anggotaAktif.nama : '';
+  window.KARTU_CUR = { id: p.id, kas, judul: 'BUKTI PEMBAYARAN ' + (kas ? 'KASBON' : 'PINJAMAN KOPERASI'), info: [
+    ['No Registrasi', p.id, 1], ['Nama', nm, 1], ['Jumlah Pinjaman', kAngka(p.nominal)], ['Alamat', k.alamat || '-'],
+    ['Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan'], ['No.HP', k.hp || '-'], ['Angsuran', jad[0] ? kAngka(jad[0].jumlah) : '-'], ['Email', k.email || '-'],
+    ['Tanggal Pencairan', kTgl(k.tglCair) || '-'], ['Sisa Pinjaman', 'Rp ' + kAngka(a.sisa), 1], ['Infaq', infaq ? kAngka(infaq) + (lunas1 ? ' (Lunas)' : ' (Belum)') : '-', 1]],
+    rows: jad.map(j => {
+      const bayar = j.status === 'LUNAS', plus = bayar && j.ke === 1 && infaq;
+      const telat = bayar ? Math.max(0, kSelisih(j.tglBayar, j.due)) : (j.due < today ? kSelisih(today, j.due) : null);
+      return [String(j.ke), kas ? 'Kasbon' : 'Angsuran Ke ' + j.ke, kTgl(j.due), bayar ? kTgl(j.tglBayar) : '', bayar ? kAngka(j.jumlah + (plus ? infaq : 0)) : '', telat === null ? '' : telat + ' Hari', bayar ? (plus ? 'Lunas + Infaq' : 'Lunas') : '', !bayar && telat > 0];
+    }), tgl: kTglPanjang(new Date()) };
   const html = `<div class="kartu-box" id="kartuBox">
     <div class="kartu-judul">BUKTI PEMBAYARAN ${kas ? 'KASBON' : 'PINJAMAN KOPERASI'}</div>
     <div class="kartu-info">
@@ -299,7 +309,7 @@ function kartuBuka(id){
   </div>`;
   let m = document.getElementById('kartuModal');
   if(!m){ m = document.createElement('div'); m.id = 'kartuModal'; m.className = 'kartu-modal'; m.onclick = e => { if(e.target === m) kartuTutup(); }; document.body.appendChild(m); }
-  m.innerHTML = `<div class="kartu-zoom"><button onclick="kartuZoom(-0.25)" aria-label="Perkecil">−</button><span id="kartuZoomTxt" onclick="kartuZoomSet(1)" title="Klik untuk reset">100%</span><button onclick="kartuZoom(0.25)" aria-label="Perbesar">+</button></div><div class="kartu-wrap"><div id="kartuZoomBox">${html}</div><div class="kartu-aksi"><button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
+  m.innerHTML = `<div class="kartu-zoom"><button onclick="kartuZoom(-0.25)" aria-label="Perkecil">−</button><span id="kartuZoomTxt" onclick="kartuZoomSet(1)" title="Klik untuk reset">100%</span><button onclick="kartuZoom(0.25)" aria-label="Perbesar">+</button></div><div class="kartu-wrap"><div id="kartuZoomBox">${html}</div><div class="kartu-aksi"><button class="btn" id="kartuBtnDl" onclick="kartuUnduh()">⬇️ Download</button><button class="btn" id="kartuBtnBagi" style="background:#25a244" onclick="kartuBagikan()">📤 Bagikan</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
   m.classList.remove('hidden'); document.body.classList.add('kartu-open');
   kartuZoomSet(1); kartuPinchPasang(m);
 }
@@ -318,5 +328,68 @@ function kartuPinchPasang(m){ // cubit dua jari untuk memperbesar / memperkecil
   m.addEventListener('touchstart', e => { if(e.touches.length === 2){ d0 = jarak(e); z0 = KZ; } }, { passive: true });
   m.addEventListener('touchmove', e => { if(e.touches.length === 2 && d0){ e.preventDefault(); kartuZoomSet(z0 * jarak(e) / d0); } }, { passive: false });
   m.addEventListener('touchend', e => { if(e.touches.length < 2) d0 = 0; }, { passive: true });
+}
+/* ---- gambar kartu (JPEG) digambar langsung dengan canvas: hasil sama di semua HP, tidak ikut zoom layar ---- */
+function kImg(src){ return new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; }); }
+function kWrap(c, t, w){ const out = []; String(t).split('\n').forEach(par => { let line = ''; par.split(' ').forEach(w1 => { const x = line ? line + ' ' + w1 : w1; if(c.measureText(x).width > w && line){ out.push(line); line = w1; } else line = x; }); out.push(line); }); return out; }
+function kGambar(c, K, W, logo, dry){
+  const P = 44, F = 'Arial, Helvetica, sans-serif'; let y = P;
+  if(!dry){ c.fillStyle = '#fff'; c.fillRect(0, 0, W, 99999); }
+  c.fillStyle = '#111'; c.textBaseline = 'top'; c.textAlign = 'center'; c.font = '800 36px ' + F; c.fillText(K.judul, W / 2, y + 6); y += 70;
+  // info 2 kolom
+  const colW = (W - 2 * P - 30) / 2, lab = colW * .42; c.textAlign = 'left'; c.font = '26px ' + F;
+  const ys = [y, y];
+  K.info.forEach((r, i) => { const j = i % 2, x = P + j * (colW + 30); c.font = (r[2] ? '700 ' : '400 ') + '26px ' + F; const L = kWrap(c, r[1], colW - lab - 14);
+    if(!dry){ c.font = '400 26px ' + F; c.fillStyle = '#333'; c.fillText(r[0], x, ys[j]); c.fillStyle = '#111'; c.font = (r[2] ? '700 ' : '400 ') + '26px ' + F; L.forEach((l, n) => c.fillText(l, x + lab, ys[j] + n * 34)); }
+    ys[j] += L.length * 34 + 8; });
+  y = Math.max(ys[0], ys[1]);
+  y += 14;
+  // tabel
+  const hd = ['NO', 'Keterangan', 'Jatuh Tempo', 'Tgl Pembayaran', 'Jumlah', 'Telat', 'Status'], fr = [.06, .17, .17, .19, .15, .11, .15], TW = W - 2 * P;
+  const xs = []; let ax = P; fr.forEach(f => { xs.push(ax); ax += f * TW; }); xs.push(P + TW);
+  const RH = 54; c.font = '600 22px ' + F;
+  if(!dry){ c.fillStyle = '#19d3e3'; c.fillRect(P, y, TW, RH); }
+  const drow = (cells, yy, bold, red) => { cells.forEach((t, i) => { c.font = (bold ? '600 ' : '400 ') + '22px ' + F; c.fillStyle = red && i === 5 ? '#c0392b' : '#111'; if(red && i === 5) c.font = '700 22px ' + F;
+    const cw = xs[i + 1] - xs[i]; let tx = xs[i] + cw / 2; c.textAlign = 'center'; if(i === 4 && !bold){ c.textAlign = 'right'; tx = xs[i + 1] - 10; }
+    let tt = String(t); while(c.measureText(tt).width > cw - 8 && tt.length > 3) tt = tt.slice(0, -1); c.fillText(tt, tx, yy + 16); }); };
+  if(!dry) drow(hd, y, true, false);
+  let ty = y; y += RH;
+  K.rows.forEach(r => { if(!dry) drow(r.slice(0, 7), y, false, r[7]); y += RH; });
+  if(!dry){ c.strokeStyle = '#000'; c.lineWidth = 2; c.strokeRect(P, ty, TW, y - ty); xs.forEach(x => { c.beginPath(); c.moveTo(x, ty); c.lineTo(x, y); c.stroke(); });
+    for(let yy = ty + RH; yy < y; yy += RH){ c.beginPath(); c.moveTo(P, yy); c.lineTo(P + TW, yy); c.stroke(); } }
+  y += 36;
+  // tanda tangan
+  const cx = W - P - 190; c.textAlign = 'center'; c.font = '24px ' + F; c.fillStyle = '#111';
+  if(!dry){ c.fillText(K.tgl, cx, y); if(logo) c.drawImage(logo, cx - 95, y + 36, 190, 190 * logo.height / logo.width); c.fillText('Pengurus Koperasi', cx, y + 36 + (logo ? 190 * logo.height / logo.width : 60) + 54); }
+  y += 36 + (logo ? 190 * logo.height / logo.width : 60) + 54 + 28 + P;
+  return Math.ceil(y);
+}
+async function kartuGambar(){
+  const K = window.KARTU_CUR; if(!K) throw new Error('Kartu belum dibuka');
+  const W = 1200, logo = await kImg('logo-intisel.png');
+  const h = kGambar(document.createElement('canvas').getContext('2d'), K, W, logo, true);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = h; const c = cv.getContext('2d');
+  kGambar(c, K, W, logo, false);
+  // watermark transparan, jarang-jarang
+  c.save(); c.globalAlpha = .13; c.fillStyle = '#134e8a'; c.font = '700 22px Arial, sans-serif';
+  for(let ry = 60, n = 0; ry < h + 200; ry += 250, n++) for(let rx = (n % 2 ? 260 : 20); rx < W + 200; rx += 520){ c.save(); c.translate(rx, ry); c.rotate(-28 * Math.PI / 180); c.fillText('KOPERASI INTISEL', 0, 0); c.restore(); }
+  c.restore();
+  return await new Promise(ok => cv.toBlob(ok, 'image/jpeg', .92));
+}
+function kartuNama(){ const K = window.KARTU_CUR; return 'Kartu-Pinjaman-' + K.id + '-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.jpg'; }
+async function kartuUnduh(){
+  const b = document.getElementById('kartuBtnDl'); const t0 = b.innerText; b.disabled = true; b.innerText = 'Menyiapkan...';
+  try{ const blob = await kartuGambar(), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = kartuNama(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000); }
+  catch(e){ alert('Gagal membuat gambar kartu. Coba lagi.'); }
+  b.disabled = false; b.innerText = t0;
+}
+async function kartuBagikan(){
+  const b = document.getElementById('kartuBtnBagi'); const t0 = b.innerText; b.disabled = true; b.innerText = 'Menyiapkan...';
+  try{
+    const blob = await kartuGambar(), f = new File([blob], kartuNama(), { type: 'image/jpeg' });
+    if(navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'Kartu Pinjaman Koperasi Intisel', text: 'Bukti pembayaran ' + window.KARTU_CUR.id });
+    else { await kartuUnduh(); alert('Perangkat ini belum mendukung bagikan langsung. Gambar sudah disimpan, silakan lampirkan secara manual ke WhatsApp.'); }
+  }catch(e){ if(e && e.name !== 'AbortError') alert('Gagal membagikan kartu. Coba tombol Download.'); }
+  b.disabled = false; b.innerText = t0;
 }
 function kartuTutup(){ const m = document.getElementById('kartuModal'); if(m) m.classList.add('hidden'); document.body.classList.remove('kartu-open'); }
