@@ -40,6 +40,7 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .hero img{width:100%;height:270px;object-fit:cover;object-position:50% 12%;display:block}
 .hero-small img{height:220px}
 .slideshow{position:relative;height:270px;background:#0d3b6e}
+.hero-small .slideshow{height:220px}
 .slideshow .slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1s ease}
 .slideshow .slide.active{opacity:1}
 .hero .slideshow .slide{height:100%}
@@ -101,11 +102,11 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 <!-- LANDING PAGE -->
 <div id="landing">
   <div class="hero">
-    <div class="slideshow" id="heroSlides">
+    <div class="slideshow">
       <img class="slide active" src="hero-tower.png" alt="Tower Intisel - Pulau" style="object-position:50% 12%">
       <img class="slide" src="slide-pantai.jpg" alt="Kebersamaan karyawan Intisel di pantai" loading="lazy" style="object-position:50% 60%">
       <img class="slide" src="slide-kantor.jpg" alt="Kebersamaan karyawan Intisel di kantor" loading="lazy" style="object-position:50% 40%">
-      <div class="slide-dots" id="heroDots"></div>
+      <div class="slide-dots"></div>
     </div>
     <div class="hero-overlay">
       <b>Koperasi Karyawan Intisel</b>
@@ -315,7 +316,12 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
   </div>
 
   <div class="hero hero-small" style="margin:0 14px 14px">
-    <img src="hero-tower.png" alt="Pulau Tower Intisel">
+    <div class="slideshow">
+      <img class="slide active" src="hero-tower.png" alt="Tower Intisel - Pulau" style="object-position:50% 12%">
+      <img class="slide" src="slide-pantai.jpg" alt="Kebersamaan karyawan Intisel di pantai" loading="lazy" style="object-position:50% 60%">
+      <img class="slide" src="slide-kantor.jpg" alt="Kebersamaan karyawan Intisel di kantor" loading="lazy" style="object-position:50% 40%">
+      <div class="slide-dots"></div>
+    </div>
     <div class="hero-overlay" style="padding:12px">
       <b style="font-size:14px">Pulau &amp; Tower Intisel Lampung</b>
       <p style="font-size:10px">Infrastruktur untuk karyawan - Sinergi untuk sejahtera</p>
@@ -439,7 +445,12 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
     </div>
   </div>
   <div class="hero hero-small">
-    <img src="hero-tower.png" alt="Pulau Tower">
+    <div class="slideshow">
+      <img class="slide active" src="hero-tower.png" alt="Tower Intisel - Pulau" style="object-position:50% 12%">
+      <img class="slide" src="slide-pantai.jpg" alt="Kebersamaan karyawan Intisel di pantai" loading="lazy" style="object-position:50% 60%">
+      <img class="slide" src="slide-kantor.jpg" alt="Kebersamaan karyawan Intisel di kantor" loading="lazy" style="object-position:50% 40%">
+      <div class="slide-dots"></div>
+    </div>
     <div class="hero-overlay" style="padding:12px">
       <b style="font-size:14px">Monitoring Tower - Koperasi Intisel</b>
       <p style="font-size:10px">Kelola &amp; pantau pinjaman anggota dengan amanah</p>
@@ -613,22 +624,25 @@ function hitungAngsuran(){
 
 </script>
 <script>
-// Slideshow foto di halaman utama: ganti otomatis tiap 4 detik, titik bisa diklik
+// Slideshow banner di semua halaman: ganti otomatis tiap 4 detik, titik bisa diklik
 (function(){
-  var box=document.getElementById('heroSlides'); if(!box) return;
-  var slides=box.querySelectorAll('.slide'), dots=document.getElementById('heroDots'), cur=0, timer=null, DELAY=4000;
-  slides.forEach(function(_,i){
-    var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Foto '+(i+1));
-    b.onclick=function(){show(i);restart();}; dots.appendChild(b);
+  var DELAY=4000, reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var shows=[];
+  document.querySelectorAll('.slideshow').forEach(function(box){
+    var slides=box.querySelectorAll('.slide'), dots=box.querySelector('.slide-dots'), st={cur:0,timer:null};
+    function show(n){
+      st.cur=(n+slides.length)%slides.length;
+      slides.forEach(function(el,i){el.classList.toggle('active',i===st.cur);});
+      Array.prototype.forEach.call(dots.children,function(d,i){d.classList.toggle('active',i===st.cur);});
+    }
+    function start(){clearInterval(st.timer); if(!reduce) st.timer=setInterval(function(){ if(box.offsetParent!==null) show(st.cur+1); },DELAY);}
+    slides.forEach(function(_,i){
+      var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Foto '+(i+1));
+      b.onclick=function(){show(i);start();}; dots.appendChild(b);
+    });
+    show(0); start(); shows.push({stop:function(){clearInterval(st.timer);},start:start});
   });
-  function show(n){
-    cur=(n+slides.length)%slides.length;
-    slides.forEach(function(el,i){el.classList.toggle('active',i===cur);});
-    Array.prototype.forEach.call(dots.children,function(d,i){d.classList.toggle('active',i===cur);});
-  }
-  function restart(){clearInterval(timer); if(!window.matchMedia('(prefers-reduced-motion:reduce)').matches) timer=setInterval(function(){show(cur+1);},DELAY);}
-  show(0); restart();
-  document.addEventListener('visibilitychange',function(){document.hidden?clearInterval(timer):restart();});
+  document.addEventListener('visibilitychange',function(){shows.forEach(function(x){document.hidden?x.stop():x.start();});});
 })();
 </script>
 <script src="pengajuan.js"></script>
