@@ -27,13 +27,13 @@ function profilBarIsi(a){
   inboxData = []; inboxBadge();
   const mk = masaKerjaDetail(a.tglMasuk), tahun = mk ? mk.tahun : (+a.masaKerja || 0), t = tingkatDari(tahun);
   $('sbNama').textContent = a.nama; $('sbJab').textContent = a.jabatan || '';
-  $('sbMasa').textContent = mk ? 'Masa kerja ' + mk.y + ' thn ' + mk.b + ' bln ' + mk.d + ' hr' : 'Masa kerja ' + (+a.masaKerja || 0).toFixed(1) + ' thn';
+  $('sbMasa').textContent = mk ? t + ' (' + mk.y + ' Th ' + mk.b + ' Bln)' : t + ' (' + Math.floor(+a.masaKerja || 0) + ' Th)';
   const c = $('avCrown'); c.innerHTML = mahkotaSvg(t); c.title = 'Tingkat ' + t; $('avMember').setAttribute('data-tingkat', t);
 }
 
 function profilBarPk(r){
   const mk = masaKerjaDetail(r.tglMasuk), c = $('avCrownPk');
-  $('pkMasa').textContent = mk ? 'Masa kerja ' + mk.y + ' thn ' + mk.b + ' bln ' + mk.d + ' hr' : '';
+  $('pkMasa').textContent = mk ? tingkatDari(mk.tahun) + ' (' + mk.y + ' Th ' + mk.b + ' Bln)' : '';
   if(mk){ const t = tingkatDari(mk.tahun); c.innerHTML = mahkotaSvg(t); c.title = 'Tingkat ' + t; c.style.display = ''; } else { c.innerHTML = ''; c.style.display = 'none'; }
   inboxData = []; inboxBadge(); inboxMuat();
 }
