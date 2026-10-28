@@ -135,9 +135,10 @@ async function pkMuat(){
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni;
-    $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.peran;
+    $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.peran; if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
+    fotoMuatPelamar(r.menunggu);
     pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbBayar', r.laporan.length); pkBadge2('pbCair', r.pencairan.length); pkBadge2('pbBerjalan', bj.terlambat);
     $('pkPencairan').innerHTML = r.pencairan.length ? r.pencairan.map(pkCairKartu).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>';
     $('pkLaporan').innerHTML = r.laporan.length ? r.laporan.map(pkLaporanKartu).join('') : '<p class="small">Tidak ada laporan pembayaran yang menunggu verifikasi.</p>';
@@ -159,7 +160,7 @@ function pkKartu(p){
       row('Infaq', pkRp(d.infaq)) + row('Alasan', d.alasan) + row('Pinjaman sebelumnya', d.pernahPinjam + (d.tglLunas ? ' (lunas ' + d.tglLunas + ')' : '')) + row('Gaji ditahan', d.gajiDitahan) +
       row('Gaji 3 bulan', pkRp(d.gaji1) + ' | ' + pkRp(d.gaji2) + ' | ' + pkRp(d.gaji3)) + row('Kontak darurat', d.namaDarurat + ' (' + d.hubungan + ') ' + d.hpDarurat);
   return `<div class="ok" style="background:#fff;margin-bottom:12px" id="pk-${esc(p.id)}">
-    ${pkBadge(p.jenis)}<b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)} • ${esc(p.waktu)})</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="av sm" data-nik="${esc(p.nik)}" data-nama="${esc(p.nama)}">${esc(fotoInisial(p.nama))}</span><div>${pkBadge(p.jenis)}<b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)} • ${esc(p.waktu)})</span></div></div>
     <table class="small" style="margin:6px 0;border-collapse:collapse">${rows}</table>
     <div class="small" style="margin-bottom:6px">${pkVotes(p)}</div>
     ${pilihanCair(p)}

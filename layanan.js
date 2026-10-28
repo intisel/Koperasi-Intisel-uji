@@ -31,11 +31,13 @@ function renderKontak(){
   const a = anggotaAktif, saya = a ? a.nama + ' (NIK ' + a.nik + ')' : '';
   $('kontakList').innerHTML = KONTAK.map(k => {
     const pesan = 'Assalamualaikum ' + k.jabatan + ' ' + k.nama + ', saya ' + saya + ' dari aplikasi Koperasi Intisel. Saya ingin bertanya: ';
-    return `<div class="ok" style="background:#fff;margin-bottom:8px;display:flex;align-items:center;gap:10px">
-      <div style="flex:1"><div class="small" style="color:#5a7aa0">${esc(k.jabatan)}</div><b>${esc(k.nama)}</b><div class="small" style="white-space:nowrap">${esc(k.tampil)}</div></div>
-      <a href="https://wa.me/${k.hp}?text=${encodeURIComponent(pesan)}" target="_blank" rel="noopener" style="text-decoration:none;background:#16a34a;color:#fff;font-weight:800;padding:10px 10px;border-radius:10px;font-size:14px">💬 WA</a>
-      <a href="tel:+${k.hp}" style="text-decoration:none;background:#134e8a;color:#fff;padding:10px 12px;border-radius:10px;font-size:14px" aria-label="Telepon ${esc(k.nama)}">📞</a></div>`;
+    return `<div class="ok" style="background:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      <span class="av sm" data-kontak="${esc(k.jabatan)}" data-nama="${esc(k.nama)}">${esc(fotoInisial(k.nama))}</span>
+      <div style="flex:1;min-width:0"><div class="small" style="color:#5a7aa0">${esc(k.jabatan)}</div><b>${esc(k.nama)}</b><div class="small" style="white-space:nowrap">${esc(k.tampil)}</div></div>
+      <a href="https://wa.me/${k.hp}?text=${encodeURIComponent(pesan)}" target="_blank" rel="noopener" style="text-decoration:none;background:#16a34a;color:#fff;font-weight:800;padding:10px 8px;border-radius:10px;font-size:14px;white-space:nowrap;flex:none">WA</a>
+      <a href="tel:+${k.hp}" style="text-decoration:none;background:#134e8a;color:#fff;padding:10px 10px;border-radius:10px;font-size:14px;flex:none" aria-label="Telepon ${esc(k.nama)}">📞</a></div>`;
   }).join('');
+  fotoMuatKontak();
 }
 function anggotaRender(name){ // dipanggil router
   if(name === 'anggota'){ resetAnggota(); return; }
@@ -61,7 +63,7 @@ async function bukaMenu(v){
 }
 function masukMenu(){
   const a = anggotaAktif, koperasiOk = !limitAktif.notEligible;
-  $('mnNama').innerText = 'Pilih Layanan'; $('mnJab').style.display = 'none';
+  $('mnNama').innerText = a.nama; $('mnJab').style.display = 'none'; fotoMuatAnggota();
   $('mnMasa').innerText = 'Masa kerja ' + a.masaKerja.toFixed(1) + ' tahun' + (koperasiOk ? ' • Limit koperasi ' + rpf(limitAktif.maxNominal) : ' • belum 2 tahun');
   $('tlKoperasi').classList.toggle('off', !koperasiOk); $('tlKasbon').classList.toggle('off', koperasiOk);
   $('tlKoperasiSub').innerText = koperasiOk ? 'Maks ' + rpf(limitAktif.maxNominal) + ' • ' + limitAktif.maxTenor + ' bln' : 'Khusus masa kerja ≥ 2 tahun';
