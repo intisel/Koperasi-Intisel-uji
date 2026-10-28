@@ -43,7 +43,7 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .slideshow{position:relative;height:270px;background:#0d3b6e}
 .hero-small .slideshow{height:220px}
 .infobar{display:flex;align-items:center;background:#fff3b0;color:#4a3b00;border-bottom:1px solid #e6c700;cursor:pointer;overflow:hidden;font-weight:700;font-size:14px}
-.infobar .infoic{flex:none;padding:8px 10px;background:#ffd400;font-size:16px;z-index:1}
+.infobar .infoic{flex:none;padding:8px 10px;background:#ffd400;font-size:16px;z-index:1}.infobar .infoic-r{display:inline-block;transform:scaleX(-1)}
 .infowin{flex:1;overflow:hidden;white-space:nowrap}
 .infotrack{display:inline-block;padding-left:100%;white-space:nowrap;animation:inforun 30s linear infinite}
 .infobar:active .infotrack{animation-play-state:paused}
@@ -144,7 +144,7 @@ body.kartu-open{overflow:hidden}
 </div>
 
 <div id="infoBar" class="infobar hidden" onclick="infoBuka()" role="button" aria-label="Pengumuman, ketuk untuk membaca semua">
-  <span class="infoic">📢</span><div class="infowin"><span class="infotrack" id="infoTrack"></span></div>
+  <span class="infoic">📢</span><div class="infowin"><span class="infotrack" id="infoTrack"></span></div><span class="infoic infoic-r">📢</span>
 </div>
 </div>
 <div id="inboxModal" class="infomodal hidden" onclick="if(event.target===this)inboxTutup()">
