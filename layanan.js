@@ -152,10 +152,11 @@ function renderBerjalan(){
       <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
       <div class="small"><b>${a.lunas}/${a.total} lunas</b> • sisa ${rpf(a.sisa)}${a.berikut ? '<br>Berikutnya: ke-' + a.berikut.ke + ', jatuh tempo <b>' + tglf(a.berikut.due) + '</b> (' + rpf(a.berikut.jumlah) + ')' : ''}</div>
       <button class="btn" style="margin-top:10px;padding:12px;font-size:14px" onclick="goReplace('anggota-bayar')">🧾 Lapor Pembayaran</button>
+      <button class="btn btn-yellow" style="margin-top:8px;padding:12px;font-size:14px" onclick="kartuBuka('${p.id}')">📄 Lihat Kartu Pinjaman</button>
       <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>${jadwalTabel(a)}</details>
     </div>`;
   }).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';
-  if(lunas.length) h += '<div style="font-weight:800;margin-top:14px">Sudah lunas</div>' + lunas.map(p => `<div class="small" style="padding:6px 0;border-bottom:1px solid #d6e6f8">🎉 ${badgeJenis(p.jenis)} ${esc(p.id)} • ${rpf(p.nominal)} • lunas ${tglf(p.tglLunas)}</div>`).join('');
+  if(lunas.length) h += '<div style="font-weight:800;margin-top:14px">Sudah lunas</div>' + lunas.map(p => `<div class="small" style="padding:6px 0;border-bottom:1px solid #d6e6f8">🎉 ${badgeJenis(p.jenis)} ${esc(p.id)} • ${rpf(p.nominal)} • lunas ${tglf(p.tglLunas)} <span class="chip" style="margin-left:6px" onclick="kartuBuka('${p.id}')">📄 Kartu</span></div>`).join('');
   $('bjBox').innerHTML = h;
 }
 
@@ -258,3 +259,45 @@ async function kirimLaporan(){
   }catch(e){ alert('Gagal mengunggah. Periksa koneksi lalu coba lagi.'); }
   btn.disabled = false; btn.innerText = 'Kirim Laporan Pembayaran';
 }
+
+
+/* ---------- KARTU PINJAMAN (bukti pembayaran pinjaman, bisa dicetak / disimpan PDF) ---------- */
+const BLN_K = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const HARI_K = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'], BLN_KP = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function kTgl(s){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || '')); return m ? (+m[3]) + ' ' + BLN_K[+m[2] - 1] + ' ' + m[1] : ''; }
+function kTglS(s){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || '')); return m ? m[3] + '/' + m[2] + '/' + m[1].slice(2) : ''; }
+const kDua = (lg, sm) => `<span class="lg">${lg}</span><span class="sm">${sm}</span>`;
+function kTglPanjang(d){ return HARI_K[d.getDay()] + ', ' + ('0' + d.getDate()).slice(-2) + ' ' + BLN_KP[d.getMonth()] + ' ' + d.getFullYear(); }
+function kSelisih(a, b){ const x = Date.parse(a + 'T00:00:00Z'), y = Date.parse(b + 'T00:00:00Z'); return isNaN(x) || isNaN(y) ? 0 : Math.round((x - y) / 864e5); }
+const kAngka = n => Number(n || 0).toLocaleString('id-ID');
+function kartuBuka(id){
+  const p = (dataSaya.list || []).find(x => x.id === id && x.angsuran);
+  if(!p){ alert('Data kartu belum tersedia. Muat ulang halaman lalu coba lagi.'); return; }
+  const a = p.angsuran, k = p.kartu || {}, kas = p.jenis === 'KASBON', jad = a.jadwal || [], infaq = +k.infaq || 0;
+  const lunas1 = jad.some(j => j.ke === 1 && j.status === 'LUNAS'), today = new Date().toISOString().slice(0, 10);
+  const info = (l, v, bold) => `<div class="kr"><span>${l}</span><b${bold ? '' : ' class="nb"'}>${v}</b></div>`;
+  const baris = jad.map(j => {
+    const bayar = j.status === 'LUNAS', plus = bayar && j.ke === 1 && infaq;
+    const telat = bayar ? Math.max(0, kSelisih(j.tglBayar, j.due)) : (j.due < today ? kSelisih(today, j.due) : null);
+    return `<tr><td class="c">${j.ke}</td><td>${kas ? 'Kasbon' : kDua('Angsuran Ke ' + j.ke, 'Ke ' + j.ke)}</td><td class="c">${kDua(esc(kTgl(j.due)), kTglS(j.due))}</td><td class="c">${bayar ? kDua(esc(kTgl(j.tglBayar)), kTglS(j.tglBayar)) : ''}</td>` +
+      `<td class="r">${bayar ? kAngka(j.jumlah + (plus ? infaq : 0)) : ''}</td><td class="c"${!bayar && telat ? ' style="color:#c0392b;font-weight:700"' : ''}>${telat === null ? '' : telat + ' Hari'}</td><td class="c">${bayar ? (plus ? 'Lunas + Infaq' : 'Lunas') : ''}</td></tr>`;
+  }).join('');
+  const html = `<div class="kartu-box" id="kartuBox">
+    <div class="kartu-judul">BUKTI PEMBAYARAN ${kas ? 'KASBON' : 'PINJAMAN KOPERASI'}</div>
+    <div class="kartu-info">
+      ${info('No Registrasi', esc(p.id), 1)}${info('Nama', esc(anggotaAktif ? anggotaAktif.nama : ''), 1)}
+      ${info('Jumlah Pinjaman', kAngka(p.nominal))}${info('Alamat', esc(k.alamat || '-'))}
+      ${info('Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan')}${info('No.HP', esc(k.hp || '-'))}
+      ${info('Angsuran', jad[0] ? kAngka(jad[0].jumlah) : '-')}${info('Email', esc(k.email || '-'))}
+      ${info('Tanggal Pencairan', esc(kTgl(k.tglCair) || '-'))}${info('Sisa Pinjaman', 'Rp ' + kAngka(a.sisa), 1)}
+      ${info('Infaq', infaq ? kAngka(infaq) + (lunas1 ? ' (Lunas)' : ' (Belum)') : '-', 1)}
+    </div>
+    <div style="overflow-x:auto"><table class="kartu-tbl"><thead><tr><th>NO</th><th>${kDua('Keterangan', 'Ket.')}</th><th>${kDua('Jatuh Tempo', 'Jatuh Tempo')}</th><th>${kDua('Tanggal Pembayaran', 'Tgl Bayar')}</th><th>${kDua('Jumlah Pembayaran', 'Jumlah')}</th><th>${kDua('Keterlambatan', 'Telat')}</th><th>${kDua('Keterangan', 'Status')}</th></tr></thead><tbody>${baris}</tbody></table></div>
+    <div class="kartu-ttd">${esc(kTglPanjang(new Date()))}<img src="logo-intisel.png" alt="Koperasi Intisel"><div style="height:34px"></div>Pengurus Koperasi</div>
+  </div>`;
+  let m = document.getElementById('kartuModal');
+  if(!m){ m = document.createElement('div'); m.id = 'kartuModal'; m.className = 'kartu-modal'; m.onclick = e => { if(e.target === m) kartuTutup(); }; document.body.appendChild(m); }
+  m.innerHTML = `<div class="kartu-wrap">${html}<div class="kartu-aksi"><button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
+  m.classList.remove('hidden'); document.body.classList.add('kartu-open');
+}
+function kartuTutup(){ const m = document.getElementById('kartuModal'); if(m) m.classList.add('hidden'); document.body.classList.remove('kartu-open'); }
