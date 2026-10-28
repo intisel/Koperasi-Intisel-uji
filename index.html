@@ -192,6 +192,13 @@ body.kartu-open{overflow:hidden}
     </div>
   </div>
 
+  <div class="card hidden" id="apkBox" style="text-align:center;border-color:#b8d96b;background:#f4fbe6">
+    <b>📲 Dapatkan Aplikasi Android</b>
+    <p class="small" style="margin:6px 0 10px">Pasang aplikasinya di HP Anda agar lebih cepat dibuka dan bisa menerima notifikasi.</p>
+    <a class="btn" id="apkBtn" href="koperasi-intisel.apk" download="Koperasi-Intisel.apk" style="display:block;text-decoration:none;text-align:center;box-sizing:border-box">⬇️ Download Aplikasi (APK)</a>
+    <p class="small" style="margin:8px 0 0">Setelah terunduh, buka file-nya lalu izinkan “Pasang dari sumber ini” bila diminta.</p>
+  </div>
+
   <div class="card">
     <details><summary class="small"><b>📋 Tabel Acuan Pinjaman (Masa Kerja)</b></summary>
       <table class="table-ref" style="margin-top:10px">
@@ -743,6 +750,15 @@ function hitungAngsuran(){
     show(0); start(); shows.push({stop:function(){clearInterval(st.timer);},start:start});
   });
   document.addEventListener('visibilitychange',function(){shows.forEach(function(x){document.hidden?x.stop():x.start();});});
+})();
+</script>
+<script>
+// Tombol unduh APK: hanya di browser Android (tidak tampil di aplikasi terpasang / iPhone / komputer)
+(function(){
+  try{
+    var app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone || /^android-app:/.test(document.referrer||'');
+    if(/Android/i.test(navigator.userAgent) && !app) document.getElementById('apkBox').classList.remove('hidden');
+  }catch(e){}
 })();
 </script>
 <script src="pengajuan.js"></script>
