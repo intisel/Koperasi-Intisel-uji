@@ -74,8 +74,9 @@ let infoEditId = '';
 const infoApi = body => pkApi(Object.assign({token: pkToken}, body));
 function infoPesan(t, ok){ const e = $('infoPesan'); e.className = ok ? 'ok' : 'err'; e.textContent = t || ''; e.style.display = t ? '' : 'none'; }
 function infoHitung(){ $('infoHitung').textContent = $('infoIsi').value.length + ' / 240'; }
-function infoReset(){ infoEditId = ''; $('infoNotif').checked = false; $('infoNotifLbl').style.display = 'flex'; $('infoIsi').value = ''; $('infoAkhir').value = ''; $('infoJudulForm').textContent = 'Tulis pengumuman baru'; $('infoBatal').classList.add('hidden'); infoHitung(); }
+function infoReset(){ infoEditId = ''; $('infoIsi').value = ''; $('infoAkhir').value = ''; $('infoJudulForm').textContent = 'Tulis pengumuman baru'; $('infoBatal').classList.add('hidden'); infoHitung(); }
 async function infoMuat(){
+  infoTab('A');
   $('infoAkhir').min = new Date().toISOString().slice(0, 10);
   infoPesan('');
   const box = $('infoDaftar'); box.textContent = 'Memuat...';
@@ -104,7 +105,7 @@ function infoDaftarGambar(list){
 }
 function infoUbah(x){
   infoEditId = x.id; $('infoIsi').value = x.isi; $('infoAkhir').value = x.berakhir || '';
-  $('infoJudulForm').textContent = 'Ubah pengumuman'; $('infoNotifLbl').style.display = 'none'; $('infoBatal').classList.remove('hidden'); infoHitung();
+  $('infoJudulForm').textContent = 'Ubah pengumuman'; $('infoBatal').classList.remove('hidden'); infoHitung();
   $('infoIsi').scrollIntoView({behavior:'smooth', block:'center'}); $('infoIsi').focus();
 }
 async function infoKirim(){
@@ -112,7 +113,7 @@ async function infoKirim(){
   if(!isi){ infoPesan('Tulis isi pengumuman dulu.', false); return; }
   const btn = $('infoBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
   try{
-    const r = await infoApi({a:'info_simpan', id:infoEditId, isi, berakhir:$('infoAkhir').value, notif: !infoEditId && $('infoNotif').checked});
+    const r = await infoApi({a:'info_simpan', id:infoEditId, isi, berakhir:$('infoAkhir').value});
     infoPesan(r.msg, !!r.ok);
     if(r.ok){ infoReset(); await infoMuat(); infoPesan(r.msg, true); infoMuatPublik(); }
   }catch(e){ infoPesan('Gagal terhubung ke server.', false); }
@@ -133,3 +134,42 @@ async function infoHapus(x){
   const asli = renderRoute;
   renderRoute = function(name, fromPop){ asli(name, fromPop); infoMuatTerlambat(); };
 })();
+
+/* ---------- Tab Pengumuman | Broadcast ---------- */
+function infoTab(t){
+  $('infoTabA').classList.toggle('hidden', t !== 'A'); $('infoTabB').classList.toggle('hidden', t !== 'B');
+  $('infoTabBtnA').classList.toggle('on', t === 'A'); $('infoTabBtnB').classList.toggle('on', t === 'B');
+  if(t === 'B') bcMuat();
+}
+function bcHitung(){ $('bcHitung').textContent = $('bcIsi').value.length + ' / 160'; }
+function bcPesan(t, ok){ const e = $('bcPesan'); e.className = ok ? 'ok' : 'err'; e.textContent = t || ''; e.style.display = t ? '' : 'none'; }
+async function bcMuat(){
+  const box = $('bcDaftar'); box.textContent = 'Memuat...';
+  try{
+    const r = await infoApi({a:'notif_riwayat'});
+    if(!r.ok){ box.textContent = ''; bcPesan(r.msg || 'Gagal memuat.', false); return; }
+    $('bcPerangkat').textContent = '📱 Perangkat terdaftar: ' + r.anggota + ' anggota, ' + r.pengurus + ' pengurus';
+    box.textContent = '';
+    if(!r.list.length){ const p = document.createElement('p'); p.className = 'small'; p.textContent = 'Belum ada broadcast.'; box.appendChild(p); return; }
+    r.list.forEach(x => {
+      const k = document.createElement('div'); k.className = 'infoitem';
+      const j = document.createElement('b'); j.textContent = x.judul;
+      const i = document.createElement('div'); i.textContent = x.isi;
+      const m = document.createElement('div'); m.className = 'small'; m.style.marginTop = '4px';
+      m.textContent = x.waktu.slice(0, 16) + ' • ' + x.oleh + ' • ke ' + (x.sasaran === 'PENGURUS' ? 'pengurus' : 'anggota') + ' • terkirim ' + x.terkirim + ' perangkat';
+      k.append(j, i, m); box.appendChild(k);
+    });
+  }catch(e){ box.textContent = ''; bcPesan('Gagal terhubung ke server.', false); }
+}
+async function bcKirim(){
+  const judul = $('bcJudul').value.trim(), isi = $('bcIsi').value.trim();
+  if(!judul || !isi){ bcPesan('Isi judul dan pesan dulu.', false); return; }
+  if(!confirm('Kirim notifikasi ini ke ' + ($('bcSasaran').value === 'PENGURUS' ? 'semua pengurus' : 'semua anggota') + '?')) return;
+  const btn = $('bcBtn'); btn.disabled = true; btn.textContent = 'Mengirim...';
+  try{
+    const r = await infoApi({a:'notif_broadcast', judul, isi, sasaran:$('bcSasaran').value});
+    bcPesan(r.msg, !!r.ok);
+    if(r.ok){ $('bcJudul').value = ''; $('bcIsi').value = ''; bcHitung(); await bcMuat(); bcPesan(r.msg, true); }
+  }catch(e){ bcPesan('Gagal terhubung ke server.', false); }
+  finally{ btn.disabled = false; btn.textContent = '🔔 Kirim Broadcast'; }
+}
