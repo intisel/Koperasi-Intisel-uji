@@ -5,9 +5,10 @@ const fotoCache = { anggota:'', pk:'', pkToken:'', kontak:null };
 function fotoInisial(nama){ const p = String(nama || '').replace(/\(.*?\)/g, '').trim().split(/\s+/).filter(Boolean); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
 function fotoTerapkan(el, dataUrl, nama){
   if(!el) return;
-  const cam = el.querySelector('.avcam'); el.textContent = '';
+  const cam = el.querySelector('.avcam'), crown = el.querySelector('.crown'); el.textContent = '';
   if(dataUrl){ el.style.backgroundImage = 'url("' + dataUrl + '")'; el.dataset.foto = '1'; }
   else { el.style.backgroundImage = ''; el.dataset.foto = ''; el.appendChild(document.createTextNode(fotoInisial(nama))); }
+  if(crown) el.appendChild(crown);
   if(cam) el.appendChild(cam);
 }
 function fotoLihat(dataUrl, nama){ // tampilkan foto besar

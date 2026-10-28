@@ -431,10 +431,13 @@ body.kartu-open{overflow:hidden}
   </div>
   <div id="pkDash" class="hidden">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 170px"><span class="av" id="avPk" onclick="fotoUbahPk()" role="button" aria-label="Foto profil, ketuk untuk mengubah"><i class="avcam">📷</i></span><div><b id="pkNama"></b><div class="small" id="pkPeran"></div></div></div>
-        <div style="display:flex;gap:6px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkGantiTampil()">🔑</span><span class="back-link" style="margin:0" onclick="pkKeluar()">Keluar</span></div>
+      <div class="sesibar" style="margin-top:0">
+        <span class="av" id="avPk" onclick="fotoUbahPk()" role="button" aria-label="Foto profil, ketuk untuk mengubah"><i class="avcam">📷</i><span class="crown" id="avCrownPk"></span></span>
+        <div class="sesiinfo"><b id="pkNama"></b><div class="small" id="pkPeran"></div><div class="small" id="pkMasa"></div></div>
+        <button class="sesibtn bell" onclick="inboxBuka()" aria-label="Notifikasi">🔔<i class="bellbadge" id="bellBadgePk"></i></button>
+        <button class="sesibtn out" onclick="pkKeluar()">Keluar</button>
       </div>
+      <div style="display:flex;gap:6px;margin-top:10px"><span class="back-link" style="margin:0" onclick="pkMuat()">↻ Muat ulang</span><span class="back-link" style="margin:0" onclick="pkGantiTampil()">🔑 Ganti password</span></div>
     </div>
     <div class="card hidden" id="pkGanti">
       <b>Ganti Password</b>

@@ -31,17 +31,26 @@ function profilBarIsi(a){
   const c = $('avCrown'); c.innerHTML = mahkotaSvg(t); c.title = 'Tingkat ' + t; $('avMember').setAttribute('data-tingkat', t);
 }
 
+function profilBarPk(r){
+  const mk = masaKerjaDetail(r.tglMasuk), c = $('avCrownPk');
+  $('pkMasa').textContent = mk ? 'Masa kerja ' + mk.y + ' thn ' + mk.b + ' bln ' + mk.d + ' hr' : '';
+  if(mk){ const t = tingkatDari(mk.tahun); c.innerHTML = mahkotaSvg(t); c.title = 'Tingkat ' + t; c.style.display = ''; } else { c.innerHTML = ''; c.style.display = 'none'; }
+  inboxData = []; inboxBadge(); inboxMuat();
+}
+
 /* ---------- Kotak masuk notifikasi (broadcast dari pengurus) ---------- */
 let inboxData = [];
-const inboxKunci = () => 'inbox_seen_' + (anggotaAktif ? anggotaAktif.nik : '');
+const inboxPk = () => (typeof pkToken !== 'undefined' && pkToken && currentPage === 'pengurus');
+const inboxKunci = () => 'inbox_seen_' + (inboxPk() ? 'pk_' + $('pkNama').textContent : (anggotaAktif ? anggotaAktif.nik : ''));
 const inboxSeen = () => { try{ return localStorage.getItem(inboxKunci()) || ''; }catch(e){ return ''; } };
 function inboxBadge(){
-  const s = inboxSeen(), n = inboxData.filter(x => x.id > s).length, e = $('bellBadge');
-  e.textContent = n > 9 ? '9+' : String(n); e.style.display = n ? 'block' : 'none';
+  const s = inboxSeen(), n = inboxData.filter(x => x.id > s).length;
+  ['bellBadge', 'bellBadgePk'].forEach(id => { const e = $(id); if(!e) return; e.textContent = n > 9 ? '9+' : String(n); e.style.display = n ? 'block' : 'none'; });
 }
 async function inboxMuat(){
-  const a = anggotaAktif; if(!a) return;
-  try{ const r = await apiPost({a: 'notif_inbox', nik: a.nik, lahir: a.lahir}); if(r && r.ok && anggotaAktif === a){ inboxData = r.list || []; inboxBadge(); } }catch(e){}
+  const pk = inboxPk(), a = anggotaAktif; if(!pk && !a) return;
+  const kunci = inboxKunci();
+  try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, lahir: a.lahir}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); } }catch(e){}
 }
 async function inboxBuka(){
   $('inboxModal').classList.remove('hidden');
@@ -58,4 +67,4 @@ async function inboxBuka(){
   if(inboxData.length){ try{ localStorage.setItem(inboxKunci(), inboxData[0].id); }catch(e){} } inboxBadge();
 }
 function inboxTutup(){ $('inboxModal').classList.add('hidden'); }
-document.addEventListener('visibilitychange', () => { if(!document.hidden && typeof anggotaAktif !== 'undefined' && anggotaAktif) inboxMuat(); });
+document.addEventListener('visibilitychange', () => { if(!document.hidden && ((typeof anggotaAktif !== 'undefined' && anggotaAktif) || inboxPk())) inboxMuat(); });
