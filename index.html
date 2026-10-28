@@ -569,6 +569,7 @@ async function cekNIK(){
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 
    hasil.innerHTML=`<div class="ok">✅ <b>${esc(r.nama)}</b> - ${esc(r.jabatan)}<br><span class="small">Tgl Masuk: ${r.tglMasuk} | Masa kerja: ${mk.toFixed(1)} tahun (${mkBulat} tahun)</span></div>`;
+   anggotaAktif.profil=r.profil||{}; prefillProfil(anggotaAktif.profil);
    document.getElementById('namaAnggota').innerText=r.nama;
    document.getElementById('jabAnggota').innerText=r.jabatan;
    document.getElementById('tglMasukTxt').innerText=`Tgl Masuk Kerja: ${r.tglMasuk} • Masa Kerja Real: ${mk.toFixed(1)} tahun`;

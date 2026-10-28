@@ -104,3 +104,21 @@ async function kirimPengajuan(){
   btn.innerText = 'Kirim Pengajuan'; if(typeof terapkanBlokir === 'function') terapkanBlokir(); else btn.disabled = false;
 }
 
+
+
+// Isi otomatis data kontak dari pengajuan sebelumnya (tersimpan di tab Anggota). Anggota tetap bisa mengubahnya.
+const PROFIL_ID = { hp:['hp','kbHp'], email:['email','kbEmail'], rek:['rek','kbRek'], alamat:['alamat','kbAlamat'],
+  namaDarurat:['namaDarurat','kbNamaD'], hpDarurat:['hpDarurat','kbHpD'], hubungan:['hubungan','kbHub'] };
+function prefillProfil(p){
+  let terisi = 0;
+  Object.keys(PROFIL_ID).forEach(k => {
+    const val = String((p || {})[k] || '').trim(); if(!val) return;
+    PROFIL_ID[k].forEach(id => {
+      const el = $(id); if(!el) return;
+      el.value = val; terisi++;
+      el.dispatchEvent(new Event('input', {bubbles:true})); // jalankan pemformat (HP, angka)
+    });
+  });
+  const hasil = $('hasilCek');
+  if(terisi && hasil) hasil.insertAdjacentHTML('beforeend', '<div class="small" style="margin-top:6px;color:#2e7d32">✔ Data kontak Anda terisi otomatis dari pengajuan sebelumnya. Periksa dan ubah bila ada perubahan.</div>');
+}
