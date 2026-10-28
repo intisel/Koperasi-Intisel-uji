@@ -41,6 +41,17 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .hero-small img{height:220px}
 .slideshow{position:relative;height:270px;background:#0d3b6e}
 .hero-small .slideshow{height:220px}
+.infobar{display:flex;align-items:center;background:#fff3b0;color:#4a3b00;border-bottom:1px solid #e6c700;cursor:pointer;overflow:hidden;font-weight:700;font-size:14px}
+.infobar .infoic{flex:none;padding:8px 10px;background:#ffd400;font-size:16px;z-index:1}
+.infowin{flex:1;overflow:hidden;white-space:nowrap}
+.infotrack{display:inline-block;padding-left:100%;white-space:nowrap;animation:inforun 30s linear infinite}
+.infobar:active .infotrack{animation-play-state:paused}
+@keyframes inforun{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.infotrack{animation:none;padding-left:8px;white-space:normal;display:block}.infowin{white-space:normal}}
+.infoitem{border:1.5px solid #e6c700;background:#fffbe0;border-radius:12px;padding:10px 12px;margin:8px 0;line-height:1.4;overflow-wrap:anywhere}
+.infoitem.off{opacity:.55;background:#f3f3f3;border-color:#ccc}
+.infomodal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.infomodal .infobox{background:#fff;border-radius:18px;padding:16px;max-width:480px;width:100%;max-height:80vh;overflow:auto}
 .slideshow .slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1s ease}
 .slideshow .slide.active{opacity:1}
 .hero .slideshow .slide{height:100%}
@@ -97,6 +108,14 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
       <span class="line2">Sejahtera Tanpa Beban</span>
     </span>
   </div>
+</div>
+
+<div id="infoBar" class="infobar hidden" onclick="infoBuka()" role="button" aria-label="Pengumuman, ketuk untuk membaca semua">
+  <span class="infoic">📢</span><div class="infowin"><span class="infotrack" id="infoTrack"></span></div>
+</div>
+<div id="infoModal" class="infomodal hidden" onclick="if(event.target===this)infoTutup()">
+  <div class="infobox"><b style="font-size:17px">📢 Pengumuman</b><div id="infoModalList"></div>
+    <button class="btn" style="margin-top:10px" onclick="infoTutup()">Tutup</button></div>
 </div>
 
 <!-- LANDING PAGE -->
@@ -393,7 +412,8 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
           <button class="mtile" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub">Catat angsuran &amp; pelunasan</span></button>
           <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
-          <button class="mtile wide" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Unduh Excel atau cetak PDF</span></button>
+          <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
+          <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Unduh Excel atau cetak PDF</span></button>
         </div>
       </div>
     </div>
@@ -422,6 +442,18 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
         </select>
         <p class="small" id="agInfo"></p><div id="agList"></div>
       </div>
+    </div>
+    <div class="pkv hidden" id="pkvInfo">
+      <div class="card"><b id="infoJudulForm">Tulis pengumuman baru</b>
+        <p class="small" style="margin:2px 0 8px">Tampil sebagai teks berjalan di bagian atas aplikasi semua anggota dan pengurus. Jangan menulis data pribadi atau rahasia.</p>
+        <textarea id="infoIsi" rows="3" maxlength="240" oninput="infoHitung()" placeholder="Contoh: Pencairan pinjaman bulan ini tanggal 6. Mohon bayar angsuran paling lambat tanggal 5."></textarea>
+        <div class="small" style="text-align:right;margin-top:-8px" id="infoHitung">0 / 240</div>
+        <label>Tampil sampai tanggal (boleh dikosongkan)</label><input type="date" id="infoAkhir">
+        <div id="infoPesan" style="display:none;margin-bottom:8px"></div>
+        <button class="btn" id="infoBtn" onclick="infoKirim()">📢 Terbitkan</button>
+        <button class="btn hidden" id="infoBatal" style="margin-top:8px;background:#6b7f99" onclick="infoReset()">Batal ubah</button>
+      </div>
+      <div class="card"><b>Daftar pengumuman</b><div id="infoDaftar" style="margin-top:8px"></div></div>
     </div>
     <div class="pkv hidden" id="pkvLaporan">
       <div class="card"><b>📑 Laporan &amp; Ekspor</b>
@@ -485,7 +517,7 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-bayar','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan'];
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-bayar','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info'];
 const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-bayar':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
@@ -651,5 +683,6 @@ function hitungAngsuran(){
 <script src="layanan.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
+<script src="pengumuman.js"></script>
 </body>
 </html>

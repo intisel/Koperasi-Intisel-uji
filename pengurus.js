@@ -25,10 +25,11 @@ function pengurusRender(name){
     if(name === 'pengurus-statistik') pkStatMuat();
     else if(name === 'pengurus-anggota') agMuat();
     else if(name === 'pengurus-laporan') lpInit();
+    else if(name === 'pengurus-info') infoMuat();
     else pkMuat();
   }
 }
-const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-bayar':'pkvBayar', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan'};
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-bayar':'pkvBayar', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
