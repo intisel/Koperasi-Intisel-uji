@@ -22,18 +22,18 @@ function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
 }
 /* ===== KONTAK & BANTUAN ===== */
 const KONTAK = [
-  {jabatan:'Pimpinan', nama:'Mahmudi', hp:'6281271418883', tampil:'+62 812-7141-8883'},
-  {jabatan:'Penasehat', nama:'Akhmad Sofyan', hp:'6281222225985', tampil:'+62 812-2222-5985'},
-  {jabatan:'Ketua', nama:'Mulyana', hp:'6285215315314', tampil:'+62 852-1531-5314'},
-  {jabatan:'Bendahara', nama:'Vivi Atvilina', hp:'628976099332', tampil:'+62 897-6099-332'}
+  {jabatan:'Pimpinan', nama:'Mahmudi', sapaan:'Bpk.', hp:'6281271418883', tampil:'+62 812-7141-8883'},
+  {jabatan:'Penasehat', nama:'Akhmad Sofyan', sapaan:'Bpk.', hp:'6281222225985', tampil:'+62 812-2222-5985'},
+  {jabatan:'Ketua', nama:'Mulyana', sapaan:'Bpk.', hp:'6285215315314', tampil:'+62 852-1531-5314'},
+  {jabatan:'Bendahara', nama:'Vivi Atvilina', sapaan:'Ibu', hp:'628976099332', tampil:'+62 897-6099-332'}
 ];
 function renderKontak(){
   const a = anggotaAktif, saya = a ? a.nama + ' (NIK ' + a.nik + ')' : '';
   $('kontakList').innerHTML = KONTAK.map(k => {
-    const pesan = 'Assalamualaikum ' + k.jabatan + ' ' + k.nama + ', saya ' + saya + ' dari aplikasi Koperasi Intisel. Saya ingin bertanya: ';
+    const pesan = 'Assalamualaikum ' + k.jabatan + ' ' + k.sapaan + ' ' + k.nama + ', saya ' + saya + ' dari aplikasi Koperasi Intisel. Saya ingin bertanya: ';
     return `<div class="ok" style="background:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-      <span class="av sm" data-kontak="${esc(k.jabatan)}" data-nama="${esc(k.nama)}">${esc(fotoInisial(k.nama))}</span>
-      <div style="flex:1;min-width:0"><div class="small" style="color:#5a7aa0">${esc(k.jabatan)}</div><b>${esc(k.nama)}</b><div class="small" style="white-space:nowrap">${esc(k.tampil)}</div></div>
+      <span class="av" data-kontak="${esc(k.jabatan)}" data-nama="${esc(k.nama)}">${esc(fotoInisial(k.nama))}</span>
+      <div style="flex:1;min-width:0"><div style="color:#5a7aa0;font-size:14px;font-weight:700">${esc(k.jabatan)}</div><b style="font-size:18px;line-height:1.25;display:block">${esc(k.sapaan)} ${esc(k.nama)}</b></div>
       <a href="https://wa.me/${k.hp}?text=${encodeURIComponent(pesan)}" target="_blank" rel="noopener" style="text-decoration:none;background:#16a34a;color:#fff;font-weight:800;padding:10px 8px;border-radius:10px;font-size:14px;white-space:nowrap;flex:none">WA</a>
       <a href="tel:+${k.hp}" style="text-decoration:none;background:#134e8a;color:#fff;padding:10px 10px;border-radius:10px;font-size:14px;flex:none" aria-label="Telepon ${esc(k.nama)}">📞</a></div>`;
   }).join('');
