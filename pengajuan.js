@@ -92,6 +92,7 @@ async function kirimPengajuan(){
   const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KOPERASI', nominal:parseInt(d.nominal, 10), tenor:parseInt(d.tenor, 10), infaq:d.infaq});
   if(!png) return; // dibatalkan
   d.ttd = png; d.setuju = true;
+  const lok = await lokasiMinta(); if(lok === null) return; d.lok = lok;
   const btn = $('btnKirim'); btn.disabled = true; btn.innerText = 'Mengirim...';
   let sukses = false, pesan = '';
   try{

@@ -26,10 +26,11 @@ function pengurusRender(name){
     else if(name === 'pengurus-anggota') agMuat();
     else if(name === 'pengurus-laporan') lpInit();
     else if(name === 'pengurus-info') infoMuat();
+    else if(name === 'pengurus-lokasi') lokMuat();
     else pkMuat();
   }
 }
-const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-bayar':'pkvBayar', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo'};
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-bayar':'pkvBayar', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
@@ -134,7 +135,7 @@ async function pkMuat(){
   try{
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni;
+    pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni; $('tileLokasi').classList.toggle('hidden', !r.ketua);
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';

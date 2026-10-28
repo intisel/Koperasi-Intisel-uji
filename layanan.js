@@ -179,6 +179,7 @@ async function kirimKasbon(){
   const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KASBON', nominal:d.nominal, tenor:1, infaq:0});
   if(!png) return; // dibatalkan
   d.ttd = png; d.setuju = true;
+  const lok = await lokasiMinta(); if(lok === null) return; d.lok = lok;
   const btn = $('btnKb'); btn.disabled = true; btn.innerText = 'Mengirim...';
   let sukses = false, pesan = '';
   try{
@@ -251,10 +252,11 @@ async function kirimLaporan(){
   if(!$('byTgl').value){ alert('Isi tanggal pembayaran.'); return; }
   if(!validasiForm($('byForm'))) return;
   if(!fotoData){ alert('Lampirkan foto bukti transaksi (ambil foto atau pilih dari galeri).'); return; }
+  const lok = await lokasiMinta(); if(lok === null) return;
   const btn = $('btnBayar'); btn.disabled = true; btn.innerText = 'Mengunggah...';
   try{
     const r = await apiPost({a:'lapor', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, id:p.id, ke:parseInt($('bySelect').value, 10),
-      tgl:$('byTgl').value, jumlah:moneyVal('byJumlah'), catatan:$('byCatatan').value.trim(), foto:fotoData});
+      tgl:$('byTgl').value, jumlah:moneyVal('byJumlah'), catatan:$('byCatatan').value.trim(), foto:fotoData, lok});
     if(r.ok){ alert('✅ Laporan terkirim. Menunggu verifikasi pengurus.'); hapusFoto(); $('byCatatan').value = ''; $('byJumlah').value = ''; await muatData(); }
     else alert('❌ ' + r.msg);
   }catch(e){ alert('Gagal mengunggah. Periksa koneksi lalu coba lagi.'); }
