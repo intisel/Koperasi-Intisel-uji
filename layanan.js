@@ -308,7 +308,7 @@ function kartuBuka(id){
   </div>`;
   let m = document.getElementById('kartuModal');
   if(!m){ m = document.createElement('div'); m.id = 'kartuModal'; m.className = 'kartu-modal'; m.onclick = e => { if(e.target === m) kartuTutup(); }; document.body.appendChild(m); }
-  m.innerHTML = `<div class="kartu-zoom"><button onclick="kartuZoom(-0.25)" aria-label="Perkecil">−</button><span id="kartuZoomTxt" onclick="kartuZoomSet(1)" title="Klik untuk reset">100%</span><button onclick="kartuZoom(0.25)" aria-label="Perbesar">+</button></div><div class="kartu-wrap"><div id="kartuZoomBox">${html}</div><div class="kartu-aksi"><button class="btn" id="kartuBtnDl" onclick="kartuUnduh()">⬇️ Download</button><button class="btn" id="kartuBtnBagi" style="background:#25a244" onclick="kartuBagikan()">📤 Bagikan</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
+  m.innerHTML = `<div class="kartu-wrap"><div id="kartuZoomBox">${html}</div><div class="kartu-aksi"><button class="btn" id="kartuBtnDl" onclick="kartuUnduh()">⬇️ Download</button><button class="btn" id="kartuBtnBagi" style="background:#25a244" onclick="kartuBagikan()">📤 Bagikan</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
   m.classList.remove('hidden'); document.body.classList.add('kartu-open');
   kartuZoomSet(1); kartuPinchPasang(m);
 }
