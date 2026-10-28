@@ -1,11 +1,11 @@
-// Konfigurasi Firebase (PUBLIK, aman ada di GitHub). Isi setelah proyek Firebase dibuat:
-// Firebase Console > Project settings > General > Your apps (Web) > "SDK setup and configuration" -> salin nilainya.
-// vapidKey: Project settings > Cloud Messaging > Web configuration > Web Push certificates > Generate key pair (Key pair).
-// Selama masih null, tombol notifikasi tidak ditampilkan dan aplikasi berjalan seperti biasa.
-window.FCM_CFG = null;
-/* contoh isi:
+// Konfigurasi Firebase (PUBLIK, aman ada di GitHub). Proyek: koperasi-intisel.
+// Kunci rahasia (service account) TIDAK ada di sini; disimpan di Script Properties Apps Script (FCM_SA).
 window.FCM_CFG = {
-  apiKey: '...', authDomain: '....firebaseapp.com', projectId: '...', messagingSenderId: '...', appId: '...',
-  vapidKey: 'B....'
+  apiKey: 'AIzaSyAUuE03pcdd5Jvirmtn6eTwENvTl2cOS-4',
+  authDomain: 'koperasi-intisel.firebaseapp.com',
+  projectId: 'koperasi-intisel',
+  storageBucket: 'koperasi-intisel.firebasestorage.app',
+  messagingSenderId: '596000444406',
+  appId: '1:596000444406:web:e8df3ea03e1f2ada1d81d7',
+  vapidKey: 'BBfHbM2QfSesss7tS07HxXvWIeEQHD1utSW3XNKnqULeAbkMronLV6up2Ti7im3j9esKch92xcrONRZvCIPMaRY'
 };
-*/
