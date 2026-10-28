@@ -74,7 +74,7 @@ let infoEditId = '';
 const infoApi = body => pkApi(Object.assign({token: pkToken}, body));
 function infoPesan(t, ok){ const e = $('infoPesan'); e.className = ok ? 'ok' : 'err'; e.textContent = t || ''; e.style.display = t ? '' : 'none'; }
 function infoHitung(){ $('infoHitung').textContent = $('infoIsi').value.length + ' / 240'; }
-function infoReset(){ infoEditId = ''; $('infoIsi').value = ''; $('infoAkhir').value = ''; $('infoJudulForm').textContent = 'Tulis pengumuman baru'; $('infoBatal').classList.add('hidden'); infoHitung(); }
+function infoReset(){ infoEditId = ''; $('infoNotif').checked = false; $('infoNotifLbl').style.display = 'flex'; $('infoIsi').value = ''; $('infoAkhir').value = ''; $('infoJudulForm').textContent = 'Tulis pengumuman baru'; $('infoBatal').classList.add('hidden'); infoHitung(); }
 async function infoMuat(){
   $('infoAkhir').min = new Date().toISOString().slice(0, 10);
   infoPesan('');
@@ -104,7 +104,7 @@ function infoDaftarGambar(list){
 }
 function infoUbah(x){
   infoEditId = x.id; $('infoIsi').value = x.isi; $('infoAkhir').value = x.berakhir || '';
-  $('infoJudulForm').textContent = 'Ubah pengumuman'; $('infoBatal').classList.remove('hidden'); infoHitung();
+  $('infoJudulForm').textContent = 'Ubah pengumuman'; $('infoNotifLbl').style.display = 'none'; $('infoBatal').classList.remove('hidden'); infoHitung();
   $('infoIsi').scrollIntoView({behavior:'smooth', block:'center'}); $('infoIsi').focus();
 }
 async function infoKirim(){
@@ -112,7 +112,7 @@ async function infoKirim(){
   if(!isi){ infoPesan('Tulis isi pengumuman dulu.', false); return; }
   const btn = $('infoBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
   try{
-    const r = await infoApi({a:'info_simpan', id:infoEditId, isi, berakhir:$('infoAkhir').value});
+    const r = await infoApi({a:'info_simpan', id:infoEditId, isi, berakhir:$('infoAkhir').value, notif: !infoEditId && $('infoNotif').checked});
     infoPesan(r.msg, !!r.ok);
     if(r.ok){ infoReset(); await infoMuat(); infoPesan(r.msg, true); infoMuatPublik(); }
   }catch(e){ infoPesan('Gagal terhubung ke server.', false); }

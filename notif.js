@@ -1,0 +1,68 @@
+// Notifikasi push (Firebase Cloud Messaging) untuk anggota & pengurus. Aktif hanya bila firebase-config.js sudah diisi.
+// Service worker (juga dibutuhkan agar PWA/APK terdeteksi dan untuk menerima push)
+if('serviceWorker' in navigator) window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+const FB_VER = '10.12.2', NOTIF_KEY = 'intisel_notif_token';
+const notifAda = () => !!(window.FCM_CFG && window.FCM_CFG.vapidKey && 'serviceWorker' in navigator && 'Notification' in window && 'PushManager' in window);
+const notifTokenSimpan = () => { try{ return localStorage.getItem(NOTIF_KEY) || ''; }catch(e){ return ''; } };
+function notifMuatSkrip(src){ return new Promise((ok, gagal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => gagal(new Error('skrip')); document.head.appendChild(s); }); }
+async function notifMessaging(){
+  if(!window.firebase){
+    await notifMuatSkrip('https://www.gstatic.com/firebasejs/' + FB_VER + '/firebase-app-compat.js');
+    await notifMuatSkrip('https://www.gstatic.com/firebasejs/' + FB_VER + '/firebase-messaging-compat.js');
+  }
+  if(!firebase.apps.length){ const c = Object.assign({}, window.FCM_CFG); delete c.vapidKey; firebase.initializeApp(c); }
+  return firebase.messaging();
+}
+async function notifAmbilToken(){
+  const reg = await navigator.serviceWorker.ready, m = await notifMessaging();
+  const tok = await m.getToken({vapidKey: window.FCM_CFG.vapidKey, serviceWorkerRegistration: reg});
+  try{ m.onMessage(p => { const d = (p && p.data) || {}; if(d.judul && document.visibilityState === 'visible') reg.showNotification(d.judul, {body: d.isi || '', icon: 'icon-192.png', badge: 'icon-192.png', data: {url: d.url || './'}}); }); }catch(e){}
+  return tok;
+}
+async function notifDaftarServer(tok, cabut){
+  const k = (typeof infoKredensial === 'function') ? infoKredensial() : null; if(!k) return {ok: false, msg: 'Belum login.'};
+  const a = (typeof pkApi === 'function' && k.token) ? await pkApi(Object.assign({a: cabut ? 'notif_cabut' : 'notif_daftar', notifToken: tok}, k)) : await apiPost(Object.assign({a: cabut ? 'notif_cabut' : 'notif_daftar', notifToken: tok}, k));
+  return a;
+}
+async function notifAktifkan(){
+  const btn = document.querySelector('.notifbox button'); if(btn){ btn.disabled = true; btn.textContent = 'Memproses...'; }
+  try{
+    const izin = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    if(izin !== 'granted'){ alert('Izin notifikasi ditolak. Aktifkan lewat pengaturan aplikasi/browser (Notifikasi) lalu coba lagi.'); return; }
+    const tok = await notifAmbilToken(); if(!tok) throw new Error('token');
+    const r = await notifDaftarServer(tok, false);
+    if(r && r.ok){ try{ localStorage.setItem(NOTIF_KEY, tok); }catch(e){} }
+    else alert((r && r.msg) || 'Gagal mendaftarkan notifikasi.');
+  }catch(e){ alert('Notifikasi belum bisa diaktifkan di perangkat ini. Pastikan koneksi internet aktif lalu coba lagi.'); }
+  notifRender();
+}
+async function notifMatikan(){
+  const tok = notifTokenSimpan();
+  try{ if(tok) await notifDaftarServer(tok, true); const m = await notifMessaging(); await m.deleteToken(); }catch(e){}
+  try{ localStorage.removeItem(NOTIF_KEY); }catch(e){}
+  notifRender();
+}
+function notifRender(){
+  ['notifBoxA', 'notifBoxP'].forEach(id => {
+    const box = document.getElementById(id); if(!box) return;
+    if(!notifAda() || !infoKredensialSafe()){ box.classList.add('hidden'); return; }
+    const aktif = Notification.permission === 'granted' && !!notifTokenSimpan();
+    box.classList.remove('hidden'); box.textContent = '';
+    const t = document.createElement('div'); t.className = 'nt';
+    t.textContent = aktif ? '🔔 Notifikasi aktif di perangkat ini.' : (Notification.permission === 'denied' ? '🔕 Notifikasi diblokir. Aktifkan lewat pengaturan perangkat.' : '🔔 Aktifkan notifikasi agar pengumuman & status pinjaman langsung sampai.');
+    const b = document.createElement('button');
+    if(aktif){ b.textContent = 'Matikan'; b.className = 'off'; b.onclick = notifMatikan; } else { b.textContent = 'Aktifkan'; b.onclick = notifAktifkan; if(Notification.permission === 'denied') b.style.display = 'none'; }
+    box.append(t, b);
+    const k = infoKredensialSafe();
+    if(aktif && k && k.token){ const u = document.createElement('button'); u.textContent = 'Tes'; u.onclick = async () => { u.disabled = true; try{ const r = await pkApi({a: 'notif_uji', token: k.token}); alert(r.msg || 'Selesai.'); }catch(e){ alert('Gagal terhubung ke server.'); } u.disabled = false; }; box.insertBefore(u, b); }
+  });
+}
+function infoKredensialSafe(){ try{ return typeof infoKredensial === 'function' && infoKredensial(); }catch(e){ return null; } }
+async function notifSinkron(){ // token bisa berubah: daftarkan ulang diam-diam bila izin sudah diberikan
+  if(!notifAda() || Notification.permission !== 'granted' || !notifTokenSimpan() || !infoKredensialSafe()) return;
+  try{ const tok = await notifAmbilToken(); if(tok){ const r = await notifDaftarServer(tok, false); if(r && r.ok) localStorage.setItem(NOTIF_KEY, tok); } }catch(e){}
+}
+(function(){
+  const asli = renderRoute; let sinkron = '';
+  renderRoute = function(name, fromPop){ asli(name, fromPop); try{ notifRender(); const k = infoKredensialSafe(); const id = k ? (k.token || k.nik) : ''; if(id && id !== sinkron){ sinkron = id; notifSinkron(); } }catch(e){} };
+})();
