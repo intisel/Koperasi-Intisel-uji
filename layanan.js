@@ -299,7 +299,24 @@ function kartuBuka(id){
   </div>`;
   let m = document.getElementById('kartuModal');
   if(!m){ m = document.createElement('div'); m.id = 'kartuModal'; m.className = 'kartu-modal'; m.onclick = e => { if(e.target === m) kartuTutup(); }; document.body.appendChild(m); }
-  m.innerHTML = `<div class="kartu-wrap">${html}<div class="kartu-aksi"><button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
+  m.innerHTML = `<div class="kartu-zoom"><button onclick="kartuZoom(-0.25)" aria-label="Perkecil">−</button><span id="kartuZoomTxt" onclick="kartuZoomSet(1)" title="Klik untuk reset">100%</span><button onclick="kartuZoom(0.25)" aria-label="Perbesar">+</button></div><div class="kartu-wrap"><div id="kartuZoomBox">${html}</div><div class="kartu-aksi"><button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
   m.classList.remove('hidden'); document.body.classList.add('kartu-open');
+  kartuZoomSet(1); kartuPinchPasang(m);
+}
+let KZ = 1;
+function kartuZoomSet(z){
+  KZ = Math.max(1, Math.min(3, Math.round(z * 100) / 100));
+  const b = document.getElementById('kartuZoomBox'), t = document.getElementById('kartuZoomTxt');
+  if(b) b.style.zoom = KZ;
+  if(t) t.textContent = Math.round(KZ * 100) + '%';
+}
+function kartuZoom(d){ kartuZoomSet(KZ + d); }
+function kartuPinchPasang(m){ // cubit dua jari untuk memperbesar / memperkecil
+  if(m._pinch) return; m._pinch = true;
+  let d0 = 0, z0 = 1;
+  const jarak = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  m.addEventListener('touchstart', e => { if(e.touches.length === 2){ d0 = jarak(e); z0 = KZ; } }, { passive: true });
+  m.addEventListener('touchmove', e => { if(e.touches.length === 2 && d0){ e.preventDefault(); kartuZoomSet(z0 * jarak(e) / d0); } }, { passive: false });
+  m.addEventListener('touchend', e => { if(e.touches.length < 2) d0 = 0; }, { passive: true });
 }
 function kartuTutup(){ const m = document.getElementById('kartuModal'); if(m) m.classList.add('hidden'); document.body.classList.remove('kartu-open'); }
