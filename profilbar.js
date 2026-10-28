@@ -53,7 +53,7 @@ async function inboxMuat(){
   try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, lahir: a.lahir}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); } }catch(e){}
 }
 async function inboxBuka(){
-  $('inboxModal').classList.remove('hidden');
+  $('inboxModal').classList.remove('hidden'); modalPush(inboxTutupUI);
   const box = $('inboxList'); box.textContent = inboxData.length ? '' : 'Memuat...';
   await inboxMuat(); const seen = inboxSeen(); box.textContent = '';
   if(!inboxData.length){ const p = document.createElement('p'); p.className = 'small'; p.textContent = 'Belum ada notifikasi dari pengurus.'; box.appendChild(p); }
@@ -66,5 +66,6 @@ async function inboxBuka(){
   });
   if(inboxData.length){ try{ localStorage.setItem(inboxKunci(), inboxData[0].id); }catch(e){} } inboxBadge();
 }
-function inboxTutup(){ $('inboxModal').classList.add('hidden'); }
+function inboxTutupUI(){ $('inboxModal').classList.add('hidden'); }
+function inboxTutup(){ if(window.modalRiwayat) history.back(); else inboxTutupUI(); }
 document.addEventListener('visibilitychange', () => { if(!document.hidden && ((typeof anggotaAktif !== 'undefined' && anggotaAktif) || inboxPk())) inboxMuat(); });

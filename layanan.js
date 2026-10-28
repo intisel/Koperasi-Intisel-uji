@@ -310,7 +310,7 @@ function kartuBuka(id){
   if(!m){ m = document.createElement('div'); m.id = 'kartuModal'; m.className = 'kartu-modal'; m.onclick = e => { if(e.target === m) kartuTutup(); }; document.body.appendChild(m); }
   m.innerHTML = `<div class="kartu-wrap"><div id="kartuZoomBox">${html}</div><div class="kartu-aksi"><button class="btn" id="kartuBtnDl" onclick="kartuUnduh()">⬇️ Download</button><button class="btn" id="kartuBtnBagi" style="background:#25a244" onclick="kartuBagikan()">📤 Bagikan</button><button class="btn" style="background:#6b7f99" onclick="kartuTutup()">Tutup</button></div></div>`;
   m.classList.remove('hidden'); document.body.classList.add('kartu-open');
-  kartuZoomSet(1); kartuPinchPasang(m);
+  kartuZoomSet(1); kartuPinchPasang(m); modalPush(kartuTutupUI);
 }
 let KZ = 1;
 function kartuZoomSet(z){
@@ -391,4 +391,6 @@ async function kartuBagikan(){
   }catch(e){ if(e && e.name !== 'AbortError') alert('Gagal membagikan kartu. Coba tombol Download.'); }
   b.disabled = false; b.innerText = t0;
 }
-function kartuTutup(){ const m = document.getElementById('kartuModal'); if(m) m.classList.add('hidden'); document.body.classList.remove('kartu-open'); }
+function modalPush(tutupUI){ history.pushState({r: currentRoute}, '', '#' + currentRoute); window.modalRiwayat = tutupUI; } // popup ikut riwayat: tombol back HP = tutup popup
+function kartuTutupUI(){ const m = document.getElementById('kartuModal'); if(m) m.classList.add('hidden'); document.body.classList.remove('kartu-open'); }
+function kartuTutup(){ if(window.modalRiwayat) history.back(); else kartuTutupUI(); }

@@ -603,6 +603,7 @@ function goReplace(name){ history.replaceState({r:name},'','#'+name); renderRout
 function navigateAnggota(){ go('anggota'); }
 function navigatePengurus(){ go('pengurus'); }
 window.addEventListener('popstate',e=>{
+  if(window.modalRiwayat){ const f=window.modalRiwayat; window.modalRiwayat=null; f(); return; } // tombol back HP menutup popup (kartu pinjaman, notifikasi)
   if(ttdOpen){ // tombol back HP menutup jendela tanda tangan (1 langkah), tetap di formulir
     ttdOpen=false; ttdTutupUI();
     if(ttdNext){ const n=ttdNext; ttdNext=null; goReplace(n); return; }
