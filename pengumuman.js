@@ -1,21 +1,40 @@
 /* PENGUMUMAN: running text di semua halaman + menu kelola untuk pengurus/pimpinan */
 const INFO_CACHE = 'info_cache_v1', INFO_SEGAR_MS = 5 * 60 * 1000;
-let infoList = [];
+let infoList = [], infoLate = [];
 
 /* ---------- Tampilan running text ---------- */
-function infoGambar(list){
-  infoList = list || [];
+function infoGambar(list){ if(list) infoList = list; infoRender(); }
+function infoRender(){
   const bar = document.getElementById('infoBar'), track = document.getElementById('infoTrack');
   if(!bar || !track) return;
-  if(!infoList.length){ bar.classList.add('hidden'); track.textContent = ''; return; }
-  const teks = infoList.map(x => x.isi).join('   ✦   ');
-  track.textContent = teks + '   ✦   ';
+  if(!infoList.length && !infoLate.length){ bar.classList.add('hidden'); track.textContent = ''; return; }
+  track.textContent = '';
+  const pisah = ' ✦ ';
+  infoList.forEach(x => track.appendChild(document.createTextNode(x.isi + '   ✦   ')));
+  if(infoLate.length){
+    const sp = document.createElement('span'); sp.className = 'infolate';
+    sp.textContent = '⚠️ Angsuran belum dibayar (terlambat): ' + infoLate.map(x => x.nama).join(', ') + ' — mohon segera dibayarkan.';
+    track.append(sp, document.createTextNode('   ✦   '));
+  }
   bar.classList.remove('hidden');
-  // kecepatan tetap (~ 55 px/detik) -> durasi mengikuti panjang teks
-  requestAnimationFrame(() => {
+  requestAnimationFrame(() => { // kecepatan tetap (~ 55 px/detik) -> durasi mengikuti panjang teks
     const lebar = track.scrollWidth + bar.clientWidth;
     track.style.animationDuration = Math.max(12, Math.round(lebar / 55)) + 's';
   });
+}
+// Daftar terlambat: HANYA untuk yang sudah login (anggota atau pengurus). Tidak pernah dimuat di halaman depan.
+function infoKredensial(){
+  if(typeof pkToken !== 'undefined' && pkToken && currentPage === 'pengurus') return {token:pkToken};
+  if(typeof anggotaAktif !== 'undefined' && anggotaAktif && currentPage === 'anggota') return {nik:anggotaAktif.nik, lahir:anggotaAktif.lahir};
+  return null;
+}
+async function infoMuatTerlambat(){
+  const k = infoKredensial();
+  if(!k){ if(infoLate.length){ infoLate = []; infoRender(); } return; }
+  try{
+    const r = await fetch(API_URL, {method:'POST', body:JSON.stringify(Object.assign({a:'info_terlambat'}, k))}).then(x => x.json());
+    if(infoKredensial() && r && r.ok){ infoLate = r.list || []; infoRender(); }
+  }catch(e){}
 }
 async function infoMuatPublik(){
   try{
@@ -24,7 +43,7 @@ async function infoMuatPublik(){
   }catch(e){ /* offline: biarkan yang lama */ }
 }
 function infoBuka(){ // ketuk running text -> tampilkan semua pengumuman sebagai daftar
-  if(!infoList.length) return;
+  if(!infoList.length && !infoLate.length) return;
   const ov = document.getElementById('infoModal'), box = document.getElementById('infoModalList');
   box.textContent = '';
   infoList.forEach(x => {
@@ -33,14 +52,21 @@ function infoBuka(){ // ketuk running text -> tampilkan semua pengumuman sebagai
     const m = document.createElement('div'); m.className = 'small'; m.style.marginTop = '4px'; m.textContent = [x.waktu, x.oleh].filter(Boolean).join(' • ');
     d.append(t, m); box.appendChild(d);
   });
+  if(infoLate.length){
+    const d = document.createElement('div'); d.className = 'infoitem'; d.style.borderColor = '#e57373'; d.style.background = '#fdecea';
+    const t = document.createElement('b'); t.textContent = '⚠️ Angsuran belum dibayar (terlambat)';
+    const u = document.createElement('div'); u.style.marginTop = '4px'; u.textContent = infoLate.map(x => x.nama).join(', ');
+    const m = document.createElement('div'); m.className = 'small'; m.style.marginTop = '4px'; m.textContent = 'Nama akan hilang otomatis setelah pembayaran diverifikasi pengurus.';
+    d.append(t, u, m); box.insertBefore(d, box.firstChild);
+  }
   ov.classList.remove('hidden');
 }
 function infoTutup(){ document.getElementById('infoModal').classList.add('hidden'); }
 document.addEventListener('DOMContentLoaded', () => {
   try{ const c = JSON.parse(localStorage.getItem(INFO_CACHE) || 'null'); if(c && c.length) infoGambar(c); }catch(e){}
   infoMuatPublik();
-  setInterval(() => { if(!document.hidden) infoMuatPublik(); }, INFO_SEGAR_MS);
-  document.addEventListener('visibilitychange', () => { if(!document.hidden) infoMuatPublik(); });
+  setInterval(() => { if(!document.hidden){ infoMuatPublik(); infoMuatTerlambat(); } }, INFO_SEGAR_MS);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden){ infoMuatPublik(); infoMuatTerlambat(); } });
 });
 
 /* ---------- Kelola pengumuman (pengurus/pimpinan) ---------- */
@@ -101,3 +127,9 @@ async function infoHapus(x){
   try{ const r = await infoApi({a:'info_hapus', id:x.id}); if(r.ok){ if(infoEditId === x.id) infoReset(); await infoMuat(); infoMuatPublik(); } infoPesan(r.msg, !!r.ok); }
   catch(e){ infoPesan('Gagal terhubung ke server.', false); }
 }
+
+// Sinkronkan daftar terlambat setiap pindah layar (muncul setelah login, hilang setelah keluar)
+(function(){
+  const asli = renderRoute;
+  renderRoute = function(name, fromPop){ asli(name, fromPop); infoMuatTerlambat(); };
+})();
