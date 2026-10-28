@@ -63,12 +63,11 @@ async function bukaMenu(v){
 }
 function masukMenu(){
   const a = anggotaAktif, koperasiOk = !limitAktif.notEligible;
-  $('mnNama').innerText = a.nama; $('mnJab').style.display = 'none'; fotoMuatAnggota();
-  $('mnMasa').innerText = 'Masa kerja ' + a.masaKerja.toFixed(1) + ' tahun' + (koperasiOk ? ' • Limit koperasi ' + rpf(limitAktif.maxNominal) : ' • belum 2 tahun');
+  fotoMuatAnggota();
   $('tlKoperasi').classList.toggle('off', !koperasiOk); $('tlKasbon').classList.toggle('off', koperasiOk);
   $('tlKoperasiSub').innerText = koperasiOk ? 'Maks ' + rpf(limitAktif.maxNominal) + ' • ' + limitAktif.maxTenor + ' bln' : 'Khusus masa kerja ≥ 2 tahun';
   $('tlKasbonSub').innerText = koperasiOk ? 'Khusus masa kerja < 2 tahun' : 'Maks Rp 500.000 • 30 hari';
-  $('sbNama').innerText = a.nama; $('sbInfo').innerText = 'NIK ' + a.nik + ' • ' + a.jabatan;
+  profilBarIsi(a); inboxMuat();
   go('anggota-menu');
 }
 function keluarAnggota(){ // mundur ke layar Cek NIK (sesi dibersihkan oleh router)
