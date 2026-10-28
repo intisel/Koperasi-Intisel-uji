@@ -3,6 +3,6 @@
            Di Drive, atur berbagi "Siapa saja yang memiliki link".
    versi : nomor versi APK terbaru. Naikkan (2, 3, ...) setiap kali ada APK baru; HP yang memakai aplikasi akan melihat tombol "Update Aplikasi". */
 const APK_CFG = {
-  url: 'koperasi-intisel.apk',
-  versi: 1
+  url: 'https://drive.google.com/file/d/13Qt8XuVGuzi8QiMqbWaBfWChAvgbDEAX/view?usp=sharing',
+  versi: 2
 };
