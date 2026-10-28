@@ -1,28 +1,26 @@
 /* LOKASI: dimintai saat anggota mengirim pengajuan / bukti bayar (opsional, atas persetujuan anggota). Hanya Ketua yang dapat melihatnya. */
-// Mengembalikan {lat,lng,acc} | {err:'ditolak'|'tidak_tersedia'} (kirim tanpa lokasi) | null (anggota membatalkan kirim)
+// Mengembalikan {lat,lng,acc} atau {err:'ditolak'|'tidak_tersedia'}. Tidak pernah menggagalkan pengiriman.
+// Anggota diberi tahu lewat catatan di bawah tombol kirim; izin lokasi tetap diminta oleh Android/Chrome.
 function lokasiMinta(){
   return new Promise(selesai => {
-    const m = document.createElement('div'); m.className = 'infomodal'; m.style.zIndex = 300;
-    const b = document.createElement('div'); b.className = 'infobox'; b.style.textAlign = 'center';
-    const h = document.createElement('b'); h.textContent = '📍 Catat lokasi Anda?';
-    const p = document.createElement('p'); p.className = 'small'; p.style.margin = '8px 0 12px';
-    p.textContent = 'Lokasi Anda dicatat satu kali, hanya saat Anda menekan kirim, untuk verifikasi oleh Ketua koperasi. Tidak ada pelacakan terus-menerus dan tidak dilihat anggota lain. Anda boleh memilih mengirim tanpa lokasi.';
-    const st = document.createElement('div'); st.className = 'small'; st.style.margin = '0 0 8px';
-    const mk = (t, gaya, fn) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn'; x.style.cssText = 'margin:6px 0 0;' + gaya; x.textContent = t; x.onclick = fn; return x; };
-    const tutup = v => { m.remove(); selesai(v); };
-    const izin = mk('📍 Izinkan & kirim', '', () => {
-      if(!navigator.geolocation){ tutup({err:'tidak_tersedia'}); return; }
-      izin.disabled = true; izin.textContent = 'Mengambil lokasi...'; st.textContent = 'Mohon tunggu, jangan tutup halaman ini.';
-      navigator.geolocation.getCurrentPosition(
-        pos => tutup({lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy}),
-        err => tutup({err: err && err.code === 1 ? 'ditolak' : 'tidak_tersedia'}),
-        {enableHighAccuracy:true, timeout:12000, maximumAge:0});
-    });
-    const tanpa = mk('Kirim tanpa lokasi', 'background:#6b7f99', () => tutup({err:'tidak_tersedia'}));
-    const batal = mk('Batal', 'background:transparent;color:#5a7aa0;box-shadow:none', () => tutup(null));
-    b.append(h, p, st, izin, tanpa, batal); m.appendChild(b); document.body.appendChild(m);
+    if(!navigator.geolocation){ selesai({err:'tidak_tersedia'}); return; }
+    const t = document.createElement('div');
+    t.textContent = '📍 Mengambil lokasi...'; t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0d3b6e;color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;font-weight:700;z-index:300;box-shadow:0 4px 14px rgba(0,0,0,.3)';
+    document.body.appendChild(t);
+    const beres = v => { t.remove(); selesai(v); };
+    navigator.geolocation.getCurrentPosition(
+      pos => beres({lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy}),
+      err => beres({err: err && err.code === 1 ? 'ditolak' : 'tidak_tersedia'}),
+      {enableHighAccuracy:true, timeout:10000, maximumAge:0});
   });
 }
+// Catatan terbuka di dekat tombol kirim
+['btnKb', 'btnKirim', 'btnBayar'].forEach(id => {
+  const b = document.getElementById(id); if(!b || !b.parentNode) return;
+  const n = document.createElement('p'); n.className = 'small'; n.style.cssText = 'margin:8px 0 6px;text-align:center';
+  n.textContent = '📍 Saat Anda menekan kirim, lokasi Anda dicatat satu kali untuk verifikasi oleh Ketua koperasi. Jika izin lokasi ditolak, data tetap terkirim.';
+  b.parentNode.insertBefore(n, b);
+});
 
 /* ---------- Ketua: daftar lokasi ---------- */
 async function lokMuat(){
