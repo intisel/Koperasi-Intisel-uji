@@ -137,9 +137,9 @@ async function infoHapus(x){
 
 /* ---------- Tab Pengumuman | Broadcast ---------- */
 function infoTab(t){
-  $('infoTabA').classList.toggle('hidden', t !== 'A'); $('infoTabB').classList.toggle('hidden', t !== 'B');
-  $('infoTabBtnA').classList.toggle('on', t === 'A'); $('infoTabBtnB').classList.toggle('on', t === 'B');
+  ['A','B','C'].forEach(k => { $('infoTab' + k).classList.toggle('hidden', t !== k); $('infoTabBtn' + k).classList.toggle('on', t === k); });
   if(t === 'B') bcMuat();
+  if(t === 'C') bnMuat();
 }
 function bcHitung(){ $('bcHitung').textContent = $('bcIsi').value.length + ' / 160'; }
 function bcPesan(t, ok){ const e = $('bcPesan'); e.className = ok ? 'ok' : 'err'; e.textContent = t || ''; e.style.display = t ? '' : 'none'; }

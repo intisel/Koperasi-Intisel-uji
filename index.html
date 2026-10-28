@@ -74,7 +74,7 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .kartu-aksi{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 20px}.kartu-aksi .btn{padding:12px;font-size:14px;flex:1 1 30%}
 body.kartu-open{overflow:hidden}
 @media print{#kartuZoomBox{zoom:1!important}body.kartu-open>*:not(#kartuModal){display:none!important}.kartu-modal{position:static;background:#fff;padding:0;overflow:visible}.kartu-aksi{display:none}.kartu-box{border-radius:0;font-size:12px}.kartu-tbl{font-size:11.5px}}
-.pktabs{display:flex;background:#fff;border:1.5px solid #d6e6f8;border-radius:99px;padding:4px;margin:0 0 12px}.pktabs button{flex:1;border:0;background:transparent;border-radius:99px;padding:11px 8px;font-weight:700;font-size:14px;color:#5a7aa0;cursor:pointer;font-family:inherit}.pktabs button.on{background:#ffd400;color:#4a3b00}
+.pktabs{display:flex;background:#fff;border:1.5px solid #d6e6f8;border-radius:99px;padding:4px;margin:0 0 12px}.pktabs button{flex:1;border:0;background:transparent;border-radius:99px;padding:11px 4px;font-weight:700;font-size:13px;white-space:nowrap;color:#5a7aa0;cursor:pointer;font-family:inherit}.pktabs button.on{background:#ffd400;color:#4a3b00}
 .sesibar{display:flex;align-items:center;gap:10px;margin-top:6px}.sesiinfo{flex:1;min-width:0;line-height:1.3}.sesiinfo b{font-size:16px;overflow-wrap:anywhere}.sesiinfo .small{margin:1px 0 0}
 .sesibtn{flex:none;border:1.5px solid #b9d2f0;background:#eef5ff;color:#134e8a;border-radius:99px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;position:relative}.sesibtn.bell{width:42px;height:42px;font-size:20px;padding:0}.sesibtn.bell.big{width:54px;height:54px;font-size:27px}
 .pkaksi{display:flex;justify-content:space-between;gap:6px;margin-top:10px;align-items:center}.pkaksi .back-link{margin:0;padding:8px 9px;font-size:12.5px;white-space:nowrap}.sesibtn.out{padding:10px 12px}
@@ -486,7 +486,7 @@ body.kartu-open{overflow:hidden}
       </div>
     </div>
     <div class="pkv hidden" id="pkvInfo">
-      <div class="pktabs"><button id="infoTabBtnA" class="on" onclick="infoTab('A')">📢 Pengumuman</button><button id="infoTabBtnB" onclick="infoTab('B')">🔔 Broadcast</button></div>
+      <div class="pktabs"><button id="infoTabBtnA" class="on" onclick="infoTab('A')">📢 Pengumuman</button><button id="infoTabBtnB" onclick="infoTab('B')">🔔 Broadcast</button><button id="infoTabBtnC" onclick="infoTab('C')">🖼 Banner</button></div>
       <div id="infoTabA">
       <div class="card"><b id="infoJudulForm">Tulis pengumuman baru</b>
         <p class="small" style="margin:2px 0 8px">Tampil sebagai teks berjalan di bagian atas aplikasi semua anggota dan pengurus. Jangan menulis data pribadi atau rahasia.</p>
@@ -512,6 +512,13 @@ body.kartu-open{overflow:hidden}
           <button class="btn" style="margin-top:8px;background:#6b7f99" onclick="bcTes(this)">Kirim tes ke perangkat saya</button>
         </div>
         <div class="card"><b>Riwayat broadcast</b><div id="bcDaftar" style="margin-top:8px"></div></div>
+      </div>
+      <div id="infoTabC" class="hidden">
+        <div class="card"><b>Ganti gambar banner</b>
+          <p class="small" style="margin:2px 0 0">Tiga gambar di bagian atas halaman depan, anggota, dan pengurus. Pilih foto dari galeri; otomatis dipotong rasio 4:3 dan dikecilkan. Hindari gambar yang berisi data pribadi.</p>
+        </div>
+        <div id="bnPesan" style="display:none;margin-bottom:8px"></div>
+        <div id="bnDaftar"></div>
       </div>
     </div>
     <div class="pkv hidden" id="pkvLaporan">
@@ -744,6 +751,7 @@ function hitungAngsuran(){
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>
+<script src="banner.js"></script>
 <script src="foto.js"></script>
 <script src="firebase-config.js"></script>
 <script src="notif.js"></script>
