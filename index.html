@@ -381,7 +381,7 @@ body.kartu-open{overflow:hidden}
         <img id="krPreview" alt="Pratinjau bukti" style="max-width:100%;max-height:260px;border-radius:12px;border:1px solid #b9d2f0">
         <span class="back-link" style="margin:4px 0 0;display:block" onclick="krHapusFoto()">✖ Ganti foto</span>
       </div>
-      <p class="small" style="margin:10px 0 0">Saat Anda menekan kirim, permohonan Anda akan ditinjau dan diputuskan oleh Ketua / Bendahara koperasi. Bila disetujui, kekurangan angsuran bulan ini digeser ke angsuran bulan berikutnya.</p>
+      <p class="small" style="margin:10px 0 0">Saat Anda menekan kirim, permohonan Anda akan ditinjau dan disetujui oleh <b>ketiga pengurus</b> koperasi (Penasehat, Ketua, dan Bendahara). Bila disetujui, kekurangan angsuran bulan ini digeser ke angsuran bulan berikutnya.</p>
       <button class="btn" id="btnKr" onclick="krKirim()" style="margin-top:10px;background:#7c3aed">Kirim Permohonan</button>
     </div>
     <div style="font-weight:800;margin-top:16px">Riwayat Permohonan</div>
@@ -538,7 +538,7 @@ body.kartu-open{overflow:hidden}
       <div class="card"><b>🧾 Validasi Pembayaran Angsuran</b><p class="small" style="margin:2px 0 8px">Cocokkan bukti transfer anggota dengan rekening koperasi.</p><div id="pkLaporan"></div></div>
       </div>
       <div id="byTabK" class="hidden">
-      <div class="card"><b>🤝 Permohonan Keringanan Angsuran</b><p class="small" style="margin:2px 0 8px">Anggota yang tidak sanggup membayar penuh bulan ini. Hanya Ketua dan Bendahara yang dapat memutuskan.</p><div id="pkKeringanan"></div></div>
+      <div class="card"><b>🤝 Permohonan Keringanan Angsuran</b><p class="small" style="margin:2px 0 8px">Anggota yang tidak sanggup membayar penuh bulan ini. Wajib disetujui oleh ketiga pengurus (Penasehat, Ketua, Bendahara); satu penolakan berarti ditolak.</p><div id="pkKeringanan"></div></div>
       </div>
       <div id="byTabP" class="hidden">
       <div class="card"><b>📊 Pinjaman Berjalan</b><p class="small" style="margin:2px 0 8px">Tandai lunas angsuran (bisa lebih dari satu) dan ingatkan anggota lewat WhatsApp.</p><input type="search" id="pkCari" placeholder="🔍 Cari nama peminjam..." oninput="pkCari()" autocomplete="off" style="margin-bottom:4px"><div class="small" id="pkCariInfo" style="margin-bottom:8px"></div><div id="pkPinjaman"></div></div>
