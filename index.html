@@ -426,8 +426,8 @@ body.kartu-open{overflow:hidden}
     <label>Gaji Under</label><select id="gajiUnder"><option value="">-- Pilih --</option><option>HRD</option><option>Project</option></select>
     <label>Infaq Sukarela (Rp.)</label><input id="infaq" type="text" inputmode="numeric" data-fmt="money" data-opt="1" placeholder="Contoh: 50.000">
     <label>Pernah meminjam koperasi sebelumnya?</label>
-    <select id="pernahPinjam" onchange="togglePernah()"><option>Tidak</option><option>Ya</option></select>
-    <div id="tglLunasWrap" style="display:none"><label>Tanggal lunas / cicilan terakhir pinjaman sebelumnya</label><input id="tglLunas" type="date"></div>
+    <select id="pernahPinjam" onchange="togglePernah();if(typeof rcTunda==='function')rcTunda()"><option>Tidak</option><option>Ya</option></select>
+    <div id="tglLunasWrap" style="display:none"><label>Tanggal lunas / cicilan terakhir pinjaman sebelumnya</label><input id="tglLunas" type="date" onchange="if(typeof rcTunda==='function')rcTunda()"></div>
     <label>Berapa bulan gaji yang ditahan (dari 6 bulan terakhir)?</label>
     <select id="jmlDitahan"><option value="0">Tidak ada</option><option value="1">1 bulan</option><option value="2">Lebih dari 1 bulan</option></select>
     <label>Gaji bulan apa saja yang ditahan (isi bila ada)</label><input id="gajiDitahan">
@@ -438,6 +438,22 @@ body.kartu-open{overflow:hidden}
     <label>No. HP kontak darurat</label><input id="hpDarurat" type="tel" inputmode="numeric" data-fmt="hp" placeholder="+62 8xx-xxxx-xxxx">
     <label>Hubungan dengan peminjam</label><input id="hubungan" list="hubList" placeholder="Istri / Suami / Orang Tua ...">
     <datalist id="hubList"><option>Istri</option><option>Suami</option><option>Orang Tua</option><option>Saudara Kandung</option><option>Anak</option></datalist>
+    <div class="ok" id="rcBox" style="margin-top:14px;background:#fffdf0;border-color:#e6c700;color:#4a3b00">
+      <b>📅 Rencana Pencairan</b>
+      <p class="small" style="margin:4px 0 8px">Pilih kapan Anda ingin dana dicairkan, boleh direncanakan sampai 6 bulan ke depan (mis. untuk biaya sekolah). Keputusan akhir tetap di pimpinan.</p>
+      <label class="small" style="margin:0">Bulan pencairan</label>
+      <select id="rcBulan" onchange="rcRender()"><option>Memuat...</option></select>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="radio" name="rcJenis" value="REGULER" checked onchange="rcUbahJenis()" style="width:auto;margin-top:3px"><span><b>Reguler</b> — dicairkan tanggal 6</span></label>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="radio" name="rcJenis" value="URGEN" onchange="rcUbahJenis()" style="width:auto;margin-top:3px"><span><b>Urgen</b> — maksimal 2 hari kerja (wajib alasan dan bukti)</span></label>
+      <div id="rcUrgenBox" style="display:none;margin-top:6px">
+        <label class="small" style="margin:0">Alasan urgen</label>
+        <textarea id="rcAlasan" rows="3" maxlength="400" placeholder="Mis. biaya masuk sekolah anak paling lambat tanggal ..., sertakan bukti tagihan/surat."></textarea>
+        <label class="small" style="margin:0">Foto bukti pendukung (wajib)</label>
+        <input type="file" accept="image/*" onchange="rcPilihFoto(this)" style="padding:10px">
+        <div id="rcPreviewWrap" style="display:none"><img id="rcPreview" alt="Bukti urgen" style="max-width:100%;border-radius:10px;border:1px solid #e6c700"><button type="button" class="btn" style="margin-top:6px;padding:8px;font-size:13px;background:#6b7f99" onclick="rcHapusFoto()">Hapus foto</button></div>
+      </div>
+      <p class="small" id="rcInfo" style="margin:6px 0 0"></p>
+    </div>
     <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input type="checkbox" id="setuju" style="width:auto;margin-top:3px">
     <span class="small">Data saya isi dengan jujur dan dapat dipertanggungjawabkan secara hukum. Formulir ini berfungsi sebagai surat kuasa pemotongan gaji ke HRD.</span></label>
     <button class="btn" id="btnKirim" onclick="kirimPengajuan()">Kirim Pengajuan</button>
@@ -804,7 +820,7 @@ async function masukDenganToken(v,atoken){ // setelah PIN / OTP benar: ambil dat
 function updateNominal(){
   let nom = parseInt(document.getElementById('nomRange').value);
   document.getElementById('nomTxt').innerText = rp(nom);
-  hitungAngsuran();
+  hitungAngsuran(); if(typeof rcTunda === 'function') rcTunda();
 }
 function hitungAngsuran(){
   let nom = parseInt(document.getElementById('nomRange').value);
@@ -869,6 +885,7 @@ function hitungAngsuran(){
 <script src="layanan.js"></script>
 <script src="keringanan.js"></script>
 <script src="budget.js"></script>
+<script src="rencana.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>

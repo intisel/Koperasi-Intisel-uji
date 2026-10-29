@@ -182,7 +182,8 @@ async function bukaMenu(v){
     if(!dataSaya.loaded) await muatData();
     const m = blokir(v === 'vKasbon' ? 'KASBON' : 'KOPERASI');
     if(m){ alert(m); return; }
-    if(!await kuotaGerbang(v === 'vKasbon' ? 'KASBON' : 'KOPERASI')) return;
+    if(v === 'vKasbon'){ if(!await kuotaGerbang('KASBON')) return; }
+    else { rcData = null; rcFoto = ''; rcMuat(); } // koperasi: anggota memilih bulan pencairan di formulir
   }
   go(VIEW2ROUTE[v]);
 }
@@ -211,7 +212,7 @@ function blokir(jenis){ // '' bila boleh mengajukan, selain itu pesan alasan
   if(proses) return 'Anda masih memiliki pengajuan yang sedang diproses (' + proses.id + '). Tunggu keputusan pengurus dan pimpinan sebelum mengajukan lagi.';
   const bj = L.find(p => p.status === 'DISETUJUI');
   if(bj) return 'Anda masih memiliki pinjaman berjalan (' + bj.id + ', sisa ' + rpf(bj.angsuran ? bj.angsuran.sisa : 0) + '). Pengajuan baru bisa dilakukan setelah lunas' + (jenis === 'KOPERASI' ? ' dan melewati masa tunggu 3 bulan.' : '.');
-  if(jenis === 'KOPERASI' && dataSaya.bolehKoperasi && today < dataSaya.bolehKoperasi) return 'Masa tunggu 3 bulan setelah pelunasan. Pengajuan Koperasi bisa dilakukan mulai ' + tglf(dataSaya.bolehKoperasi) + '.';
+  // masa tunggu tidak lagi memblokir: dihitung terhadap bulan pencairan yang dipilih (lihat rencana.js)
   return '';
 }
 function terapkanBlokir(){
@@ -243,7 +244,7 @@ function renderSub(){
   if(bj.length){ const p = bj[0], a = p.angsuran; info = `📌 Pinjaman berjalan <b>${esc(p.id)}</b>: sisa <b>${rpf(sisa)}</b>` + (a && a.berikut ? ` • jatuh tempo berikutnya ${tglf(a.berikut.due)}` : '') + '. Pengajuan baru dapat dilakukan setelah lunas.'; }
   else if(menungguCair) info = `💸 Pengajuan <b>${esc(menungguCair.id)}</b> sudah disetujui, <b>menunggu pencairan</b>` + (menungguCair.pencairan ? ' (paling lambat ' + tglf(menungguCair.pencairan.target) + ')' : '') + '. Pengajuan baru belum dapat dibuat.';
   else if(sedangProses) info = `⏳ Pengajuan <b>${esc(sedangProses.id)}</b> sedang diproses. Pengajuan baru belum dapat dibuat.`;
-  else if(dataSaya.bolehKoperasi && hariIniStr() < dataSaya.bolehKoperasi && !limitAktif.notEligible) info = `⏳ Masa tunggu 3 bulan setelah pelunasan. Pengajuan Koperasi bisa dilakukan mulai <b>${tglf(dataSaya.bolehKoperasi)}</b>.`;
+  else if(dataSaya.bolehKoperasi && hariIniStr() < dataSaya.bolehKoperasi && !limitAktif.notEligible) info = `⏳ Masa tunggu 3 bulan setelah pelunasan berakhir <b>${tglf(dataSaya.bolehKoperasi)}</b>. Anda tetap dapat mengajukan sekarang dengan memilih bulan pencairan pada atau sesudah tanggal itu.`;
   st.style.display = info ? 'block' : 'none'; st.innerHTML = info;
   const tunggu = dataSaya.laporan.filter(l => l.status === 'MENUNGGU').length;
   $('tlBayarSub').innerText = tunggu ? tunggu + ' menunggu verifikasi' : 'Upload foto bukti transaksi';
