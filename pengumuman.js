@@ -124,7 +124,7 @@ async function infoToggle(x){
   catch(e){ infoPesan('Gagal terhubung ke server.', false); }
 }
 async function infoHapus(x){
-  if(!confirm('Hapus pengumuman ini secara permanen?')) return;
+  if(!await dialogKonfirmasi('Hapus pengumuman ini secara permanen?')) return;
   try{ const r = await infoApi({a:'info_hapus', id:x.id}); if(r.ok){ if(infoEditId === x.id) infoReset(); await infoMuat(); infoMuatPublik(); } infoPesan(r.msg, !!r.ok); }
   catch(e){ infoPesan('Gagal terhubung ke server.', false); }
 }
@@ -164,7 +164,7 @@ async function bcMuat(){
 async function bcKirim(){
   const judul = $('bcJudul').value.trim(), isi = $('bcIsi').value.trim();
   if(!judul || !isi){ bcPesan('Isi judul dan pesan dulu.', false); return; }
-  if(!confirm('Kirim notifikasi ini ke ' + ($('bcSasaran').value === 'PENGURUS' ? 'semua pengurus' : 'semua anggota') + '?')) return;
+  if(!await dialogKonfirmasi('Kirim notifikasi ini ke ' + ($('bcSasaran').value === 'PENGURUS' ? 'semua pengurus' : 'semua anggota') + '?')) return;
   const btn = $('bcBtn'); btn.disabled = true; btn.textContent = 'Mengirim...';
   try{
     const r = await infoApi({a:'notif_broadcast', judul, isi, sasaran:$('bcSasaran').value});

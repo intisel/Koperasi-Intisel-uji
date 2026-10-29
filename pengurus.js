@@ -231,7 +231,7 @@ function pkCairKartu(p){
 async function pkCairkan(id){
   const tgl = $('pkC-' + id).value, foto = pkCairFoto[id] || '';
   if(!foto){ alert('Lampirkan foto bukti transfer dulu (ambil foto atau pilih dari galeri).'); return; }
-  if(!confirm('Tandai pinjaman ' + id + ' sudah dicairkan pada ' + pkTgl(tgl) + '? Bukti transfer akan disimpan. Jadwal angsuran akan dibuat sejak tanggal ini.')) return;
+  if(!await dialogKonfirmasi('Tandai pinjaman ' + id + ' sudah dicairkan pada ' + pkTgl(tgl) + '? Bukti transfer akan disimpan. Jadwal angsuran akan dibuat sejak tanggal ini.')) return;
   document.querySelectorAll('#pc-' + id + ' button').forEach(b => b.disabled = true);
   try{
     const r = await pkApi({a:'cairkan', token:pkToken, id, tgl, foto});
@@ -260,7 +260,7 @@ function pkBaris(p){
 async function pkVote(id, v){
   const a = $('pkA-' + id).value.trim(), rd = document.querySelector(`input[name="pc-${id}"]:checked`), pencairan = rd ? rd.value : '';
   if(v === 'N' && !a){ alert('Alasan penolakan wajib diisi.'); $('pkA-' + id).focus(); return; }
-  if(!confirm((v === 'Y' ? 'SETUJU' : 'TOLAK') + ' pengajuan ' + id + '?')) return;
+  if(!await dialogKonfirmasi((v === 'Y' ? 'SETUJU' : 'TOLAK') + ' pengajuan ' + id + '?')) return;
   document.querySelectorAll('#pk-' + id + ' button').forEach(b => b.disabled = true);
   try{
     const r = await pkApi({a:'vote', token:pkToken, id, v, komentar:a, pencairan});
@@ -300,7 +300,7 @@ function pkPinjamanKartu(p){
     </details></div>`;
 }
 async function pkKirimAng(body, konfirmasi){
-  if(konfirmasi && !confirm(konfirmasi)) return;
+  if(konfirmasi && !await dialogKonfirmasi(konfirmasi)) return;
   document.querySelectorAll('#pj-' + body.id + ' button').forEach(b => b.disabled = true);
   try{
     const r = await pkApi(Object.assign({token:pkToken}, body));
@@ -341,7 +341,7 @@ async function pkBukti(lid){
 async function pkVerif(lid, v){
   const k = $('pkLA-' + lid).value.trim();
   if(v === 'N' && !k){ alert('Alasan penolakan wajib diisi.'); $('pkLA-' + lid).focus(); return; }
-  if(!confirm((v === 'Y' ? 'VERIFIKASI & catat angsuran lunas' : 'TOLAK laporan') + ' ' + lid + '?')) return;
+  if(!await dialogKonfirmasi((v === 'Y' ? 'VERIFIKASI & catat angsuran lunas' : 'TOLAK laporan') + ' ' + lid + '?')) return;
   document.querySelectorAll('#lp-' + lid + ' button').forEach(b => b.disabled = true);
   try{
     const r = await pkApi({a:'verif_lapor', token:pkToken, lid, v, komentar:k});

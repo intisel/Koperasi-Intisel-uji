@@ -85,12 +85,38 @@ function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggo
   go('anggota');
   if(s) sesiMasuk(s);
 }
+/* Peringatan sebelum sesi habis: spanduk (tidak memblokir layar) selama SESI_PERINGATAN_MENIT menit terakhir; saat habis, otomatis keluar. */
+const SESI_PERINGATAN_MENIT = 5;
+function sesiSpanduk(teks){
+  let e = document.getElementById('sesiSpanduk');
+  if(!teks){ if(e) e.remove(); return; }
+  if(!e){
+    e = document.createElement('div'); e.id = 'sesiSpanduk'; e.setAttribute('role', 'status');
+    e.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:250;background:#fff3cd;color:#7a5200;border-bottom:2px solid #f0b429;padding:9px 14px;font-size:13.5px;font-weight:700;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.2)';
+    document.body.appendChild(e);
+  }
+  e.textContent = teks;
+}
+function sesiDetak(){
+  if(typeof currentPage === 'undefined' || currentPage !== 'anggota' || !anggotaAktif || !sesiLoginT){ sesiSpanduk(''); return; }
+  const sisa = SESI_JAM * 36e5 - (Date.now() - sesiLoginT);
+  if(sisa <= 0){
+    if(typeof ttdOpen !== 'undefined' && ttdOpen) return; // sedang menandatangani: tunda sampai selesai
+    sesiSpanduk(''); sesiCek(); return;
+  }
+  if(sisa <= SESI_PERINGATAN_MENIT * 6e4){
+    const mnt = Math.ceil(sisa / 6e4);
+    sesiSpanduk('⏳ Sesi berakhir dalam ' + mnt + ' menit. Selesaikan transaksi Anda; setelah itu Anda perlu masuk lagi.');
+  } else sesiSpanduk('');
+}
+setInterval(sesiDetak, 15000);
 function sesiCek(){ // false (dan keluar ke layar login) bila batas SESI_JAM jam sejak login sudah lewat
   if(!anggotaAktif || !sesiLoginT || Date.now() - sesiLoginT < SESI_JAM * 36e5) return true;
+  sesiSpanduk('');
   alert('Sesi berakhir (maksimal ' + SESI_JAM + ' jam). Silakan masuk lagi.');
   keluarAnggota(); return false;
 }
-document.addEventListener('visibilitychange', () => { if(!document.hidden && typeof currentPage !== 'undefined' && currentPage === 'anggota') sesiCek(); });
+document.addEventListener('visibilitychange', () => { if(!document.hidden && typeof currentPage !== 'undefined' && currentPage === 'anggota'){ if(sesiCek()) sesiDetak(); } });
 function sesiLanjut(){ const s = sesiBaca(); if(s) sesiMasuk(s); else { $('sesiLanjutWrap').style.display = 'none'; alert('Sesi sudah berakhir. Silakan masuk lagi.'); } }
 function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi tersimpan TIDAK dihapus; itu hanya oleh tombol Keluar)
   anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';

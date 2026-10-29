@@ -84,7 +84,7 @@ async function bnSimpan(n, btn){
   if(btn.isConnected){ btn.disabled = false; btn.textContent = t0; }
 }
 async function bnReset(n, btn){
-  if(!confirm('Kembalikan Banner ' + n + ' ke gambar bawaan?')) return;
+  if(!await dialogKonfirmasi('Kembalikan Banner ' + n + ' ke gambar bawaan?')) return;
   btn.disabled = true;
   try{
     const r = await infoApi({a:'banner_reset', slot:n});
