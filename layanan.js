@@ -128,13 +128,23 @@ function renderApproval(){
     return `<div class="ok" style="margin-bottom:10px;background:#fff">
       ${badgeJenis(p.jenis)} <b>${esc(p.id)}</b> • ${esc(p.waktu)}<br>${rpf(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'}<br>
       <b>${LABEL[p.status] || esc(p.status)}</b>
-      ${p.pencairan ? `<div class="small" style="margin-top:4px;color:#134e8a">💸 ${esc(p.pencairan.label)}${p.pencairan.tglCair ? '<br>✅ Dicairkan ' + tglf(p.pencairan.tglCair) : ''}</div>` : ''}
+      ${p.pencairan ? `<div class="small" style="margin-top:4px;color:#134e8a">💸 ${esc(p.pencairan.label)}${p.pencairan.tglCair ? '<br>✅ Dicairkan ' + tglf(p.pencairan.tglCair) : ''}${p.pencairan.adaBukti ? '<br><span class="chip" onclick="buktiCairLihat(\'' + esc(p.id) + '\')">🧾 Lihat bukti transfer</span><div id="bcA-' + esc(p.id) + '"></div>' : ''}</div>` : ''}
       <div class="small" style="margin-top:6px">
         ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${esc(x.nama)}${x.jabatan ? ' <span class="small">(' + esc(x.jabatan) + ')</span>' : ''}</div>${KOMEN(x.a)}`).join('')}
         ${p.status === 'REVIEW_PENGURUS' ? '<div>Review pengurus: ' + done + '/3</div>' : ''}
         ${p.status !== 'REVIEW_PENGURUS' ? `<div>${ICON(p.pimpinan, selesai)} ${esc(p.pimpinanNama || 'Pimpinan')} <span class="small">(${esc(p.pimpinanJabatan || 'Pimpinan')})</span></div>${KOMEN(p.pimpinanA)}` : ''}
       </div></div>`;
   }).join('') : '<p class="small">Belum ada pengajuan. Pilih Pengajuan Kasbon atau Pengajuan Koperasi di menu.</p>';
+}
+async function buktiCairLihat(id, boxId){ // anggota melihat bukti transfer pencairan miliknya sendiri
+  const box = $(boxId || 'bcA-' + id); if(!box) return; box.innerHTML = '<span class="small">Memuat foto...</span>';
+  try{
+    const r = await apiPost({a:'bukti_cair_a', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, id});
+    if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
+    const img = document.createElement('img'); img.src = r.data; img.alt = 'Bukti transfer pencairan';
+    img.style.cssText = 'max-width:100%;border-radius:10px;margin-top:8px;border:1px solid #b9d2f0';
+    box.innerHTML = ''; box.appendChild(img);
+  }catch(e){ box.innerHTML = '<div class="err">Gagal memuat foto.</div>'; }
 }
 function jadwalTabel(a){
   const today = hariIniStr();
@@ -154,6 +164,7 @@ function renderBerjalan(){
       <div class="small"><b>${a.lunas}/${a.total} lunas</b> • sisa ${rpf(a.sisa)}${a.berikut ? '<br>Berikutnya: ke-' + a.berikut.ke + ', jatuh tempo <b>' + tglf(a.berikut.due) + '</b> (' + rpf(a.berikut.jumlah) + ')' : ''}</div>
       <button class="btn" style="margin-top:10px;padding:12px;font-size:14px" onclick="goReplace('anggota-bayar')">🧾 Lapor Pembayaran</button>
       <button class="btn btn-yellow" style="margin-top:8px;padding:12px;font-size:14px" onclick="kartuBuka('${p.id}')">📄 Lihat Kartu Pinjaman</button>
+      ${p.pencairan && p.pencairan.adaBukti ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#6b7f99" onclick="buktiCairLihat('${esc(p.id)}', 'bcB-${esc(p.id)}')">🧾 Lihat Bukti Transfer Pencairan</button><div id="bcB-${esc(p.id)}"></div>` : ''}
       <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>${jadwalTabel(a)}</details>
     </div>`;
   }).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';

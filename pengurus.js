@@ -178,10 +178,42 @@ function pilihanCair(p){ // hanya muncul untuk pimpinan pada pinjaman koperasi; 
     <label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="radio" name="pc-${esc(p.id)}" value="REGULER" checked style="width:auto;margin-top:3px"><span>Reguler - tanggal 6 (<b>${pkTgl(o.REGULER)}</b>)</span></label>
     <label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="radio" name="pc-${esc(p.id)}" value="URGEN" style="width:auto;margin-top:3px"><span>Urgen - maksimal 2 hari kerja (paling lambat <b>${pkTgl(o.URGEN)}</b>)</span></label></div>`;
 }
+const pkCairFoto = {}; // id pinjaman -> foto bukti transfer (data URL JPEG) yang sudah dikompres
+function pkKompres(file){ // kecilkan foto di HP (maks 1280px, JPEG) supaya ringan dikirim
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const sc = Math.min(1, 1280 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * sc)); c.height = Math.max(1, Math.round(img.height * sc));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      let q = 0.72, out = c.toDataURL('image/jpeg', q);
+      while(out.length > 1.4e6 && q > 0.35){ q -= 0.1; out = c.toDataURL('image/jpeg', q); }
+      res(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Foto tidak dapat dibaca. Gunakan format JPG atau PNG.')); };
+    img.src = url;
+  });
+}
+async function pkCairPilih(id, input){
+  const f = input.files && input.files[0]; if(!f) return;
+  try{
+    pkCairFoto[id] = await pkKompres(f);
+    $('pkCP-' + id).src = pkCairFoto[id]; $('pkCPW-' + id).style.display = 'block';
+    $('pkCI-' + id).innerText = 'Ukuran terkirim ±' + Math.round(pkCairFoto[id].length * 0.75 / 1024) + ' KB';
+  }catch(e){ alert(e.message); }
+  input.value = '';
+}
+function pkCairHapusFoto(id){ delete pkCairFoto[id]; $('pkCPW-' + id).style.display = 'none'; $('pkCP-' + id).removeAttribute('src'); }
 function pkCairKartu(p){
   const jenis = p.pencairanJenis === 'REGULER' ? 'Reguler (tgl 6)' : 'Urgen (maks 2 hari kerja)';
   const aksi = pkBisaCatat ? `<label class="small" style="margin:6px 0 0">Tanggal dana ditransfer</label>
     <input type="date" id="pkC-${esc(p.id)}" value="${esc(pkHariIni)}" min="${esc(p.setujuTgl)}" max="${esc(pkHariIni)}" style="margin-bottom:8px">
+    <label class="small" style="margin:6px 0 4px;display:block"><b>Bukti transfer</b> (wajib) — foto/screenshot transfer ke rekening anggota</label>
+    <input type="file" accept="image/*" id="pkCF-${esc(p.id)}" onchange="pkCairPilih('${esc(p.id)}', this)" style="margin-bottom:6px">
+    <div id="pkCPW-${esc(p.id)}" style="display:${pkCairFoto[p.id] ? 'block' : 'none'};margin-bottom:8px">
+      <img id="pkCP-${esc(p.id)}" alt="Bukti transfer" ${pkCairFoto[p.id] ? 'src="' + pkCairFoto[p.id] + '"' : ''} style="max-width:100%;max-height:220px;border-radius:10px;border:1px solid #b9d2f0"><br>
+      <span class="small" id="pkCI-${esc(p.id)}"></span> <a href="#" class="small" onclick="pkCairHapusFoto('${esc(p.id)}');return false" style="color:#c0392b">Hapus foto</a>
+    </div>
     <button class="btn" style="background:#0f766e;padding:12px;font-size:14px" onclick="pkCairkan('${esc(p.id)}')">✔ Sudah dicairkan</button>` : '<p class="small">Pencairan dicatat oleh pengurus.</p>';
   return `<div class="ok" style="background:#fff;margin-bottom:12px${p.telat ? ';border-color:#e74c3c' : ''}" id="pc-${esc(p.id)}">
     ${pkBadge(p.jenis)}<b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)})</span>${p.telat ? ' <span style="color:#c0392b;font-weight:800">⚠️ WAKTUNYA / TERLEWAT</span>' : ''}<br>
@@ -189,15 +221,28 @@ function pkCairKartu(p){
     <span class="small">${jenis} • target <b>${pkTgl(p.target)}</b></span>${aksi}</div>`;
 }
 async function pkCairkan(id){
-  const tgl = $('pkC-' + id).value;
-  if(!confirm('Tandai pinjaman ' + id + ' sudah dicairkan pada ' + pkTgl(tgl) + '? Jadwal angsuran akan dibuat sejak tanggal ini.')) return;
+  const tgl = $('pkC-' + id).value, foto = pkCairFoto[id] || '';
+  if(!foto){ alert('Lampirkan foto bukti transfer dulu (ambil foto atau pilih dari galeri).'); return; }
+  if(!confirm('Tandai pinjaman ' + id + ' sudah dicairkan pada ' + pkTgl(tgl) + '? Bukti transfer akan disimpan. Jadwal angsuran akan dibuat sejak tanggal ini.')) return;
   document.querySelectorAll('#pc-' + id + ' button').forEach(b => b.disabled = true);
   try{
-    const r = await pkApi({a:'cairkan', token:pkToken, id, tgl});
+    const r = await pkApi({a:'cairkan', token:pkToken, id, tgl, foto});
     if(r.expired){ pkExpired(); return; }
+    if(r.ok) delete pkCairFoto[id];
     alert(r.ok ? r.msg : '❌ ' + r.msg);
-  }catch(e){ alert('Gagal terhubung ke server.'); }
+  }catch(e){ alert('Gagal mengunggah. Periksa koneksi lalu coba lagi.'); }
   pkMuat();
+}
+async function pkLihatBuktiCair(id){ // pengurus/pimpinan melihat bukti transfer pencairan
+  const box = $('bc-' + id); if(!box) return; box.innerHTML = '<span class="small">Memuat foto...</span>';
+  try{
+    const r = await pkApi({a:'bukti_cair', token:pkToken, id});
+    if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
+    const img = document.createElement('img'); img.src = r.data; img.alt = 'Bukti transfer pencairan';
+    img.style.cssText = 'max-width:100%;border-radius:10px;margin-top:8px;border:1px solid #b9d2f0';
+    box.innerHTML = ''; box.appendChild(img);
+  }catch(e){ box.innerHTML = '<div class="err">Gagal memuat foto.</div>'; }
 }
 function pkBaris(p){
   return `<div style="border-bottom:1px solid #d6e6f8;padding:8px 0">${pkBadge(p.jenis)}<b>${esc(p.nama)}</b> <span class="small">${esc(p.id)} • ${esc(p.waktu)}</span><br>
@@ -240,6 +285,7 @@ function pkPinjamanKartu(p){
     <div class="small"><b>${p.lunas}/${p.total} lunas</b> • sisa ${pkRp(p.sisa)}${p.berikut ? '<br>Berikutnya: ke-' + p.berikut.ke + ', jatuh tempo ' + pkTgl(p.berikut.due) + ' (' + pkRp(p.berikut.jumlah) + ')' : ''}</div>
     ${pkIngatkan(p)}
     ${aksi}
+    ${p.adaBuktiCair ? `<div style="margin-top:8px"><button class="btn" style="padding:10px;font-size:13px;background:#6b7f99" onclick="pkLihatBuktiCair('${esc(p.id)}')">🧾 Lihat bukti transfer pencairan</button><div id="bc-${esc(p.id)}"></div></div>` : ''}
     <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>
       <table class="small" style="margin-top:6px;border-collapse:collapse"><tr style="color:#5a7aa0"><td>Ke</td><td>Jatuh tempo</td><td>Jumlah</td><td>Status</td></tr>${baris}</table>
       ${pkBisaCatat && p.lunas > 0 ? `<button class="btn" style="margin-top:8px;padding:8px;font-size:13px;background:#6b7f99" onclick="pkBatalBayar('${esc(p.id)}')">↩ Batalkan pembayaran terakhir (salah input)</button>` : ''}
