@@ -459,9 +459,8 @@ body.kartu-open{overflow:hidden}
       <div class="card"><b>Menu Pengurus</b>
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-validasi')"><span class="pbadge" id="pbValidasi"></span><span class="ic">✅</span><b>Validasi Pinjaman</b><span class="sub">Tinjau, setujui, atau tolak pengajuan</span></button>
-          <button class="mtile" onclick="go('pengurus-bayar')"><span class="pbadge" id="pbBayar"></span><span class="ic">🧾</span><b>Validasi Pembayaran</b><span class="sub">Verifikasi bukti transfer angsuran</span></button>
           <button class="mtile" onclick="go('pengurus-cair')"><span class="pbadge" id="pbCair"></span><span class="ic">💸</span><b>Pencairan Dana</b><span class="sub">Pinjaman disetujui, siap dicairkan</span></button>
-          <button class="mtile" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub">Catat angsuran &amp; pelunasan</span></button>
+          <button class="mtile" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">🧾</span><b>Pembayaran Angsuran</b><span class="sub">Validasi bukti bayar &amp; pinjaman berjalan</span></button>
           <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
@@ -474,14 +473,17 @@ body.kartu-open{overflow:hidden}
       <div class="card"><b>✅ Validasi Pinjaman</b><p class="small" style="margin:2px 0 8px">Tinjau, setujui, atau tolak pengajuan yang menunggu keputusan Anda.</p><div id="pkMenunggu"></div></div>
       <div class="card"><b>Riwayat Pengajuan (30 terakhir)</b><div id="pkRiwayat" style="margin-top:8px"></div></div>
     </div>
-    <div class="pkv hidden" id="pkvBayar">
-      <div class="card"><b>🧾 Validasi Pembayaran Angsuran</b><p class="small" style="margin:2px 0 8px">Cocokkan bukti transfer anggota dengan rekening koperasi.</p><div id="pkLaporan"></div></div>
-    </div>
     <div class="pkv hidden" id="pkvCair">
       <div class="card"><b>💸 Pencairan Dana</b><p class="small" style="margin:2px 0 8px">Pinjaman yang sudah disetujui pimpinan. Setelah transfer, tandai sudah dicairkan.</p><div id="pkPencairan"></div></div>
     </div>
     <div class="pkv hidden" id="pkvBerjalan">
+      <div class="pktabs"><button id="byTabBtnV" class="on" onclick="pkBayarTab('V')">🧾 Validasi Pembayaran <span id="byTabNV"></span></button><button id="byTabBtnP" onclick="pkBayarTab('P')">📊 Pinjaman Berjalan <span id="byTabNP"></span></button></div>
+      <div id="byTabV">
+      <div class="card"><b>🧾 Validasi Pembayaran Angsuran</b><p class="small" style="margin:2px 0 8px">Cocokkan bukti transfer anggota dengan rekening koperasi.</p><div id="pkLaporan"></div></div>
+      </div>
+      <div id="byTabP" class="hidden">
       <div class="card"><b>📊 Pinjaman Berjalan</b><p class="small" style="margin:2px 0 8px">Tandai lunas angsuran (bisa lebih dari satu) dan ingatkan anggota lewat WhatsApp.</p><input type="search" id="pkCari" placeholder="🔍 Cari nama peminjam..." oninput="pkCari()" autocomplete="off" style="margin-bottom:4px"><div class="small" id="pkCariInfo" style="margin-bottom:8px"></div><div id="pkPinjaman"></div></div>
+      </div>
     </div>
     <div class="pkv hidden" id="pkvStatistik">
       <div class="card"><b>📈 Dasbor &amp; Grafik</b><div id="pkStat" style="margin-top:8px"><p class="small">Memuat...</p></div></div>
@@ -599,8 +601,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-bayar','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-bayar':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
