@@ -232,11 +232,30 @@ body.kartu-open{overflow:hidden}
     <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="NIK, contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')$('pinInput').focus()">
     <div id="nikLupaWrap" class="small" style="display:none;margin-top:4px">NIK diingat di perangkat ini. <span style="text-decoration:underline;cursor:pointer;color:#134e8a" onclick="nikLupakan()">Bukan Anda? Hapus</span></div>
     <div id="lgPin">
-      <label style="margin-top:10px;display:block">PIN (6 angka)</label>
-      <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" placeholder="••••••" style="letter-spacing:8px;text-align:center;font-size:22px" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')loginPin()">
-      <p class="small" style="text-align:center;margin:6px 0 0">Pertama kali masuk? Gunakan PIN awal <b>123456</b>, lalu Anda akan diminta membuat PIN sendiri.</p>
-      <button class="btn" id="btnCekNik" onclick="loginPin()" style="margin-top:8px">🔍 Masuk</button>
-      <p class="small" style="text-align:center;margin:12px 0 0"><span style="text-decoration:underline;cursor:pointer;color:#134e8a;font-weight:700" onclick="lgMode('otp')">Lupa PIN / belum punya PIN? Masuk dengan kode OTP email</span></p>
+      <style>
+        .pp-judul{text-align:center;font-weight:800;font-size:19px;margin:16px 0 2px}
+        .pp-sub{text-align:center;font-size:13px;color:#64748b;margin:0 0 18px}
+        #pinDots{display:flex;justify-content:center;gap:14px;margin:0 0 22px}
+        #pinDots i{width:14px;height:14px;border-radius:50%;border:2px solid #94a3b8;background:transparent;transition:background .12s,border-color .12s}
+        #pinDots i.on{background:#134e8a;border-color:#134e8a}
+        .pp-grid{display:grid;grid-template-columns:repeat(3,68px);justify-content:center;gap:14px 26px;margin:0 auto}
+        .pp-grid button{width:68px;height:68px;border-radius:50%;border:0;background:#eef0f3;color:#111827;font-size:24px;font-weight:800;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        .pp-grid button:active{background:#dbe2ea}
+        .pp-grid button.pp-lupa{background:transparent;color:#ea7a1a;font-size:13px;font-weight:700;white-space:nowrap}
+        .pp-grid button.pp-del{font-size:22px}
+      </style>
+      <input id="pinInput" type="hidden" value="">
+      <div class="pp-judul">Masukkan PIN Anda</div>
+      <p class="pp-sub">PIN 6 digit angka</p>
+      <div id="pinDots" aria-label="PIN terisi"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="pp-grid">
+        <button type="button" onclick="pinPadTekan(1)">1</button><button type="button" onclick="pinPadTekan(2)">2</button><button type="button" onclick="pinPadTekan(3)">3</button>
+        <button type="button" onclick="pinPadTekan(4)">4</button><button type="button" onclick="pinPadTekan(5)">5</button><button type="button" onclick="pinPadTekan(6)">6</button>
+        <button type="button" onclick="pinPadTekan(7)">7</button><button type="button" onclick="pinPadTekan(8)">8</button><button type="button" onclick="pinPadTekan(9)">9</button>
+        <button type="button" class="pp-lupa" onclick="lgMode('otp')">Lupa PIN</button><button type="button" onclick="pinPadTekan(0)">0</button><button type="button" class="pp-del" onclick="pinPadHapus()" aria-label="Hapus">⌫</button>
+      </div>
+      <button class="btn" id="btnCekNik" onclick="loginPin()" style="display:none">🔍 Masuk</button>
+      <p class="small" id="ppInfo" style="text-align:center;margin:16px 0 0">Pertama kali masuk? Gunakan PIN awal <b>123456</b>, lalu Anda akan diminta membuat PIN sendiri. Lupa PIN atau belum punya PIN: ketuk <b>Lupa PIN</b> untuk masuk dengan kode OTP email.</p>
     </div>
     <div id="lgOtp" style="display:none">
       <p class="small" style="margin-top:10px">Kode 6 angka akan dikirim ke <b>email yang terdaftar</b> di koperasi. Pertama kali masuk? Setelah kode benar, Anda akan membuat PIN.</p>
@@ -886,6 +905,7 @@ function hitungAngsuran(){
 <script src="keringanan.js"></script>
 <script src="budget.js"></script>
 <script src="rencana.js"></script>
+<script src="pinpad.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>

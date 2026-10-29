@@ -137,7 +137,7 @@ function sesiLanjut(){ const s = sesiBaca(); if(s) sesiMasuk(s); else { $('sesiL
 function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi tersimpan TIDAK dihapus; itu hanya oleh tombol Keluar)
   anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';
   const ss = sesiBaca(); $('sesiLanjutWrap').style.display = ss ? 'block' : 'none'; if(ss) $('sesiLanjutNama').innerText = ss.nama || ('NIK ' + ss.nik);
-  $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; lgReset(); $('pinInput').value = '';
+  $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; lgReset(); pinPadKosong();
   $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
   VIEWS.forEach(id => $(id).style.display = 'none');
 }
@@ -604,13 +604,13 @@ const lgNikVal = () => $('nikInput').value.replace(/\D/g, '');
 async function loginPin(){
   if(cekBusy) return;
   const nik = lgNikVal(), pin = $('pinInput').value.replace(/\D/g, '');
-  if(nik.length < 4 || pin.length !== 6){ lgPesan('Isi NIK dan PIN 6 angka'); return; }
+  if(nik.length < 4 || pin.length !== 6){ lgPesan('Isi NIK dulu, lalu masukkan PIN 6 angka'); pinPadKosong(); return; }
   cekBusy = true; const btn = $('btnCekNik'); btn.disabled = true; btn.innerText = 'Memeriksa...';
   let token = '';
   try{
     const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'pin_login', nik, pin})}).then(x => x.json());
-    if(!r.ok){ lgPesan(r.msg || 'NIK atau PIN tidak sesuai'); $('pinInput').value = ''; if(r.perluOtp) lgMode('otp'), lgPesan(r.msg); return; }
-    $('pinInput').value = ''; nikSimpanIngat(nik);
+    if(!r.ok){ lgPesan(r.msg || 'NIK atau PIN tidak sesuai'); pinPadKosong(); if(r.perluOtp) lgMode('otp'), lgPesan(r.msg); return; }
+    pinPadKosong(); nikSimpanIngat(nik);
     if(r.wajibPin){ lgNik = nik; lgToken = r.atoken; lgMode('setpin'); lgPesan('PIN Anda adalah PIN sementara dari pengurus. Buat PIN baru untuk melanjutkan.', true); return; }
     token = r.atoken;
   }catch(e){ lgPesan('Gagal terhubung ke server. Periksa internet lalu coba lagi.'); }
