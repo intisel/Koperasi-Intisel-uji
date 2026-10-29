@@ -6,11 +6,11 @@
   const antre = []; let tampil = false;
   const gaya = document.createElement('style');
   gaya.textContent = '.dlg-bg{position:fixed;inset:0;background:rgba(10,30,60,.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:18px}' +
-    '.dlg{background:#fff;border-radius:16px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden;font-family:inherit}' +
-    '.dlg-h{background:#134e8a;color:#fff;font-weight:800;font-size:15px;padding:12px 16px}' +
-    '.dlg-b{padding:16px;font-size:14.5px;line-height:1.5;color:#1b2b3f;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto}' +
-    '.dlg-f{display:flex;gap:8px;justify-content:flex-end;padding:0 16px 14px}' +
-    '.dlg-f button{border:0;border-radius:10px;padding:10px 20px;font-weight:800;font-size:14px;cursor:pointer;background:#134e8a;color:#fff}' +
+    '.dlg{background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden;font-family:inherit}' +
+    '.dlg-h{background:#134e8a;color:#fff;font-weight:800;font-size:18px;padding:14px 18px}' +
+    '.dlg-b{padding:20px 18px;font-size:20px;font-weight:600;line-height:1.45;color:#1b2b3f;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto}' +
+    '.dlg-f{display:flex;gap:8px;justify-content:flex-end;padding:0 18px 18px}' +
+    '.dlg-f button{border:0;border-radius:10px;padding:13px 28px;font-weight:800;font-size:18px;cursor:pointer;background:#134e8a;color:#fff}' +
     '.dlg-f button.dlg-batal{background:#e6eef8;color:#134e8a}';
   (document.head || document.documentElement).appendChild(gaya);
 
