@@ -162,7 +162,7 @@ function lpTampil(){
   $('lpRingkas').innerHTML = `<b>Periode ${pkTgl(r.dari)} s.d. ${pkTgl(r.sampai)}</b><div class="stt" style="margin-top:8px">
     <div><b>${k.diajukan}</b><span class="small">Pengajuan</span></div><div><b>${k.ditolak}</b><span class="small">Ditolak</span></div>
     <div><b>${pkRp(k.dicairkanRp)}</b><span class="small">Dicairkan (${k.dicairkanN} pinjaman)</span></div><div><b>${pkRp(k.angsuranMasukRp)}</b><span class="small">Angsuran masuk (${k.angsuranMasukN}×)</span></div>
-    <div><b>${pkRp(k.infaqRp)}</b><span class="small">Infaq</span></div><div><b>${pkRp(k.sisaBeredar)}</b><span class="small">Sisa beredar (saat ini)</span></div>
+    <div><b>${pkRp(k.infaqRp)}</b><span class="small">Infaq perjanjian<br>terbayar ${pkRp(k.infaqTerbayar||0)} • ${k.infaqSisa ? '<b style="color:#b45309">sisa ' + pkRp(k.infaqSisa) + '</b>' : '✅ lunas'}</span></div><div><b>${pkRp(k.sisaBeredar)}</b><span class="small">Sisa beredar (saat ini)</span></div>
     <div style="grid-column:1/3;${k.tunggakanN ? 'border-color:#e74c3c' : ''}"><b>${k.tunggakanN} angsuran • ${pkRp(k.tunggakanRp)}</b><span class="small">Tunggakan (saat ini)</span></div></div>`;
   $('lpPreview').innerHTML = `<p class="small">Berkas ekspor memuat <b>${r.pengajuan.length}</b> baris pengajuan dan <b>${r.angsuran.length}</b> baris angsuran.</p>`;
 }
@@ -172,12 +172,12 @@ function lpTabel(){ // data tabular untuk Excel & cetak
   return {
     ringkas: [['Laporan Koperasi Intisel Lampung Syariah', ''], ['Periode', pkTgl(r.dari) + ' s.d. ' + pkTgl(r.sampai)], ['Dibuat', r.dibuat + ' oleh ' + r.oleh], ['', ''],
       ['Pengajuan masuk', k.diajukan], ['Pengajuan ditolak', k.ditolak], ['Pengajuan masih diproses', k.diproses], ['Pinjaman dicairkan (jumlah)', k.dicairkanN], ['Total dana dicairkan (Rp)', k.dicairkanRp],
-      ['Infaq (Rp)', k.infaqRp], ['Angsuran diterima (kali)', k.angsuranMasukN], ['Angsuran diterima (Rp)', k.angsuranMasukRp], ['Sisa pinjaman beredar saat ini (Rp)', k.sisaBeredar],
+      ['Infaq perjanjian (Rp)', k.infaqRp], ['Infaq terbayar (Rp)', k.infaqTerbayar || 0], ['Infaq sisa (Rp)', k.infaqSisa || 0], ['Angsuran diterima (kali)', k.angsuranMasukN], ['Angsuran diterima (Rp)', k.angsuranMasukRp], ['Sisa pinjaman beredar saat ini (Rp)', k.sisaBeredar],
       ['Tunggakan saat ini (jumlah angsuran)', k.tunggakanN], ['Tunggakan saat ini (Rp)', k.tunggakanRp]],
-    pengajuan: [['No. Pengajuan', 'Tanggal', 'Nama', 'NIK', 'Jenis', 'Nominal (Rp)', 'Tenor (bln)', 'Infaq (Rp)', 'Status', 'Jenis Pencairan', 'Tgl Dicairkan']]
-      .concat(r.pengajuan.map(p => [p.id, pkTgl(p.tgl), p.nama, p.nik, p.jenis, p.nominal, p.tenor || '', p.infaq || 0, ST_TXT[p.status] || p.status, p.pencairan === 'REGULER' ? 'Reguler (tgl 6)' : p.pencairan === 'URGEN' ? 'Urgen' : '', p.tglCair ? pkTgl(p.tglCair) : ''])),
+    pengajuan: [['No. Pengajuan', 'Tanggal', 'Nama', 'NIK', 'Jenis', 'Nominal (Rp)', 'Tenor (bln)', 'Infaq perjanjian (Rp)', 'Infaq terbayar (Rp)', 'Infaq sisa (Rp)', 'Status', 'Jenis Pencairan', 'Tgl Dicairkan']]
+      .concat(r.pengajuan.map(p => [p.id, pkTgl(p.tgl), p.nama, p.nik, p.jenis, p.nominal, p.tenor || '', p.infaq || 0, p.infaqTerbayar || 0, p.infaqSisa || 0, ST_TXT[p.status] || p.status, p.pencairan === 'REGULER' ? 'Reguler (tgl 6)' : p.pencairan === 'URGEN' ? 'Urgen' : '', p.tglCair ? pkTgl(p.tglCair) : ''])),
     angsuran: [['No. Pengajuan', 'Nama', 'NIK', 'Angsuran ke', 'Jatuh Tempo', 'Jumlah (Rp)', 'Status', 'Tgl Bayar']]
-      .concat(r.angsuran.map(a => [a.id, a.nama, a.nik, a.ke, pkTgl(a.due), a.jumlah, a.status === 'LUNAS' ? 'Lunas' : 'Belum bayar', a.tglBayar ? pkTgl(a.tglBayar) : '']))
+      .concat(r.angsuran.map(a => [a.id, a.nama, a.nik, a.ke, pkTgl(a.due), a.jumlah, a.status === 'LUNAS' ? 'Lunas' : a.status === 'SEBAGIAN' ? 'Sebagian (terbayar ' + a.terbayar + ')' : 'Belum bayar', a.tglBayar ? pkTgl(a.tglBayar) : '']))
   };
 }
 async function lpExcel(){
