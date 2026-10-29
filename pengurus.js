@@ -132,6 +132,7 @@ async function pkGantiSimpan(){
   }catch(e){ pkPesan('Gagal terhubung ke server.', true, 'pkGantiPesan'); }
 }
 async function pkKeluar(){
+  if(!await dialogKonfirmasi('Apakah Anda yakin ingin keluar?')) return;
   try{ await pkApi({a:'keluar', token:pkToken}); }catch(e){}
   pkToken = ''; sessionStorage.removeItem('pk_token');
   const lv = ROUTE_LEVEL[currentRoute] || 0;
