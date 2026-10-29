@@ -196,9 +196,10 @@ function masukMenu(){
   profilBarIsi(a); inboxMuat();
   goReplace('anggota-menu'); // ganti layar login di riwayat: tombol back dari menu langsung ke halaman depan
 }
+async function keluarKonfirmasi(){ if(await dialogKonfirmasi('Apakah Anda yakin ingin keluar?')) keluarAnggota(); }
 function keluarAnggota(){ // tombol Keluar: cabut sesi di server, hapus sesi tersimpan, lalu kembali ke halaman depan
   try{ const t = anggotaAktif && anggotaAktif.atoken; if(t) fetch(API_URL, {method:'POST', body:JSON.stringify({a:'keluar_a', atoken:t})}).catch(() => {}); }catch(e){}
-  sesiHapus();
+  sesiHapus(); anggotaAktif = null; sesiLoginT = 0; sesiSpanduk(''); // keluar = sesi di memori ikut dihapus (tanpa ini, membuka Anggota lagi memunculkan 'Sesi berakhir')
   const lv = (typeof ROUTE_LEVEL !== 'undefined' && ROUTE_LEVEL[currentRoute]) || 0;
   if(lv > 0) history.go(-lv); else renderRoute('anggota');
 }
@@ -603,6 +604,7 @@ let lgPopT = 0;
 function lgPesan(t, ok){ // peringatan login tampil sebagai popup di atas layar (tidak tertutup keypad / keterbatasan layar HP)
   $('hasilCek').innerHTML = ''; let el = $('lgPop'); clearTimeout(lgPopT);
   if(!t){ if(el) el.style.display = 'none'; return; }
+  if(!ok){ if(el) el.style.display = 'none'; alert(t); return; } // peringatan/kesalahan: dialog 'Koperasi Intisel' di tengah layar, sama seperti 'Sesi berakhir'
   if(!el){ el = document.createElement('div'); el.id = 'lgPop'; el.setAttribute('role', 'alert'); el.onclick = () => { el.style.display = 'none'; }; document.body.appendChild(el); }
   el.className = ok ? 'lgpop ok' : 'lgpop err'; el.innerHTML = `<b>${ok ? '✅' : '⚠️'}</b><span>${esc(t)}</span><i>✕</i>`; el.style.display = 'flex';
   lgPopT = setTimeout(() => { el.style.display = 'none'; }, ok ? 6000 : 5000);
