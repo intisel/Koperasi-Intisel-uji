@@ -17,7 +17,7 @@ function pengurusRender(name){
   if(name === 'pengurus'){
     if(pkToken) pkApi({a:'keluar', token:pkToken}).catch(() => {});
     pkToken = ''; sessionStorage.removeItem('pk_token');
-    $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); pkTab('kode');
+    $('pkLogin').classList.remove('hidden'); $('pkDash').classList.add('hidden'); pkTab('pw');
   } else {
     $('pkLogin').classList.add('hidden'); $('pkDash').classList.remove('hidden');
     const v = PK_VIEW[name] || 'pkvMenu';

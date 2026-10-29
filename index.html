@@ -405,10 +405,10 @@ body.kartu-open{overflow:hidden}
     <label style="display:block;margin-top:4px">Email terdaftar</label>
     <input id="pkEmail" type="email" inputmode="email" autocapitalize="none" autocomplete="username" placeholder="email@contoh.com">
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="pktab on" id="pkTabKode" onclick="pkTab('kode')">✉️ Kode Email</button>
-      <button class="pktab" id="pkTabPw" onclick="pkTab('pw')">🔑 Password</button>
+      <button class="pktab on" id="pkTabPw" onclick="pkTab('pw')">🔑 Password</button>
+      <button class="pktab" id="pkTabKode" onclick="pkTab('kode')">✉️ Kode OTP Email</button>
     </div>
-    <div id="pkBoxKode">
+    <div id="pkBoxKode" class="hidden">
       <p class="small">Kode masuk 6 angka akan dikirim ke email Anda.</p>
       <button class="btn" id="pkBtnMinta" onclick="pkMinta()">Kirim Kode</button>
       <div id="pkKodeWrap" class="hidden" style="margin-top:14px">
@@ -417,7 +417,7 @@ body.kartu-open{overflow:hidden}
         <button class="btn" id="pkBtnVer" onclick="pkVerifikasi()">Masuk</button>
       </div>
     </div>
-    <div id="pkBoxPw" class="hidden">
+    <div id="pkBoxPw">
       <label>Password</label>
       <input id="pkPw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')pkLoginPw()">
       <label class="small" style="display:flex;gap:6px;align-items:center;margin:-4px 0 10px"><input type="checkbox" style="width:auto;margin:0" onchange="pkLihat(['pkPw'],this.checked)"> Tampilkan password</label>
@@ -568,7 +568,7 @@ body.kartu-open{overflow:hidden}
       <div class="slide-dots"></div>
     </div>
     <div class="hero-overlay" style="padding:12px">
-      <b style="font-size:14px">Monitoring Tower - Koperasi Intisel</b>
+      <b style="font-size:14px">Koperasi Intisel Lampung</b>
       <p style="font-size:10px">Kelola &amp; pantau pinjaman anggota dengan amanah</p>
     </div>
   </div>
