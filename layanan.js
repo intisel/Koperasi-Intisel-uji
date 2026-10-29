@@ -47,10 +47,9 @@ function anggotaRender(name){ // dipanggil router
 }
 /* ===== SESI LOGIN ANGGOTA (bertahan saat refresh) + INGAT NIK ===== */
 // Server hanya mengenal NIK + tgl lahir, jadi keduanya disimpan di perangkat (localStorage) maksimal SESI_JAM jam sejak login terakhir (diperpanjang tiap masuk otomatis).
-// Sesi dihapus saat anggota menekan Keluar / kembali ke layar login. NIK (tanpa tgl lahir) diingat terus untuk memudahkan masuk kembali.
+// Sesi HANYA dihapus saat anggota menekan Keluar (atau kedaluwarsa / ditolak server). Tombol back HP tidak menghapus sesi. NIK (tanpa tgl lahir) diingat terus untuk memudahkan masuk kembali.
 const SESI_KEY = 'ang_sesi', NIK_KEY = 'ang_nik', SESI_JAM = 3;
-let sesiMemulihkan = false; // true saat masuk otomatis: layar login tidak boleh menghapus sesi tersimpan
-function sesiSimpan(nik, lahir){ try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, lahir, t: Date.now()})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
+function sesiSimpan(nik, lahir, nama){ try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, lahir, nama: nama || '', t: Date.now()})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
 function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
 function sesiBaca(){
   try{
@@ -68,16 +67,17 @@ async function sesiMasuk(s){ // isi form dari sesi tersimpan lalu masuk otomatis
     initLahir(); // pilihan tgl lahir bisa belum terisi bila refresh terjadi sangat cepat
     $('nikInput').value = s.nik; $('lhThn').value = y; $('lhBln').value = m; $('lhTgl').value = d;
     await cekNIK();
-  } finally { sesiMemulihkan = false; }
+  } catch(e){ /* cekNIK menampilkan pesan sendiri */ }
 }
 function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggota: ada sesi tersimpan -> langsung masuk
-  const s = sesiBaca(); sesiMemulihkan = !!s;
+  const s = sesiBaca();
   go('anggota');
   if(s) sesiMasuk(s);
 }
-function resetAnggota(){ // layar Cek NIK: sesi anggota dibersihkan
+function sesiLanjut(){ const s = sesiBaca(); if(s) sesiMasuk(s); else { $('sesiLanjutWrap').style.display = 'none'; alert('Sesi sudah berakhir. Silakan masuk lagi.'); } }
+function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi tersimpan TIDAK dihapus; itu hanya oleh tombol Keluar)
   anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';
-  if(!sesiMemulihkan) sesiHapus();
+  const ss = sesiBaca(); $('sesiLanjutWrap').style.display = ss ? 'block' : 'none'; if(ss) $('sesiLanjutNama').innerText = ss.nama || ('NIK ' + ss.nik);
   $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; ['lhTgl', 'lhBln', 'lhThn'].forEach(i => $(i).value = '');
   $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
   VIEWS.forEach(id => $(id).style.display = 'none');
@@ -101,7 +101,8 @@ function masukMenu(){
   profilBarIsi(a); inboxMuat();
   go('anggota-menu');
 }
-function keluarAnggota(){ // mundur ke layar Cek NIK (sesi dibersihkan oleh router)
+function keluarAnggota(){ // tombol Keluar: hapus sesi tersimpan, lalu mundur ke layar Cek NIK
+  sesiHapus();
   const lv = (typeof ROUTE_LEVEL !== 'undefined' && ROUTE_LEVEL[currentRoute]) || 0;
   if(lv > 0) history.go(-lv); else renderRoute('anggota');
 }
