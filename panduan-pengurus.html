@@ -24,8 +24,31 @@ table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0 14px}td,
 b.k{background:#ffeb3b;color:#4a3b00;padding:0 6px;border-radius:6px;font-weight:800}
 .up{display:inline-block;margin-top:8px;font-size:13px;color:#134e8a;font-weight:700;text-decoration:none}
 footer{text-align:center;font-size:12.5px;color:#5a7aa0;margin-top:24px}
+
+.hd,.hd img,.hd b,.hd span{all:unset}
+.hidden{display:none!important}
+.topfix{position:sticky;top:0;z-index:20}
+.header{background:linear-gradient(135deg,#0d3b6e 0%,#1a5ea8 50%,#2a7bd0 100%);color:#fff;padding:12px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(13,59,110,.25)}
+.header img{width:80px;height:42px;background:#fff;border-radius:8px;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.2);object-fit:contain;flex-shrink:0;cursor:pointer}
+.header-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.title-justify{display:block;width:100%;font-size:clamp(12px,4vw,16px);font-weight:900;letter-spacing:.2px;color:#fff;line-height:1.15;text-align:center;white-space:nowrap;overflow:hidden}
+.subtitle-justify{display:block;width:100%;font-size:13.5px;font-weight:600;color:#ffeb3b;line-height:1.25;margin-top:4px;text-align:center}
+.subtitle-justify .line2{display:block}
+.infobar{display:flex;align-items:center;background:#fff3b0;color:#4a3b00;border-bottom:1px solid #e6c700;cursor:pointer;overflow:hidden;font-weight:700;font-size:14px}
+.infobar .infoic{flex:none;padding:8px 10px;background:#ffd400;font-size:16px;z-index:1}.infobar .infoic-r{display:inline-block;transform:scaleX(-1)}
+.infowin{flex:1;overflow:hidden;white-space:nowrap}
+.infotrack{display:inline-block;padding-left:100%;white-space:nowrap;animation:inforun 30s linear infinite}
+.infobar:active .infotrack{animation-play-state:paused}
+@keyframes inforun{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.infotrack{animation:none;padding-left:8px;white-space:normal;display:block}.infowin{white-space:normal}}
+.infomodal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.infobox{background:#fff;border-radius:16px;padding:16px;max-width:520px;width:100%;max-height:80vh;overflow:auto}
+.infoitem{border:1.5px solid #e6c700;background:#fffbe0;border-radius:12px;padding:10px 12px;margin:8px 0;line-height:1.4;overflow-wrap:anywhere}
+.mbtn{width:100%;padding:12px;border-radius:12px;border:none;background:#134e8a;color:#fff;font-weight:800;font-size:15px;margin-top:10px;cursor:pointer}
 </style></head><body>
-<div class="hd"><img src="logo.png" alt="Koperasi Intisel"><div><b>KOPERASI INTISEL LAMPUNG</b><span>Cara mengelola aplikasi koperasi</span></div></div>
+<div class="topfix"><div class="header"><img src="logo-intisel.png" alt="Logo Koperasi Intisel" role="button" tabindex="0" title="Ke aplikasi" onclick="location.href='./'"><div class="header-text"><b class="title-justify">KOPERASI INTISEL LAMPUNG</b><span class="subtitle-justify">Sinergi Karyawan untuk Karyawan<span class="line2">Sejahtera Tanpa Beban</span></span></div></div>
+<div id="infoBar" class="infobar hidden" onclick="infoBuka()" role="button" aria-label="Pengumuman, ketuk untuk membaca semua"><span class="infoic">📢</span><div class="infowin"><span class="infotrack" id="infoTrack"></span></div><span class="infoic infoic-r">📢</span></div></div>
+<div id="infoModal" class="infomodal hidden" onclick="if(event.target===this)this.classList.add('hidden')"><div class="infobox"><b style="font-size:17px">📢 Pengumuman</b><div id="infoModalList"></div><button class="mbtn" onclick="document.getElementById('infoModal').classList.add('hidden')">Tutup</button></div></div>
 <main id="atas"><h1>Panduan Pengurus</h1><p>Panduan langkah demi langkah untuk Penasehat, Ketua, Bendahara, dan Pimpinan: validasi pinjaman, pencairan, pembayaran angsuran, keringanan, laporan, dan pengaturan.</p>
 <div class="sw"><a href="./">📱 Buka Aplikasi</a></div>
 <div class="toc"><a href="#akses">🔐 Masuk & hak akses</a><a href="#menu">🧭 Mengenal menu pengurus</a><a href="#validasi">✅ Validasi Pinjaman</a><a href="#cair">💸 Pencairan Dana</a><a href="#bayar">🧾 Pembayaran Angsuran</a><a href="#dasbor">📈 Dasbor & Grafik</a><a href="#anggota">👥 Database Anggota & Reset PIN</a><a href="#info">📢 Pengumuman, Broadcast & Banner</a><a href="#lokasi">📍 Lokasi</a><a href="#laporan">📑 Laporan & Ekspor</a><a href="#otomatis">⚙️ Yang berjalan otomatis</a><a href="#tanya">❓ Masalah umum</a></div><section class="card" id="akses"><h2>🔐 Masuk & hak akses</h2>
@@ -82,4 +105,14 @@ footer{text-align:center;font-size:12.5px;color:#5a7aa0;margin-top:24px}
 <tr><td>Anggota tidak bisa masuk</td><td>Periksa email di Database Anggota; bila kosong, lakukan Reset PIN.</td></tr>
 <tr><td>Sesi berakhir</td><td>Normal setelah 6 jam. Masuk kembali.</td></tr>
 <tr><td>Pembayaran lama tidak punya kuitansi</td><td>Wajar; kuitansi hanya untuk pembayaran setelah fitur kuitansi aktif.</td></tr></table><a class="up" href="#atas">⬆ Kembali ke daftar isi</a></section>
-<footer>Koperasi Intisel Lampung Syariah • Pinjaman Qardh tanpa bunga<br>Ada yang kurang jelas? Hubungi pengurus lewat menu <b>Kontak &amp; Bantuan</b> di aplikasi.</footer></main></body></html>
+<footer>Koperasi Intisel Lampung Syariah • Pinjaman Qardh tanpa bunga<br>Ada yang kurang jelas? Hubungi pengurus lewat menu <b>Kontak &amp; Bantuan</b> di aplikasi.</footer></main><script>
+var API_URL='https://script.google.com/macros/s/AKfycbwuBNxy2l1jlKwTyANiqEr9F0nyee2aQl_fDFOpFXCWlRAwWyggO4Dj0ojI0T-IGmD3/exec',INFO_CACHE='info_cache_v1',infoList=[];
+function infoRender(){var bar=document.getElementById('infoBar'),tr=document.getElementById('infoTrack');if(!infoList.length){bar.classList.add('hidden');tr.textContent='';return}
+tr.textContent=infoList.map(function(x){return x.isi}).join('   ✦   ')+'   ✦   ';bar.classList.remove('hidden');
+requestAnimationFrame(function(){tr.style.animationDuration=Math.max(12,Math.round((tr.scrollWidth+bar.clientWidth)/55))+'s'})}
+function infoBuka(){if(!infoList.length)return;var box=document.getElementById('infoModalList');box.textContent='';
+infoList.forEach(function(x){var d=document.createElement('div');d.className='infoitem';var t=document.createElement('div');t.textContent=x.isi;var m=document.createElement('div');m.style.cssText='font-size:12px;color:#5a7aa0;margin-top:4px';m.textContent=[x.waktu,x.oleh].filter(Boolean).join(' • ');d.appendChild(t);d.appendChild(m);box.appendChild(d)});
+document.getElementById('infoModal').classList.remove('hidden')}
+try{var c=JSON.parse(localStorage.getItem(INFO_CACHE)||'null');if(c&&c.length){infoList=c;infoRender()}}catch(e){}
+fetch(API_URL,{method:'POST',body:JSON.stringify({a:'info_baca'})}).then(function(r){return r.json()}).then(function(r){if(r&&r.ok){infoList=r.list||[];infoRender();try{localStorage.setItem(INFO_CACHE,JSON.stringify(infoList))}catch(e){}}}).catch(function(){});
+</script></body></html>
