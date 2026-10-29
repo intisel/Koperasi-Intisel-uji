@@ -45,9 +45,40 @@ function anggotaRender(name){ // dipanggil router
   tampilView(ROUTE2VIEW[name]);
   muatData().then(terapkanBlokir);
 }
+/* ===== SESI LOGIN ANGGOTA (bertahan saat refresh) + INGAT NIK ===== */
+// Server hanya mengenal NIK + tgl lahir, jadi keduanya disimpan di perangkat (localStorage) maksimal SESI_JAM jam sejak login terakhir (diperpanjang tiap masuk otomatis).
+// Sesi dihapus saat anggota menekan Keluar / kembali ke layar login. NIK (tanpa tgl lahir) diingat terus untuk memudahkan masuk kembali.
+const SESI_KEY = 'ang_sesi', NIK_KEY = 'ang_nik', SESI_JAM = 3;
+let sesiMemulihkan = false; // true saat masuk otomatis: layar login tidak boleh menghapus sesi tersimpan
+function sesiSimpan(nik, lahir){ try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, lahir, t: Date.now()})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
+function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
+function sesiBaca(){
+  try{
+    const s = JSON.parse(localStorage.getItem(SESI_KEY) || 'null');
+    if(!s) return null;
+    if(!/^\d{4,12}$/.test(String(s.nik)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.lahir)) || !(Date.now() - s.t < SESI_JAM * 36e5)){ sesiHapus(); return null; }
+    return s;
+  }catch(e){ return null; }
+}
+function nikIngat(){ try{ return localStorage.getItem(NIK_KEY) || ''; }catch(e){ return ''; } }
+function nikLupakan(){ try{ localStorage.removeItem(NIK_KEY); }catch(e){} $('nikInput').value = ''; $('nikLupaWrap').style.display = 'none'; }
+async function sesiMasuk(s){ // isi form dari sesi tersimpan lalu masuk otomatis
+  try{
+    const [y, m, d] = s.lahir.split('-').map(Number);
+    initLahir(); // pilihan tgl lahir bisa belum terisi bila refresh terjadi sangat cepat
+    $('nikInput').value = s.nik; $('lhThn').value = y; $('lhBln').value = m; $('lhTgl').value = d;
+    await cekNIK();
+  } finally { sesiMemulihkan = false; }
+}
+function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggota: ada sesi tersimpan -> langsung masuk
+  const s = sesiBaca(); sesiMemulihkan = !!s;
+  go('anggota');
+  if(s) sesiMasuk(s);
+}
 function resetAnggota(){ // layar Cek NIK: sesi anggota dibersihkan
   anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';
-  $('nikInput').value = ''; ['lhTgl', 'lhBln', 'lhThn'].forEach(i => $(i).value = '');
+  if(!sesiMemulihkan) sesiHapus();
+  $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; ['lhTgl', 'lhBln', 'lhThn'].forEach(i => $(i).value = '');
   $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
   VIEWS.forEach(id => $(id).style.display = 'none');
 }

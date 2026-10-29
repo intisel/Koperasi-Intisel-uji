@@ -227,6 +227,7 @@ body.kartu-open{overflow:hidden}
     <div style="font-weight:800;font-size:17px;margin:2px 0 6px">Masuk Anggota</div>
     <p class="small">Masukkan NIK dan tanggal lahir, sistem otomatis cek Tgl Masuk &amp; Masa Kerja dari database anggota.</p>
     <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')cekNIK()">
+    <div id="nikLupaWrap" class="small" style="display:none;margin-top:4px">NIK diingat di perangkat ini. <span style="text-decoration:underline;cursor:pointer;color:#134e8a" onclick="nikLupakan()">Bukan Anda? Hapus</span></div>
     <label style="margin-top:10px;display:block">Tanggal Lahir</label>
     <div style="display:flex;gap:6px">
       <select id="lhTgl" onchange="resetNik()" style="flex:1"></select>
@@ -620,7 +621,7 @@ function renderRoute(name,fromPop){
 }
 function go(name){ history.pushState({r:name},'','#'+name); renderRoute(name); }          // layar baru (tombol back kembali ke layar ini)
 function goReplace(name){ history.replaceState({r:name},'','#'+name); renderRoute(name); } // ganti layar tanpa menambah riwayat
-function navigateAnggota(){ go('anggota'); }
+function navigateAnggota(){ sesiBuka(); }
 function navigatePengurus(){ go('pengurus'); }
 window.addEventListener('popstate',e=>{
   if(window.modalRiwayat){ const f=window.modalRiwayat; window.modalRiwayat=null; f(); return; } // tombol back HP menutup popup (kartu pinjaman, notifikasi)
@@ -633,7 +634,7 @@ window.addEventListener('popstate',e=>{
 window.addEventListener('DOMContentLoaded',()=>{
   const start=location.hash.replace('#','');
   history.replaceState({r:'landing'},'','#landing'); renderRoute('landing');
-  if(start.indexOf('anggota')===0) go('anggota');
+  if(start.indexOf('anggota')===0) sesiBuka();
   else if(start==='pengurus') go('pengurus');
   else if(start.indexOf('pengurus-')===0){
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Login > Menu di bawah layar yang dibuka, tanpa menghapus sesi
@@ -672,11 +673,12 @@ async function cekNIK(){
  try{
    let r=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({a:'cek',nik:v,lahir:lahir})})).json();
    if(!r.ok){
-     anggotaAktif=null; form.style.display='none';
+     anggotaAktif=null; form.style.display='none'; sesiHapus();
      hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'NIK tidak ditemukan')+'</div>';
      return;
    }
    anggotaAktif={nik:v,lahir:lahir,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
+   sesiSimpan(v,lahir); // sesi bertahan saat refresh + NIK diingat
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 
