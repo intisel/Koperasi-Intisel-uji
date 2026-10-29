@@ -9,6 +9,7 @@
     '.dlg{background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden;font-family:inherit}' +
     '.dlg-h{background:#134e8a;color:#fff;font-weight:800;font-size:18px;padding:14px 18px}' +
     '.dlg-b{padding:20px 18px;font-size:20px;font-weight:600;line-height:1.45;color:#1b2b3f;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto}' +
+    '.dlg-b{display:flex;align-items:flex-start;gap:14px}.dlg-ik{font-size:38px;line-height:1;flex:none}.dlg-tk{flex:1;min-width:0;padding-top:2px}' +
     '.dlg-f{display:flex;gap:8px;justify-content:flex-end;padding:0 18px 18px}' +
     '.dlg-f button{border:0;border-radius:10px;padding:13px 28px;font-weight:800;font-size:18px;cursor:pointer;background:#134e8a;color:#fff}' +
     '.dlg-f button.dlg-batal{background:#e6eef8;color:#134e8a}';
@@ -20,7 +21,10 @@
     const d = antre.shift(), bg = document.createElement('div'), kotak = document.createElement('div');
     bg.className = 'dlg-bg'; kotak.className = 'dlg'; kotak.setAttribute('role', 'alertdialog'); kotak.setAttribute('aria-modal', 'true');
     const h = document.createElement('div'); h.className = 'dlg-h'; h.textContent = 'Koperasi Intisel';
-    const b = document.createElement('div'); b.className = 'dlg-b'; b.textContent = d.pesan; // textContent: aman dari HTML
+    const b = document.createElement('div'); b.className = 'dlg-b';
+    const ik = document.createElement('span'); ik.className = 'dlg-ik'; ik.textContent = '⚠️'; ik.setAttribute('aria-hidden', 'true'); // segitiga kuning peringatan
+    const tk = document.createElement('span'); tk.className = 'dlg-tk'; tk.textContent = d.pesan; // textContent: aman dari HTML
+    b.appendChild(ik); b.appendChild(tk);
     const f = document.createElement('div'); f.className = 'dlg-f';
     const tutup = hasil => { document.removeEventListener('keydown', tombolEsc, true); if(bg.parentNode) bg.parentNode.removeChild(bg); tampil = false; if(d.res) d.res(hasil); setTimeout(buka, 0); };
     const tombolEsc = e => { if(e.key === 'Escape'){ e.preventDefault(); tutup(false); } };
