@@ -285,7 +285,7 @@ function pkPinjamanKartu(p){
       <td>${j.status === 'LUNAS' ? '✅ ' + pkTgl(j.tglBayar) : (lewat ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`;
   }).join('');
   const id = esc(p.id), belum = p.jadwal.filter(j => j.status !== 'LUNAS'), ik = p.infaq || {target:0, terbayar:0, sisa:0, riwayat:[]};
-  const aksi = !pkBisaCatat ? '<p class="small">Pencatatan angsuran dilakukan oleh pengurus.</p>' : !belum.length && !ik.sisa ? '' : `
+  const aksi = !pkBisaVerif ? '<p class="small">Pencatatan pembayaran hanya dapat dilakukan oleh Ketua dan Bendahara.</p>' : !belum.length && !ik.sisa ? '' : `
     <button class="btn" style="padding:12px;font-size:14px;margin-top:8px" onclick="pkPanel('${id}')">✔ Tandai Lunas Angsuran Ke</button>
     <div id="pkP-${id}" style="display:${pkPanelBuka[p.id] ? 'block' : 'none'};margin-top:8px;padding:10px;border:1px solid #b9d2f0;border-radius:10px;background:#f4f9ff">
       <div class="small"><b>Pilih angsuran yang dibayar</b> (boleh lebih dari satu)</div>
@@ -325,7 +325,7 @@ function pkPinjamanKartu(p){
     <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>
       <table class="small" style="margin-top:6px;border-collapse:collapse"><tr style="color:#5a7aa0"><td>Ke</td><td>Jatuh tempo</td><td>Jumlah</td><td>Status</td></tr>${baris}</table>
       ${rwy ? '<div class="small" style="margin-top:10px"><b>Riwayat pencatatan</b>' + rwy + '</div>' : ''}
-      ${pkBisaCatat && (p.lunas > 0 || (p.pembayaran || []).length) ? `<button class="btn" style="margin-top:8px;padding:8px;font-size:13px;background:#6b7f99" onclick="pkBatalBayar('${esc(p.id)}')">↩ Batalkan pencatatan terakhir (salah input)</button>` : ''}
+      ${pkBisaVerif && (p.lunas > 0 || (p.pembayaran || []).length) ? `<button class="btn" style="margin-top:8px;padding:8px;font-size:13px;background:#6b7f99" onclick="pkBatalBayar('${esc(p.id)}')">↩ Batalkan pencatatan terakhir (salah input)</button>` : ''}
     </details></div>`;
 }
 async function pkKirimAng(body, konfirmasi){
