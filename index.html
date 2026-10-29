@@ -335,8 +335,9 @@ body.kartu-open{overflow:hidden}
       <label>Angsuran yang dibayar</label><select id="bySelect" onchange="byIsiJumlah()"></select>
       <div id="byInfaqWrap" style="display:none"><label id="byInfaqLbl">Infaq (opsional)</label><input id="byInfaq" type="text" inputmode="numeric" data-fmt="money" data-opt="1" placeholder="Contoh: 20.000" oninput="byIsiJumlah()"></div>
       <label>Tanggal pembayaran</label><input id="byTgl" type="date">
-      <label>Jumlah dibayar (Rp)</label><input id="byJumlah" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 500.000">
-      <label>Catatan (opsional)</label><input id="byCatatan" maxlength="200" placeholder="Contoh: Transfer BNI a.n. ...">
+      <label>Jumlah dibayar (Rp)</label><input id="byJumlah" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 500.000" oninput="byCekSebagian()">
+      <div id="byHintSebagian" class="ok" style="display:none;margin-top:6px;background:#fff8e1;border-color:#ffd54f"></div>
+      <label id="byCatLbl">Catatan (opsional)</label><input id="byCatatan" maxlength="200" placeholder="Contoh: Transfer BNI a.n. ...">
       <label>Foto bukti transaksi (wajib)</label>
       <div style="display:flex;gap:8px">
         <label class="fotobtn" for="byKamera">📷 Ambil Foto</label>
@@ -353,6 +354,38 @@ body.kartu-open{overflow:hidden}
     </div>
     <div style="font-weight:800;margin-top:16px">Riwayat Laporan</div>
     <div id="byRiwayat" style="margin-top:6px"></div>
+  </div>
+
+  <!-- PERMOHONAN KERINGANAN -->
+  <div class="card view" id="vKeringanan" style="display:none">
+    <b style="font-size:16px">🤝 Permohonan Keringanan Angsuran</b>
+    <div id="krInfo" class="small" style="margin:6px 0"></div>
+    <div id="krForm">
+      <div class="ok" id="krAngsuran" style="margin:6px 0"></div>
+      <label>Jumlah yang sanggup Anda bayar bulan ini (Rp)</label>
+      <input id="krSanggup" type="text" inputmode="numeric" data-fmt="money" data-opt="1" placeholder="Isi 0 bila tidak sanggup sama sekali" oninput="this.value=fmtMoney(this.value);krHitung()">
+      <div id="krHitung" class="small" style="margin-top:4px"></div>
+      <label>Alasan</label>
+      <select id="krAlasan" onchange="krIsiTemplate(true)"></select>
+      <label>Uraian permohonan <span class="small">(sudah terisi template, silakan ubah / lengkapi bagian dalam tanda [ ])</span></label>
+      <textarea id="krUraian" rows="9" maxlength="800" oninput="krLaluTpl=null"></textarea>
+      <label>Foto bukti pendukung (wajib)</label>
+      <div class="small" style="margin:0 0 6px">Contoh: slip gaji bulan ini, surat keterangan dokter / rumah sakit, surat keterangan tidak bekerja, atau bukti lain yang relevan.</div>
+      <div style="display:flex;gap:8px">
+        <label class="fotobtn" for="krKamera">📷 Ambil Foto</label>
+        <label class="fotobtn" for="krGaleri">🖼️ Pilih dari Galeri</label>
+      </div>
+      <input type="file" id="krKamera" accept="image/*" capture="environment" style="display:none" onchange="krPilihFoto(this)">
+      <input type="file" id="krGaleri" accept="image/*" style="display:none" onchange="krPilihFoto(this)">
+      <div id="krPreviewWrap" style="display:none;margin-top:8px;text-align:center">
+        <img id="krPreview" alt="Pratinjau bukti" style="max-width:100%;max-height:260px;border-radius:12px;border:1px solid #b9d2f0">
+        <span class="back-link" style="margin:4px 0 0;display:block" onclick="krHapusFoto()">✖ Ganti foto</span>
+      </div>
+      <p class="small" style="margin:10px 0 0">Saat Anda menekan kirim, permohonan Anda akan ditinjau dan diputuskan oleh Ketua / Bendahara koperasi. Bila disetujui, kekurangan angsuran bulan ini digeser ke angsuran bulan berikutnya.</p>
+      <button class="btn" id="btnKr" onclick="krKirim()" style="margin-top:10px;background:#7c3aed">Kirim Permohonan</button>
+    </div>
+    <div style="font-weight:800;margin-top:16px">Riwayat Permohonan</div>
+    <div id="krRiwayat" style="margin-top:6px"></div>
   </div>
 
   <div class="card view" id="formPinjam" style="display:none">
@@ -500,9 +533,12 @@ body.kartu-open{overflow:hidden}
       <div class="card"><b>💸 Pencairan Dana</b><p class="small" style="margin:2px 0 8px">Pinjaman yang sudah disetujui pimpinan. Setelah transfer, tandai sudah dicairkan.</p><div id="pkPencairan"></div></div>
     </div>
     <div class="pkv hidden" id="pkvBerjalan">
-      <div class="pktabs"><button id="byTabBtnV" class="on" onclick="pkBayarTab('V')">🧾 Validasi Pembayaran <span id="byTabNV"></span></button><button id="byTabBtnP" onclick="pkBayarTab('P')">📊 Pinjaman Berjalan <span id="byTabNP"></span></button></div>
+      <div class="pktabs"><button id="byTabBtnV" class="on" onclick="pkBayarTab('V')">🧾 Validasi Pembayaran <span id="byTabNV"></span></button><button id="byTabBtnP" onclick="pkBayarTab('P')">📊 Pinjaman Berjalan <span id="byTabNP"></span></button><button id="byTabBtnK" onclick="pkBayarTab('K')">🤝 Keringanan <span id="byTabNK"></span></button></div>
       <div id="byTabV">
       <div class="card"><b>🧾 Validasi Pembayaran Angsuran</b><p class="small" style="margin:2px 0 8px">Cocokkan bukti transfer anggota dengan rekening koperasi.</p><div id="pkLaporan"></div></div>
+      </div>
+      <div id="byTabK" class="hidden">
+      <div class="card"><b>🤝 Permohonan Keringanan Angsuran</b><p class="small" style="margin:2px 0 8px">Anggota yang tidak sanggup membayar penuh bulan ini. Hanya Ketua dan Bendahara yang dapat memutuskan.</p><div id="pkKeringanan"></div></div>
       </div>
       <div id="byTabP" class="hidden">
       <div class="card"><b>📊 Pinjaman Berjalan</b><p class="small" style="margin:2px 0 8px">Tandai lunas angsuran (bisa lebih dari satu) dan ingatkan anggota lewat WhatsApp.</p><input type="search" id="pkCari" placeholder="🔍 Cari nama peminjam..." oninput="pkCari()" autocomplete="off" style="margin-bottom:4px"><div class="small" id="pkCariInfo" style="margin-bottom:8px"></div><div id="pkPinjaman"></div></div>
@@ -624,8 +660,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -820,6 +856,7 @@ function hitungAngsuran(){
 <script src="pengajuan.js"></script>
 <script src="ttd.js"></script>
 <script src="layanan.js"></script>
+<script src="keringanan.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>

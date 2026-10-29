@@ -1,8 +1,8 @@
 // Layanan anggota: menu, kasbon, status approval, pinjaman berjalan, laporan pembayaran + foto bukti
 let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoData = '';
-const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKontak:'anggota-kontak'};
-const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-kontak':'vKontak'};
-const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar', 'vKontak'];
+const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vKontak:'anggota-kontak'};
+const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-kontak':'vKontak'};
+const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vKontak'];
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'💸 Disetujui - Menunggu Pencairan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v === 'Y' ? '✅' : v === 'N' ? '❌' : (selesai ? '➖' : '⏳');
@@ -35,6 +35,7 @@ function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
   VIEWS.forEach(id => { const el = $(id); if(el) el.style.display = id === v ? 'block' : 'none'; });
   if(v === 'vKasbon') kbUpdate();
   if(v === 'vBayar') renderBayar();
+  if(v === 'vKeringanan') renderKeringanan();
   if(v === 'vKontak') renderKontak();
 }
 /* ===== KONTAK & BANTUAN ===== */
@@ -193,9 +194,9 @@ async function muatData(){
   try{
     const r = await apiPost({a:'status', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken});
     if(!r.ok){ $('apBox').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    dataSaya = {list: r.list || [], laporan: r.laporan || [], bolehKoperasi: r.bolehKoperasi || '', loaded: true};
+    dataSaya = {list: r.list || [], laporan: r.laporan || [], keringanan: r.keringanan || [], bolehKoperasi: r.bolehKoperasi || '', loaded: true};
   }catch(e){ $('apBox').innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; return; }
-  renderApproval(); renderBerjalan(); renderBayar(); renderSub(); terapkanBlokir();
+  renderApproval(); renderBerjalan(); renderBayar(); renderKeringanan(); renderSub(); terapkanBlokir();
 }
 function renderSub(){
   const proses = dataSaya.list.filter(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN').length;
@@ -241,7 +242,7 @@ function jadwalTabel(a){
   const today = hariIniStr();
   return `<table class="small" style="margin-top:6px;border-collapse:collapse"><tr style="color:#5a7aa0"><td>Ke</td><td>Jatuh tempo</td><td>Jumlah</td><td>Status</td></tr>` +
     a.jadwal.map(j => `<tr><td style="padding:2px 8px 2px 0">${j.ke}</td><td style="padding:2px 8px 2px 0">${tglf(j.due)}</td><td style="padding:2px 8px 2px 0">${rpf(j.jumlah)}</td>
-      <td>${j.status === 'LUNAS' ? '✅ ' + tglf(j.tglBayar) : (j.due < today ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`).join('') +
+      <td>${j.status === 'LUNAS' ? (j.asli === 0 ? '⏸ ditunda' : '✅ ' + tglf(j.tglBayar)) : j.status === 'SEBAGIAN' ? '<span style="color:#b45309">🟡 sebagian (sudah ' + rpf(j.terbayar) + ')</span>' + (j.due < today ? ' <span style="color:#c0392b">⚠️</span>' : '') : (j.due < today ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`).join('') +
     ((a.infaq && a.infaq.riwayat || []).map(x => `<tr><td style="padding:2px 8px 2px 0">Infaq</td><td style="padding:2px 8px 2px 0">-</td><td style="padding:2px 8px 2px 0">${rpf(x.jumlah)}</td><td>✅ ${tglf(x.tgl)}</td></tr>`).join('')) + '</table>';
 }
 function renderBerjalan(){
@@ -255,6 +256,7 @@ function renderBerjalan(){
       <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
       <div class="small"><b>${a.lunas}/${a.total} lunas</b> • sisa ${rpf(a.sisa)}${a.infaq && a.infaq.target ? '<br>Infaq: ' + rpf(a.infaq.terbayar) + ' / ' + rpf(a.infaq.target) + (a.infaq.sisa ? ' • <b style="color:#b45309">sisa ' + rpf(a.infaq.sisa) + '</b>' : ' ✅ lunas') : ''}${a.berikut ? '<br>Berikutnya: ke-' + a.berikut.ke + ', jatuh tempo <b>' + tglf(a.berikut.due) + '</b> (' + rpf(a.berikut.jumlah) + ')' : ''}</div>
       <button class="btn" style="margin-top:10px;padding:12px;font-size:14px" onclick="goReplace('anggota-bayar')">🧾 Lapor Pembayaran</button>
+      ${p.jenis !== 'KASBON' && a.total - a.lunas >= 2 ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#7c3aed" onclick="goReplace('anggota-keringanan')">🤝 Ajukan Keringanan Angsuran</button>` : ''}
       <button class="btn btn-yellow" style="margin-top:8px;padding:12px;font-size:14px" onclick="kartuBuka('${p.id}')">📄 Lihat Kartu Pinjaman</button>
       ${p.pencairan && p.pencairan.adaBukti ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#6b7f99" onclick="buktiCairLihat('${esc(p.id)}', 'bcB-${esc(p.id)}')">🧾 Lihat Bukti Transfer Pencairan</button><div id="bcB-${esc(p.id)}"></div>` : ''}
       <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>${jadwalTabel(a)}</details>
@@ -299,6 +301,16 @@ async function kirimKasbon(){
 function byIsiJumlah(){
   const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran), ke = parseInt($('bySelect').value, 10);
   const j = p && p.angsuran.jadwal.find(x => x.ke === ke), tot = (j ? j.jumlah : 0) + (moneyVal('byInfaq') || 0); $('byJumlah').value = tot ? fmtMoney(String(tot)) : '';
+  byCekSebagian();
+}
+function byCekSebagian(){ // peringatan bila jumlah < angsuran: catatan alasan jadi wajib
+  const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran), ke = parseInt($('bySelect').value, 10), h = $('byHintSebagian'); if(!h) return;
+  const j = p && ke > 0 ? p.angsuran.jadwal.find(x => x.ke === ke) : null;
+  const inf = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), uang = moneyVal('byJumlah') - inf;
+  if(j && uang > 0 && uang < j.jumlah){
+    h.style.display = 'block'; h.innerHTML = '🟡 Jumlah ini <b>kurang ' + rpf(j.jumlah - uang) + '</b> dari angsuran. Pembayaran dicatat sebagai <b>sebagian</b> dan <b>catatan alasan wajib diisi</b>. Bila kekurangan belum dilunasi sampai tanggal 15, akan digeser ke angsuran bulan berikutnya. Kesulitan membayar? Ajukan <a href="#" onclick="goReplace(\'anggota-keringanan\');return false" style="color:#7c3aed;font-weight:700">keringanan</a> dulu.';
+    $('byCatLbl').innerText = 'Catatan alasan (WAJIB karena pembayaran kurang)';
+  } else { h.style.display = 'none'; $('byCatLbl').innerText = 'Catatan (opsional)'; }
 }
 function renderBayar(){
   const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran), wait = {};
@@ -312,12 +324,13 @@ function renderBayar(){
     else {
       const sebelum = $('bySelect').value;
       $('byForm').style.display = 'block';
-      $('bySelect').innerHTML = opsi.map(j => `<option value="${j.ke}">Angsuran ke-${j.ke} • jatuh tempo ${tglf(j.due)} • ${rpf(j.jumlah)}</option>`).join('') + (ik.sisa ? '<option value="0">Hanya bayar infaq (tanpa angsuran)</option>' : '');
+      $('bySelect').innerHTML = opsi.map(j => `<option value="${j.ke}">Angsuran ke-${j.ke} • jatuh tempo ${tglf(j.due)} • ${j.status === 'SEBAGIAN' ? 'kurang ' : ''}${rpf(j.jumlah)}</option>`).join('') + (ik.sisa ? '<option value="0">Hanya bayar infaq (tanpa angsuran)</option>' : '');
       if(sebelum && Array.from($('bySelect').options).some(o => o.value === sebelum)) $('bySelect').value = sebelum;
       $('byInfaqWrap').style.display = ik.sisa ? 'block' : 'none';
       $('byInfaqLbl').innerText = ik.sisa ? 'Infaq (sisa ' + rpf(ik.sisa) + ' dari ' + rpf(ik.target) + ') — boleh dicicil atau lebih; wajib lunas bersama angsuran terakhir' : '';
       if(!$('byTgl').value) $('byTgl').value = hariIniStr(); $('byTgl').max = hariIniStr();
       if(!$('byJumlah').value) byIsiJumlah();
+      byCekSebagian();
     }
   }
   const L = dataSaya.laporan;
@@ -356,8 +369,13 @@ async function kirimLaporan(){
   if($('bySelect').value === ''){ alert('Pilih angsuran.'); return; }
   const keP = parseInt($('bySelect').value, 10), infaqP = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), ikP = p.angsuran.infaq || {sisa:0};
   if(keP === 0 && !infaqP){ alert('Isi jumlah infaq yang dibayar.'); return; }
-  const belumP = p.angsuran.jadwal.filter(j => j.status !== 'LUNAS');
-  if(keP > 0 && belumP.length === 1 && ikP.sisa > infaqP){ alert('Ini angsuran terakhir, infaq harus lunas bersamanya. Isi infaq minimal ' + rpf(ikP.sisa) + ' (boleh lebih).'); return; }
+  const belumP = p.angsuran.jadwal.filter(j => j.status !== 'LUNAS'), jP = belumP.find(j => j.ke === keP), uangP = moneyVal('byJumlah') - infaqP;
+  if(keP > 0 && jP){
+    if(!(uangP > 0)){ alert('Jumlah untuk angsuran harus lebih dari Rp 0 (jumlah dibayar dikurangi infaq).'); return; }
+    if(uangP > jP.jumlah){ alert('Jumlah melebihi angsuran yang harus dibayar (' + rpf(jP.jumlah) + (infaqP ? ' + infaq ' + rpf(infaqP) : '') + '). Periksa kembali.'); return; }
+    if(uangP < jP.jumlah && !$('byCatatan').value.trim()){ alert('Pembayaran kurang dari angsuran (kurang ' + rpf(jP.jumlah - uangP) + '). Isi catatan alasan pembayaran sebagian.'); $('byCatatan').focus(); return; }
+  }
+  if(keP > 0 && belumP.length === 1 && ikP.sisa > infaqP && !(jP && uangP < jP.jumlah)){ alert('Ini angsuran terakhir, infaq harus lunas bersamanya. Isi infaq minimal ' + rpf(ikP.sisa) + ' (boleh lebih).'); return; }
   if(!$('byTgl').value){ alert('Isi tanggal pembayaran.'); return; }
   if(!validasiForm($('byForm'))) return;
   if(!fotoData){ alert('Lampirkan foto bukti transaksi (ambil foto atau pilih dari galeri).'); return; }
@@ -399,12 +417,12 @@ function kartuBuka(id){
   const nm = anggotaAktif ? anggotaAktif.nama : '';
   window.KARTU_CUR = { id: p.id, kas, judul: 'BUKTI PEMBAYARAN ' + (kas ? 'KASBON' : 'PINJAMAN KOPERASI'), info: [
     ['No Registrasi', p.id, 1], ['Nama', nm, 1], ['Jumlah Pinjaman', kAngka(p.nominal)], ['Alamat', k.alamat || '-'],
-    ['Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan'], ['No.HP', k.hp || '-'], ['Angsuran', jad[0] ? kAngka(jad[0].jumlah) : '-'], ['Email', k.email || '-'],
+    ['Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan'], ['No.HP', k.hp || '-'], ['Angsuran', jad.length ? kAngka((jad.find(j => j.asli > 0) || jad[0]).asli) : '-'], ['Email', k.email || '-'],
     ['Tanggal Pencairan', kTgl(k.tglCair) || '-'], ['Sisa Pinjaman', 'Rp ' + kAngka(a.sisa), 1], ['Infaq', infaqTxt, 1]],
     rows: jad.map(j => {
-      const bayar = j.status === 'LUNAS';
+      const bayar = j.status === 'LUNAS', part = j.status === 'SEBAGIAN';
       const telat = bayar ? Math.max(0, kSelisih(j.tglBayar, j.due)) : (j.due < today ? kSelisih(today, j.due) : null);
-      return [String(j.ke), kas ? 'Kasbon' : 'Angsuran Ke ' + j.ke, kTgl(j.due), bayar ? kTgl(j.tglBayar) : '', bayar ? kAngka(j.jumlah) : '', telat === null ? '' : telat + ' Hari', bayar ? 'Lunas' : '', !bayar && telat > 0];
+      return [String(j.ke), kas ? 'Kasbon' : 'Angsuran Ke ' + j.ke, kTgl(j.due), bayar || part ? kTgl(j.tglBayar) : '', bayar ? kAngka(j.jumlah) : part ? kAngka(j.terbayar) : '', telat === null ? '' : telat + ' Hari', bayar ? (j.asli === 0 ? 'Ditunda' : 'Lunas') : part ? 'Sebagian' : '', !bayar && telat > 0];
     }).concat(infaqBaris.map(x => ['-', 'Infaq', '', kTgl(x.tgl), kAngka(x.jumlah), '', 'Infaq', false])), tgl: kTglPanjang(new Date()) };
   const html = `<div class="kartu-box" id="kartuBox">
     <div class="kartu-judul">BUKTI PEMBAYARAN ${kas ? 'KASBON' : 'PINJAMAN KOPERASI'}</div>
@@ -412,7 +430,7 @@ function kartuBuka(id){
       ${info('No Registrasi', esc(p.id), 1)}${info('Nama', esc(anggotaAktif ? anggotaAktif.nama : ''), 1)}
       ${info('Jumlah Pinjaman', kAngka(p.nominal))}${info('Alamat', esc(k.alamat || '-'))}
       ${info('Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan')}${info('No.HP', esc(k.hp || '-'))}
-      ${info('Angsuran', jad[0] ? kAngka(jad[0].jumlah) : '-')}${info('Email', esc(k.email || '-'))}
+      ${info('Angsuran', jad.length ? kAngka((jad.find(j => j.asli > 0) || jad[0]).asli) : '-')}${info('Email', esc(k.email || '-'))}
       ${info('Tanggal Pencairan', esc(kTgl(k.tglCair) || '-'))}${info('Sisa Pinjaman', 'Rp ' + kAngka(a.sisa), 1)}
       ${info('Infaq', infaqTxt, 1)}
     </div>

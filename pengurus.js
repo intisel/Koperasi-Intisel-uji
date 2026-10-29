@@ -149,17 +149,18 @@ async function pkMuat(){
     const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
     fotoMuatPelamar(r.menunggu);
-    pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbCair', r.pencairan.length); pkBadge2('pbBerjalan', r.laporan.length + bj.terlambat);
+    pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbCair', r.pencairan.length); pkLapBase = r.laporan.length + bj.terlambat; pkBadge2('pbBerjalan', pkLapBase);
     $('byTabNV').innerText = r.laporan.length ? '(' + r.laporan.length + ')' : ''; $('byTabNP').innerText = bj.terlambat ? '(⚠️' + bj.terlambat + ')' : '';
     if(!pkBayarTabSet){ pkBayarTabSet = true; pkBayarTab(r.laporan.length ? 'V' : 'P'); }
     $('pkPencairan').innerHTML = r.pencairan.length ? r.pencairan.map(pkCairKartu).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>';
     $('pkLaporan').innerHTML = r.laporan.length ? r.laporan.map(pkLaporanKartu).join('') : '<p class="small">Tidak ada laporan pembayaran yang menunggu verifikasi.</p>';
     $('pkPinjaman').innerHTML = r.pinjaman.length ? r.pinjaman.map(pkPinjamanKartu).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>'; pkCari();
     $('pkRiwayat').innerHTML = r.riwayat.length ? r.riwayat.map(pkBaris).join('') : '<p class="small">Belum ada pengajuan.</p>';
+    pkKrMuat();
   }catch(e){ $('pkMenunggu').innerHTML = '<div class="err">Gagal memuat data. Coba ↻ Muat ulang.</div>'; }
 }
-let pkBayarTabSet = false;
-function pkBayarTab(t){ ['V','P'].forEach(k => { $('byTab' + k).classList.toggle('hidden', t !== k); $('byTabBtn' + k).classList.toggle('on', t === k); }); }
+let pkBayarTabSet = false, pkLapBase = 0;
+function pkBayarTab(t){ ['V','P','K'].forEach(k => { $('byTab' + k).classList.toggle('hidden', t !== k); $('byTabBtn' + k).classList.toggle('on', t === k); }); }
 function pkBadge2(id, n){ const e = $(id); e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; }
 function pkVotes(p){
   const k = x => `<div>${pkIc(x.v)} ${esc(x.nama)}${x.jabatan ? ' <span class="small">(' + esc(x.jabatan) + ')</span>' : ''}</div>` + (x.a ? `<div style="margin:0 0 4px 22px"><i>“${esc(x.a)}”</i></div>` : '');
@@ -282,7 +283,7 @@ function pkPinjamanKartu(p){
   const baris = p.jadwal.map(j => {
     const lewat = j.status !== 'LUNAS' && j.due < pkHariIni;
     return `<tr><td style="padding:2px 8px 2px 0">${j.ke}</td><td style="padding:2px 8px 2px 0">${pkTgl(j.due)}</td><td style="padding:2px 8px 2px 0">${pkRp(j.jumlah)}</td>
-      <td>${j.status === 'LUNAS' ? '✅ ' + pkTgl(j.tglBayar) : (lewat ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`;
+      <td>${j.status === 'LUNAS' ? (j.asli === 0 ? '⏸ ditunda' : '✅ ' + pkTgl(j.tglBayar)) : j.status === 'SEBAGIAN' ? '<span style="color:#b45309">🟡 sebagian (sudah ' + pkRp(j.terbayar) + ')</span>' + (lewat ? ' <span style="color:#c0392b">⚠️</span>' : '') : (lewat ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`;
   }).join('');
   const id = esc(p.id), belum = p.jadwal.filter(j => j.status !== 'LUNAS'), ik = p.infaq || {target:0, terbayar:0, sisa:0, riwayat:[]};
   const aksi = !pkBisaVerif ? '<p class="small">Pencatatan pembayaran hanya dapat dilakukan oleh Ketua dan Bendahara.</p>' : !belum.length && !ik.sisa ? '' : `
@@ -291,7 +292,7 @@ function pkPinjamanKartu(p){
       <div class="small"><b>Pilih angsuran yang dibayar</b> (boleh lebih dari satu)</div>
       ${belum.map(j => { const lewat = j.due < pkHariIni;
         return `<label style="display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px"><input type="checkbox" class="pkK-${id}" value="${j.ke}" data-nom="${j.jumlah}" onchange="pkHitung('${id}')" style="width:auto">
-        <span>Ke-${j.ke} • ${pkTgl(j.due)} • <b>${pkRp(j.jumlah)}</b>${lewat ? ' <span style="color:#c0392b">⚠️</span>' : ''}</span></label>`; }).join('')}
+        <span>Ke-${j.ke} • ${pkTgl(j.due)} • ${j.status === 'SEBAGIAN' ? 'kurang ' : ''}<b>${pkRp(j.jumlah)}</b>${lewat ? ' <span style="color:#c0392b">⚠️</span>' : ''}</span></label>`; }).join('')}
       ${ik.sisa > 0 ? `<label style="display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px"><input type="checkbox" id="pkIQ-${id}" data-sisa="${ik.sisa}" onchange="pkInfaqToggle('${id}')" style="width:auto">
         <span>Infaq • sisa <b>${pkRp(ik.sisa)}</b> <span class="small">(perjanjian ${pkRp(ik.target)}, terbayar ${pkRp(ik.terbayar)})</span></span></label>
         <div id="pkIW-${id}" style="display:none;margin:0 0 6px 26px"><label class="small" style="margin:0">Jumlah infaq dibayar (Rp) — boleh dicicil, boleh lebih, total akhir tidak boleh kurang</label>
@@ -306,12 +307,12 @@ function pkPinjamanKartu(p){
         <img id="pkBP-${id}" alt="Bukti pembayaran" ${pkBayarFoto[p.id] ? 'src="' + pkBayarFoto[p.id] + '"' : ''} style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid #b9d2f0"><br>
         <a href="#" class="small" onclick="pkBayarHapusFoto('${id}');return false" style="color:#c0392b">Hapus foto</a>
       </div>
-      <label class="small" style="margin:0">Catatan (opsional)</label>
-      <textarea id="pkN-${id}" rows="2" maxlength="300" placeholder="Mis. dibayar tunai / transfer lewat WA, infaq, dll." style="margin-bottom:8px"></textarea>
+      <label class="small" style="margin:0">Catatan <b>(wajib bila jumlah kurang dari angsuran)</b></label>
+      <textarea id="pkN-${id}" rows="2" maxlength="300" placeholder="Mis. dibayar tunai / transfer lewat WA. Bila kurang dari angsuran: tulis alasannya." style="margin-bottom:8px"></textarea>
       <button class="btn" style="background:#0f766e;padding:12px;font-size:14px" onclick="pkSimpanBayar('${id}')">💾 Simpan pembayaran</button>
     </div>`;
   const rwy = (p.pembayaran || []).slice().reverse().map(x => `<div style="border-top:1px solid #d6e6f8;padding:6px 0">
-      <b>${x.kes.length ? 'Ke-' + x.kes.join(', ') : ''}${x.infaq ? (x.kes.length ? ' + ' : '') + 'Infaq ' + pkRp(x.infaq) : ''}</b> • ${pkTgl(x.tgl)} • ${pkRp(x.jumlah)}${x.jumlah !== x.wajib ? ' <span style="color:#b45309">(tagihan ' + pkRp(x.wajib) + ')</span>' : ''}<br>
+      <b>${x.alok ? x.alok.map(a => 'Ke-' + a.ke + (a.lunas ? '' : ' (sebagian ' + pkRp(a.jml) + ')')).join(', ') : x.kes.length ? 'Ke-' + x.kes.join(', ') : ''}${x.infaq ? (x.kes.length ? ' + ' : '') + 'Infaq ' + pkRp(x.infaq) : ''}</b> • ${pkTgl(x.tgl)} • ${pkRp(x.jumlah)}${x.jumlah !== x.wajib ? ' <span style="color:#b45309">(tagihan ' + pkRp(x.wajib) + ')</span>' : ''}<br>
       <span class="small">oleh ${esc(x.oleh)}${x.catatan ? ' — “' + esc(x.catatan) + '”' : ''}</span>
       ${x.adaBukti ? ` <a href="#" class="small" onclick="pkLihatBuktiBayar('${id}',${x.i});return false">📎 Lihat bukti</a><div id="bb-${id}-${x.i}"></div>` : ''}</div>`).join('');
   return `<div class="ok" style="background:#fff;margin-bottom:12px${telat ? ';border-color:#e74c3c' : ''}" id="pj-${esc(p.id)}" data-cari="${esc((p.nama + ' ' + p.id).toLowerCase())}">
@@ -370,12 +371,17 @@ async function pkSimpanBayar(id){
   const iq = $('pkIQ-' + id), infaq = iq && iq.checked ? parseInt(onlyDigits($('pkIJ-' + id).value) || '0', 10) : 0, sisaInf = iq ? +iq.dataset.sisa : 0;
   if(iq && iq.checked && !infaq){ alert('Isi jumlah infaq yang dibayar.'); return; }
   if(!kes.length && !infaq){ alert('Pilih dulu angsuran atau infaq yang dibayar.'); return; }
-  if(kes.length && kes.length === semua && sisaInf > infaq){ alert('Ini angsuran terakhir. Infaq harus lunas bersamanya: isi infaq minimal ' + pkRp(sisaInf) + ' (boleh lebih).'); return; }
+  const nomPil = Array.from(document.querySelectorAll('.pkK-' + id + ':checked')).reduce((a, c) => a + (+c.dataset.nom || 0), 0);
+  const uangJ = parseInt(onlyDigits($('pkJ-' + id).value) || '0', 10) - infaq, sebagian = kes.length > 0 && uangJ < nomPil;
+  if(kes.length && !(uangJ > 0)){ alert('Jumlah untuk angsuran harus lebih dari Rp 0 (jumlah diterima dikurangi infaq).'); return; }
+  if(kes.length && uangJ > nomPil){ alert('Jumlah melebihi angsuran yang dipilih (' + pkRp(nomPil) + (infaq ? ' + infaq ' + pkRp(infaq) : '') + '). Pilih angsuran berikutnya juga atau kurangi jumlahnya.'); return; }
+  if(sebagian && !$('pkN-' + id).value.trim()){ alert('Jumlah kurang dari angsuran (kurang ' + pkRp(nomPil - uangJ) + '). Isi catatan alasan pembayaran sebagian.'); $('pkN-' + id).focus(); return; }
+  if(kes.length && kes.length === semua && sisaInf > infaq && !sebagian){ alert('Ini angsuran terakhir. Infaq harus lunas bersamanya: isi infaq minimal ' + pkRp(sisaInf) + ' (boleh lebih).'); return; }
   const tgl = $('pkT-' + id).value; if(!tgl){ alert('Isi tanggal pembayaran.'); return; }
   const jumlah = parseInt(onlyDigits($('pkJ-' + id).value) || '0', 10); if(!jumlah){ alert('Isi jumlah uang yang diterima.'); return; }
   const catatan = $('pkN-' + id).value.trim(), foto = pkBayarFoto[id] || '';
   if(!foto){ alert('Foto bukti pembayaran wajib dilampirkan (ambil foto atau pilih dari galeri).'); return; }
-  if(!await dialogKonfirmasi('Catat pembayaran pengajuan ' + id + (kes.length ? '\nTandai LUNAS angsuran ke-' + kes.join(', ') : '') + (infaq ? '\nInfaq: ' + pkRp(infaq) : '') + '\nTanggal: ' + pkTgl(tgl) + '\nJumlah diterima: ' + pkRp(jumlah) + '\n\nLanjutkan?')) return;
+  if(!await dialogKonfirmasi('Catat pembayaran pengajuan ' + id + (kes.length ? (sebagian ? '\nPEMBAYARAN SEBAGIAN angsuran ke-' + kes.join(', ') + ' (kurang ' + pkRp(nomPil - uangJ) + ')' : '\nTandai LUNAS angsuran ke-' + kes.join(', ')) : '') + (infaq ? '\nInfaq: ' + pkRp(infaq) : '') + '\nTanggal: ' + pkTgl(tgl) + '\nJumlah diterima: ' + pkRp(jumlah) + '\n\nLanjutkan?')) return;
   document.querySelectorAll('#pj-' + id + ' button').forEach(b => b.disabled = true);
   try{
     const r = await pkApi({a:'bayar', token:pkToken, id, kes, infaq, tgl, jumlah, catatan, foto});
