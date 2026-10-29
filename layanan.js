@@ -141,6 +141,40 @@ function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi 
   $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
   VIEWS.forEach(id => $(id).style.display = 'none');
 }
+/* ===== KUOTA / BUDGET PINJAMAN BULANAN ===== */
+let kuotaBulanPilih = {KOPERASI:'', KASBON:''}; // bulan budget yang dipilih anggota (kosong = bulan alami)
+function kuotaNamaJenis(j){ return j === 'KASBON' ? 'kasbon' : 'pinjaman koperasi'; }
+async function kuotaTanya(jenis, nominal){ // null bila gagal terhubung (server tetap memeriksa saat kirim)
+  try{ const r = await apiPost({a:'kuota_info', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, jenis, nominal:nominal || 0, bulan:kuotaBulanPilih[jenis] || ''}); return r && r.ok ? r : null; }
+  catch(e){ return null; }
+}
+// Dipanggil saat anggota membuka formulir: bila kuota bulan ini penuh, tawarkan masuk pencairan bulan berikutnya
+async function kuotaGerbang(jenis){
+  kuotaBulanPilih[jenis] = '';
+  const r = await kuotaTanya(jenis, 0); if(!r || !r.penuh) return true;
+  if(!r.tawaran){ alert('Kuota ' + kuotaNamaJenis(jenis) + ' bulan ' + r.bulan.label + ' sudah penuh, dan belum ada kuota tersedia dalam 6 bulan ke depan. Silakan hubungi pengurus koperasi.'); return false; }
+  const tambahan = jenis === 'KASBON' ? '\n\nKuota kasbon terisi kembali bila ada kasbon yang dilunasi, jadi Anda juga bisa mencoba lagi nanti.' : '';
+  const ya = await dialogKonfirmasi('Kuota ' + kuotaNamaJenis(jenis) + ' bulan ' + r.bulan.label + ' sudah penuh.\n\nApakah Anda bersedia masuk pencairan bulan ' + r.tawaran.label + '?' + tambahan);
+  if(!ya) return false;
+  kuotaBulanPilih[jenis] = r.tawaran.ym; return true;
+}
+// Dipanggil sebelum tanda tangan: pastikan nominal muat di kuota. setNominal(sisa) menurunkan nominal di formulir dan mengembalikan nominal baru (atau 0 bila tidak bisa).
+async function kuotaPastikan(jenis, nominal, setNominal){
+  for(let i = 0; i < 4; i++){
+    const r = await kuotaTanya(jenis, nominal);
+    if(!r || r.cukup) return nominal;
+    if(r.bisaTurun && setNominal){
+      const baru = setNominal(r.bulan.sisa);
+      if(baru > 0 && await dialogKonfirmasi('Sisa kuota ' + kuotaNamaJenis(jenis) + ' bulan ' + r.bulan.label + ' tinggal ' + rpf(r.bulan.sisa) + ', sedangkan Anda mengajukan ' + rpf(nominal) + '.\n\nTurunkan nominal menjadi ' + rpf(baru) + '?')){ nominal = baru; setNominal(r.bulan.sisa, true); continue; }
+    }
+    if(r.tawaran){
+      if(await dialogKonfirmasi('Kuota ' + kuotaNamaJenis(jenis) + ' bulan ' + r.bulan.label + (r.penuh ? ' sudah penuh.' : ' tinggal ' + rpf(r.bulan.sisa) + '.') + '\n\nApakah Anda bersedia masuk pencairan bulan ' + r.tawaran.label + '?')){ kuotaBulanPilih[jenis] = r.tawaran.ym; continue; }
+      return 0;
+    }
+    alert('Kuota ' + kuotaNamaJenis(jenis) + ' bulan ' + r.bulan.label + ' tidak mencukupi dan belum ada kuota tersedia dalam 6 bulan ke depan. Silakan hubungi pengurus koperasi.'); return 0;
+  }
+  return 0;
+}
 async function bukaMenu(v){
   if(v === 'vKasbon' && $('tlKasbon').classList.contains('off')) { alert('Kasbon khusus karyawan dengan masa kerja di bawah 2 tahun.'); return; }
   if(v === 'formPinjam' && $('tlKoperasi').classList.contains('off')) { alert('Pengajuan Koperasi khusus karyawan dengan masa kerja minimal 2 tahun.'); return; }
@@ -148,6 +182,7 @@ async function bukaMenu(v){
     if(!dataSaya.loaded) await muatData();
     const m = blokir(v === 'vKasbon' ? 'KASBON' : 'KOPERASI');
     if(m){ alert(m); return; }
+    if(!await kuotaGerbang(v === 'vKasbon' ? 'KASBON' : 'KOPERASI')) return;
   }
   go(VIEW2ROUTE[v]);
 }
@@ -303,6 +338,9 @@ async function kirimKasbon(){
     alasan:g('kbAlasan'), alamat:g('kbAlamat'), hp:g('kbHp'), email:g('kbEmail'), rek:onlyDigits(g('kbRek')), gajiUnder:g('kbGajiUnder'), gaji1:moneyVal('kbGaji1'),
     namaDarurat:g('kbNamaD'), hpDarurat:g('kbHpD'), hubungan:g('kbHub')};
   const mb = blokir('KASBON'); if(mb){ alert(mb); return; }
+  d.nominal = await kuotaPastikan('KASBON', d.nominal, (sisa, terapkan) => { const n = Math.floor(sisa / 50000) * 50000; if(n < 50000) return 0; if(terapkan){ $('kbNominal').value = n; kbUpdate(); } return n; });
+  if(!d.nominal) return;
+  d.bulanBudget = kuotaBulanPilih.KASBON || '';
   const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KASBON', nominal:d.nominal, tenor:1, infaq:0});
   if(!png) return; // dibatalkan
   d.ttd = png; d.setuju = true;

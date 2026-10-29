@@ -525,6 +525,7 @@ body.kartu-open{overflow:hidden}
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile hidden" id="tileLokasi" onclick="go('pengurus-lokasi')"><span class="ic">📍</span><b>Lokasi</b><span class="sub">Lokasi saat pengajuan &amp; bukti bayar</span></button>
+          <button class="mtile" onclick="go('pengurus-budget')"><span class="ic">💰</span><b>Budget Pinjaman</b><span class="sub">Kuota pencairan per bulan</span></button>
           <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
           <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Unduh Excel atau cetak PDF</span></button>
         </div>
@@ -603,6 +604,11 @@ body.kartu-open{overflow:hidden}
         <p class="small" style="margin:2px 0 8px">Halaman ini hanya dapat dilihat oleh pengurus. Lokasi tercatat atas persetujuan anggota saat mengirim; bisa juga kosong bila anggota memilih tanpa lokasi. Gunakan sebagai petunjuk, bukan bukti mutlak.</p>
         <div id="lokDaftar"></div></div>
     </div>
+    <div class="pkv hidden" id="pkvBudget">
+      <div class="card"><b>💰 Budget Pinjaman</b>
+        <p class="small" style="margin:2px 0 8px">Kuota pencairan per bulan untuk pinjaman koperasi dan kasbon. Kuota terpakai sejak pengajuan masuk. Bila penuh, anggota ditawari masuk pencairan bulan berikutnya.</p>
+        <div id="bdIsi"></div></div>
+    </div>
     <div class="pkv hidden" id="pkvLaporan">
       <div class="card"><b>📑 Laporan &amp; Ekspor</b>
         <p class="small" style="margin:2px 0 8px">Data operasional dan rekap keuangan pada rentang tanggal tertentu.</p>
@@ -665,8 +671,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi','pengurus-budget'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2,'pengurus-budget':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -862,6 +868,7 @@ function hitungAngsuran(){
 <script src="ttd.js"></script>
 <script src="layanan.js"></script>
 <script src="keringanan.js"></script>
+<script src="budget.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>

@@ -28,10 +28,11 @@ function pengurusRender(name){
     else if(name === 'pengurus-laporan') lpInit();
     else if(name === 'pengurus-info') infoMuat();
     else if(name === 'pengurus-lokasi') lokMuat();
+    else if(name === 'pengurus-budget') bdMuat();
     else pkMuat();
   }
 }
-const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi'};
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi', 'pengurus-budget':'pkvBudget'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');

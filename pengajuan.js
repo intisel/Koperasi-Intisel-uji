@@ -75,6 +75,9 @@ async function kirimPengajuan(){
     namaDarurat:g('namaDarurat'), hpDarurat:g('hpDarurat'), hubungan:g('hubungan')
   };
   if(!$('setuju').checked){ alert('Centang pernyataan persetujuan dulu'); return; }
+  const nomKuota = await kuotaPastikan('KOPERASI', parseInt(d.nominal, 10), (sisa, terapkan) => { let n = Math.floor(sisa / 100000) * 100000; if(n < 500000) return 0; if(terapkan){ $('nomRange').value = n; updateNominal(); } return n; });
+  if(!nomKuota) return;
+  d.nominal = String(nomKuota); d.bulanBudget = kuotaBulanPilih.KOPERASI || '';
   const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KOPERASI', nominal:parseInt(d.nominal, 10), tenor:parseInt(d.tenor, 10), infaq:d.infaq});
   if(!png) return; // dibatalkan
   d.ttd = png; d.setuju = true;
