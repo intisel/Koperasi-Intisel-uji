@@ -134,7 +134,7 @@ body.kartu-open{overflow:hidden}
 
 <div class="topfix">
 <div class="header">
-  <img src="logo-intisel.png" alt="Logo Koperasi Intisel">
+  <img src="logo-intisel.png" alt="Logo Koperasi Intisel" role="button" tabindex="0" title="Ke menu utama" style="cursor:pointer" onclick="keMenuUtama()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();keMenuUtama()}">
   <div class="header-text">
     <b class="title-justify">KOPERASI INTISEL LAMPUNG</b>
     <span class="subtitle-justify">
@@ -625,6 +625,12 @@ function renderRoute(name,fromPop){
 }
 function go(name){ history.pushState({r:name},'','#'+name); renderRoute(name); }          // layar baru (tombol back kembali ke layar ini)
 function goReplace(name){ history.replaceState({r:name},'','#'+name); renderRoute(name); } // ganti layar tanpa menambah riwayat
+function keMenuUtama(){ // logo di header: ke menu utama sesuai peran yang sedang login, jika tidak ada ke halaman depan
+  const grp=currentRoute.split('-')[0];
+  const t=(grp==='anggota' && typeof anggotaAktif!=='undefined' && anggotaAktif)?'anggota-menu':(grp==='pengurus' && typeof pkToken!=='undefined' && pkToken)?'pengurus-dashboard':'landing';
+  if(t===currentRoute){ window.scrollTo(0,0); return; }
+  goReplace(t);
+}
 function navigateAnggota(){ sesiBuka(); }
 function navigatePengurus(){ pengurusBuka(); }
 window.addEventListener('popstate',e=>{
