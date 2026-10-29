@@ -74,14 +74,14 @@ async function fotoMuatAnggota(){
   fotoCache.anggota = ''; try{ fotoCache.anggota = localStorage.getItem('fa_' + a.nik) || ''; }catch(e){}
   fotoTerapkan($('avMember'), fotoCache.anggota, a.nama);
   try{
-    const r = await fotoApi({a:'foto_a_ambil', nik:a.nik, lahir:a.lahir});
+    const r = await fotoApi({a:'foto_a_ambil', nik:a.nik, atoken:a.atoken});
     if(r.ok && anggotaAktif === a){ fotoCache.anggota = r.foto || ''; fotoTerapkan($('avMember'), fotoCache.anggota, a.nama); try{ localStorage.setItem('fa_' + a.nik, fotoCache.anggota); }catch(e){} }
   }catch(e){}
 }
 function fotoUbahAnggota(){
   const a = anggotaAktif; if(!a) return;
   fotoEditor({judul:'Foto Profil Anda', nama:a.nama, awal:fotoCache.anggota,
-    simpan: f => fotoApi({a:'foto_a_simpan', nik:a.nik, lahir:a.lahir, foto:f}),
+    simpan: f => fotoApi({a:'foto_a_simpan', nik:a.nik, atoken:a.atoken, foto:f}),
     selesai: f => { fotoCache.anggota = f; fotoTerapkan($('avMember'), f, a.nama); try{ localStorage.setItem('fa_' + a.nik, f); }catch(e){} }});
 }
 
@@ -120,5 +120,5 @@ async function fotoMuatKontak(){
     if(f){ fotoTerapkan(el, f, el.dataset.nama); el.onclick = () => fotoLihat(f, el.dataset.nama); }
   });
   if(fotoCache.kontak){ pasang(); return; }
-  try{ const r = await fotoApi({a:'foto_kontak', nik:a.nik, lahir:a.lahir}); if(r.ok){ fotoCache.kontak = r.foto; pasang(); } }catch(e){}
+  try{ const r = await fotoApi({a:'foto_kontak', nik:a.nik, atoken:a.atoken}); if(r.ok){ fotoCache.kontak = r.foto; pasang(); } }catch(e){}
 }

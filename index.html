@@ -226,17 +226,31 @@ body.kartu-open{overflow:hidden}
     <div id="loginForm">
     <div style="font-weight:800;font-size:17px;margin:2px 0 6px">Masuk Anggota</div>
     <div id="sesiLanjutWrap" class="ok" style="display:none;margin-bottom:10px">Anda masih masuk sebagai <b id="sesiLanjutNama"></b>.<button class="btn" style="margin-top:8px;padding:12px;font-size:14px" onclick="sesiLanjut()">▶ Lanjutkan ke Menu</button></div>
-    <p class="small">Masukkan NIK dan tanggal lahir, sistem otomatis cek Tgl Masuk &amp; Masa Kerja dari database anggota.</p>
-    <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')cekNIK()">
+    <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="NIK, contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')$('pinInput').focus()">
     <div id="nikLupaWrap" class="small" style="display:none;margin-top:4px">NIK diingat di perangkat ini. <span style="text-decoration:underline;cursor:pointer;color:#134e8a" onclick="nikLupakan()">Bukan Anda? Hapus</span></div>
-    <label style="margin-top:10px;display:block">Tanggal Lahir</label>
-    <div style="display:flex;gap:6px">
-      <select id="lhTgl" onchange="resetNik()" style="flex:1"></select>
-      <select id="lhBln" onchange="resetNik()" style="flex:2"></select>
-      <select id="lhThn" onchange="resetNik()" style="flex:2"></select>
+    <div id="lgPin">
+      <label style="margin-top:10px;display:block">PIN (6 angka)</label>
+      <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" placeholder="••••••" style="letter-spacing:8px;text-align:center;font-size:22px" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')loginPin()">
+      <button class="btn" id="btnCekNik" onclick="loginPin()" style="margin-top:8px">🔍 Masuk</button>
+      <p class="small" style="text-align:center;margin:12px 0 0"><span style="text-decoration:underline;cursor:pointer;color:#134e8a;font-weight:700" onclick="lgMode('otp')">Lupa PIN / belum punya PIN? Masuk dengan kode OTP email</span></p>
     </div>
-    <p class="small">Tanggal lahir dipakai untuk memastikan Anda benar-benar anggota yang bersangkutan.</p>
-    <button class="btn" id="btnCekNik" onclick="cekNIK()" style="margin-top:8px">🔍 Masuk</button>
+    <div id="lgOtp" style="display:none">
+      <p class="small" style="margin-top:10px">Kode 6 angka akan dikirim ke <b>email yang terdaftar</b> di koperasi. Pertama kali masuk? Setelah kode benar, Anda akan membuat PIN.</p>
+      <button class="btn" id="btnOtpMinta" onclick="otpMintaAng()">✉️ Kirim Kode OTP</button>
+      <div id="otpWrap" style="display:none;margin-top:12px">
+        <label>Kode OTP dari email</label>
+        <input id="otpInput" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code" style="letter-spacing:8px;text-align:center;font-size:22px" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')otpVerAng()">
+        <button class="btn" id="btnOtpVer" onclick="otpVerAng()" style="margin-top:8px">✔ Verifikasi</button>
+      </div>
+      <p class="small" style="text-align:center;margin:12px 0 0"><span style="text-decoration:underline;cursor:pointer;color:#134e8a;font-weight:700" onclick="lgMode('pin')">← Kembali masuk dengan PIN</span></p>
+    </div>
+    <div id="lgSetPin" style="display:none">
+      <p style="margin:10px 0 4px"><b>Buat PIN baru</b></p>
+      <p class="small">PIN 6 angka untuk masuk berikutnya. Jangan memakai tanggal lahir, 123456, atau angka kembar, dan jangan beri tahu siapa pun.</p>
+      <input id="pinBaru1" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="PIN baru" style="letter-spacing:8px;text-align:center;font-size:22px;margin-top:6px" oninput="this.value=this.value.replace(/\D/g,'')">
+      <input id="pinBaru2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="Ulangi PIN baru" style="letter-spacing:8px;text-align:center;font-size:22px;margin-top:6px" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')pinAturAng()">
+      <button class="btn" id="btnPinSimpan" onclick="pinAturAng()" style="margin-top:8px">💾 Simpan PIN &amp; Masuk</button>
+    </div>
     <div id="hasilCek" style="margin-top:8px"></div>
     </div>
   </div>
@@ -253,6 +267,14 @@ body.kartu-open{overflow:hidden}
       <button class="mtile wide" onclick="bukaMenu('vBayar')"><span class="ic">🧾</span><b>Laporan Pembayaran Angsuran</b><span class="sub" id="tlBayarSub">Upload foto bukti transaksi</span></button>
       <button class="mtile wide" onclick="bukaMenu('vKontak')"><span class="ic">📞</span><b>Kontak &amp; Bantuan</b><span class="sub">Hubungi pengurus lewat WhatsApp</span></button>
     </div>
+    <details style="margin-top:14px" ontoggle="if(this.open)$('pinLama').focus()"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">🔑 Ganti PIN</summary>
+      <div style="margin-top:8px">
+        <input id="pinLama" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="PIN lama" style="letter-spacing:6px;text-align:center" oninput="this.value=this.value.replace(/\D/g,'')">
+        <input id="pinGanti1" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="PIN baru (6 angka)" style="letter-spacing:6px;text-align:center;margin-top:6px" oninput="this.value=this.value.replace(/\D/g,'')">
+        <input id="pinGanti2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="Ulangi PIN baru" style="letter-spacing:6px;text-align:center;margin-top:6px" oninput="this.value=this.value.replace(/\D/g,'')">
+        <button class="btn" id="btnPinGanti" onclick="pinGantiAng()" style="margin-top:8px;padding:12px;font-size:14px">Simpan PIN Baru</button>
+      </div>
+    </details>
   </div>
 
   <!-- KONTAK & BANTUAN -->
@@ -670,25 +692,24 @@ let cekBusy=false;
 function resetNik(){
   let el=document.getElementById('nikInput'); el.value=el.value.replace(/\D/g,'');
   anggotaAktif=null;
-  document.getElementById('hasilCek').innerHTML='';
+  document.getElementById('hasilCek').innerHTML=''; if(typeof lgReset==='function') lgReset();
   document.querySelectorAll('.view,#menuCard').forEach(v=>v.style.display='none');
 }
-async function cekNIK(){
+async function masukDenganToken(v,atoken){ // setelah PIN / OTP benar: ambil data anggota & buka menu
  if(cekBusy) return;
- let v=document.getElementById('nikInput').value.replace(/\D/g,'');
  let hasil=document.getElementById('hasilCek'), form=document.getElementById('formPinjam'), btnCek=document.getElementById('btnCekNik');
- let lahir=lahirVal();
- if(v.length<4||!lahir){hasil.innerHTML='<div class="err">Isi NIK dan tanggal lahir dengan lengkap</div>';form.style.display='none';return}
  cekBusy=true; btnCek.disabled=true; btnCek.innerText='Memeriksa...';
  try{
-   let r=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({a:'cek',nik:v,lahir:lahir})})).json();
+   let r=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({a:'cek',nik:v,atoken:atoken})})).json();
    if(!r.ok){
-     anggotaAktif=null; form.style.display='none'; sesiHapus();
-     hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'NIK tidak ditemukan')+'</div>';
+     anggotaAktif=null; form.style.display='none';
+     if(r.wajibPin){ lgNik=v; lgToken=atoken; lgMode('setpin'); hasil.innerHTML=''; return; }
+     sesiHapus();
+     hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'Silakan masuk lagi')+'</div>';
      return;
    }
-   anggotaAktif={nik:v,lahir:lahir,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
-   sesiSimpan(v,lahir,r.nama); // sesi bertahan saat refresh + NIK diingat
+   anggotaAktif={nik:v,atoken:atoken,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
+   sesiSimpan(v,atoken,r.nama); // sesi bertahan saat refresh + NIK diingat
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 

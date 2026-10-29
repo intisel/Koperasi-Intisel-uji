@@ -50,7 +50,7 @@ function inboxBadge(){
 async function inboxMuat(){
   const pk = inboxPk(), a = anggotaAktif; if(!pk && !a) return;
   const kunci = inboxKunci();
-  try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, lahir: a.lahir}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); } }catch(e){}
+  try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, atoken: a.atoken}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); } }catch(e){}
 }
 async function inboxBuka(){
   $('inboxModal').classList.remove('hidden'); modalPush(inboxTutupUI);

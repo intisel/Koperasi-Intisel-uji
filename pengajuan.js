@@ -3,20 +3,6 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwuBNxy2l1jlKwTyANiqEr9
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ===== PILIHAN TANGGAL LAHIR ===== */
-function initLahir(){
-  const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const opt=(sel,ph,items)=>{ sel.innerHTML='<option value="">'+ph+'</option>'+items.map(([v,t])=>`<option value="${v}">${t}</option>`).join(''); };
-  opt($('lhTgl'),'Tgl',Array.from({length:31},(_,i)=>[i+1,i+1]));
-  opt($('lhBln'),'Bulan',BLN.map((b,i)=>[i+1,b]));
-  const y=new Date().getFullYear();
-  opt($('lhThn'),'Tahun',Array.from({length:54},(_,i)=>[y-17-i,y-17-i]));
-}
-function lahirVal(){
-  const d=$('lhTgl').value,m=$('lhBln').value,y=$('lhThn').value;
-  if(!d||!m||!y) return '';
-  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-}
 function togglePernah(){ $('tglLunasWrap').style.display = $('pernahPinjam').value === 'Ya' ? 'block' : 'none'; }
 
 /* ===== FORMAT & VALIDASI INPUT ===== */
@@ -62,7 +48,7 @@ function initFmt(){
     el.addEventListener('blur', () => { el.dataset.touched = '1'; showErr(el, validate(el)); });
   });
 }
-document.addEventListener('DOMContentLoaded', () => { initFmt(); initLahir(); });
+document.addEventListener('DOMContentLoaded', () => { initFmt(); });
 
 function validasiForm(box){ // validasi semua kolom berformat di dalam satu formulir
   let first = null;
@@ -81,7 +67,7 @@ async function kirimPengajuan(){
   if(!validasiForm($('formPinjam'))) return;
   const g = id => $(id).value.trim();
   const d = {
-    a:'ajukan', jenis:'KOPERASI', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, nominal:g('nomRange'), tenor:g('tenor'),
+    a:'ajukan', jenis:'KOPERASI', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, nominal:g('nomRange'), tenor:g('tenor'),
     alasan:g('tujuan'), alamat:g('alamat'), hp:g('hp'), email:g('email'), rek:onlyDigits(g('rek')), gajiUnder:g('gajiUnder'),
     infaq:moneyVal('infaq'), pernahPinjam:g('pernahPinjam'), tglLunas:g('tglLunas'),
     jmlDitahan:g('jmlDitahan'), gajiDitahan:g('gajiDitahan')||(g('jmlDitahan')==='0'?'Tidak ada':''),

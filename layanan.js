@@ -10,7 +10,16 @@ const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${es
 const rpf = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const tglf = s => s ? String(s).split('-').reverse().join('/') : '-';
 const hariIniStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
-const apiPost = async body => (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
+const apiPost = async body => { // sesi anggota yang ditolak server (habis / tidak sah) -> otomatis ke layar login
+  const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
+  if(r && r.expired && body.atoken && typeof anggotaAktif !== 'undefined' && anggotaAktif) sesiServerHabis();
+  return r;
+};
+let sesiHabisTampil = false;
+function sesiServerHabis(){
+  if(sesiHabisTampil) return; sesiHabisTampil = true;
+  sesiSpanduk(''); alert('Sesi berakhir. Silakan masuk lagi.'); keluarAnggota(); setTimeout(() => { sesiHabisTampil = false; }, 1500);
+}
 const BADGE_ST = {
   LUNAS:['LUNAS','#d4f5dd','#1b7a3a','#8fd5a6'], BERJALAN:['BERJALAN','#ffdd00','#0d3b6e','#e6c700'], TERLAMBAT:['TERLAMBAT','#fde0e0','#c0392b','#f1a9a9'],
   DITOLAK:['DITOLAK','#fde0e0','#c0392b','#f1a9a9'], REVIEW_PENGURUS:['DIREVIEW','#dbeafe','#134e8a','#a9c7ee'], MENUNGGU_PIMPINAN:['MENUNGGU PIMPINAN','#dbeafe','#134e8a','#a9c7ee'],
@@ -55,30 +64,28 @@ function anggotaRender(name){ // dipanggil router
   muatData().then(terapkanBlokir);
 }
 /* ===== SESI LOGIN ANGGOTA (bertahan saat refresh) + INGAT NIK ===== */
-// Server hanya mengenal NIK + tgl lahir, jadi keduanya disimpan di perangkat (localStorage) maksimal SESI_JAM jam sejak login (masuk otomatis TIDAK memperpanjang; lewat batas = wajib login ulang).
-// Sesi HANYA dihapus saat anggota menekan Keluar (atau kedaluwarsa / ditolak server). Tombol back HP tidak menghapus sesi. NIK (tanpa tgl lahir) diingat terus untuk memudahkan masuk kembali.
+// Sesi dibuat & dipaksa kedaluwarsa di SERVER (token 'atoken', 1 jam). Di perangkat (localStorage) hanya NIK + token + waktu login yang disimpan, maksimal SESI_JAM jam (masuk otomatis TIDAK memperpanjang; lewat batas = wajib login ulang). Login memakai PIN 6 angka atau kode OTP email.
+// Sesi HANYA dihapus saat anggota menekan Keluar (atau kedaluwarsa / ditolak server). Tombol back HP tidak menghapus sesi. NIK (tanpa token) diingat terus untuk memudahkan masuk kembali.
 const SESI_KEY = 'ang_sesi', NIK_KEY = 'ang_nik', SESI_JAM = 1;
 let sesiTetap = false, sesiLoginT = 0; // sesiTetap: true saat masuk otomatis (waktu login asli dipertahankan); sesiLoginT: waktu login sesi yang sedang berjalan
-function sesiSimpan(nik, lahir, nama){ let t = Date.now(); if(sesiTetap){ const lama = sesiBaca(); if(lama && lama.nik === nik) t = lama.t; } sesiLoginT = t; try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, lahir, nama: nama || '', t})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
+function sesiSimpan(nik, atoken, nama){ let t = Date.now(); if(sesiTetap){ const lama = sesiBaca(); if(lama && lama.nik === nik) t = lama.t; } sesiLoginT = t; try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, atoken, nama: nama || '', t})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
 function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
 function sesiBaca(){
   try{
     const s = JSON.parse(localStorage.getItem(SESI_KEY) || 'null');
     if(!s) return null;
-    if(!/^\d{4,12}$/.test(String(s.nik)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.lahir)) || !(Date.now() - s.t < SESI_JAM * 36e5)){ sesiHapus(); return null; }
+    if(!/^\d{4,12}$/.test(String(s.nik)) || !/^[0-9a-f-]{40,80}$/.test(String(s.atoken)) || !(Date.now() - s.t < SESI_JAM * 36e5)){ sesiHapus(); return null; }
     return s;
   }catch(e){ return null; }
 }
 function nikIngat(){ try{ return localStorage.getItem(NIK_KEY) || ''; }catch(e){ return ''; } }
 function nikLupakan(){ try{ localStorage.removeItem(NIK_KEY); }catch(e){} $('nikInput').value = ''; $('nikLupaWrap').style.display = 'none'; }
-async function sesiMasuk(s){ // isi form dari sesi tersimpan lalu masuk otomatis
+async function sesiMasuk(s){ // masuk otomatis dari sesi tersimpan (token masih divalidasi server)
   try{
-    const [y, m, d] = s.lahir.split('-').map(Number);
-    initLahir(); // pilihan tgl lahir bisa belum terisi bila refresh terjadi sangat cepat
     sesiTetap = true;
-    $('nikInput').value = s.nik; $('lhThn').value = y; $('lhBln').value = m; $('lhTgl').value = d;
-    await cekNIK();
-  } catch(e){ /* cekNIK menampilkan pesan sendiri */ } finally { sesiTetap = false; }
+    $('nikInput').value = s.nik;
+    await masukDenganToken(s.nik, s.atoken);
+  } catch(e){ /* masukDenganToken menampilkan pesan sendiri */ } finally { sesiTetap = false; }
 }
 function anggotaSesiHapus(){ // dipanggil saat berpindah ke Pengurus: sesi anggota (memori + tersimpan) dihapus
   sesiHapus(); if(anggotaAktif) resetAnggota(); anggotaAktif = null; sesiLoginT = 0;
@@ -129,7 +136,7 @@ function sesiLanjut(){ const s = sesiBaca(); if(s) sesiMasuk(s); else { $('sesiL
 function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi tersimpan TIDAK dihapus; itu hanya oleh tombol Keluar)
   anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';
   const ss = sesiBaca(); $('sesiLanjutWrap').style.display = ss ? 'block' : 'none'; if(ss) $('sesiLanjutNama').innerText = ss.nama || ('NIK ' + ss.nik);
-  $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; ['lhTgl', 'lhBln', 'lhThn'].forEach(i => $(i).value = '');
+  $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; lgReset(); $('pinInput').value = '';
   $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
   VIEWS.forEach(id => $(id).style.display = 'none');
 }
@@ -152,7 +159,8 @@ function masukMenu(){
   profilBarIsi(a); inboxMuat();
   goReplace('anggota-menu'); // ganti layar login di riwayat: tombol back dari menu langsung ke halaman depan
 }
-function keluarAnggota(){ // tombol Keluar: hapus sesi tersimpan, lalu kembali ke halaman depan
+function keluarAnggota(){ // tombol Keluar: cabut sesi di server, hapus sesi tersimpan, lalu kembali ke halaman depan
+  try{ const t = anggotaAktif && anggotaAktif.atoken; if(t) fetch(API_URL, {method:'POST', body:JSON.stringify({a:'keluar_a', atoken:t})}).catch(() => {}); }catch(e){}
   sesiHapus();
   const lv = (typeof ROUTE_LEVEL !== 'undefined' && ROUTE_LEVEL[currentRoute]) || 0;
   if(lv > 0) history.go(-lv); else renderRoute('anggota');
@@ -183,7 +191,7 @@ function terapkanBlokir(){
 async function muatData(){
   if(!anggotaAktif) return;
   try{
-    const r = await apiPost({a:'status', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir});
+    const r = await apiPost({a:'status', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken});
     if(!r.ok){ $('apBox').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     dataSaya = {list: r.list || [], laporan: r.laporan || [], bolehKoperasi: r.bolehKoperasi || '', loaded: true};
   }catch(e){ $('apBox').innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; return; }
@@ -222,7 +230,7 @@ function renderApproval(){
 async function buktiCairLihat(id, boxId){ // anggota melihat bukti transfer pencairan miliknya sendiri
   const box = $(boxId || 'bcA-' + id); if(!box) return; box.innerHTML = '<span class="small">Memuat foto...</span>';
   try{
-    const r = await apiPost({a:'bukti_cair_a', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, id});
+    const r = await apiPost({a:'bukti_cair_a', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id});
     if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     const img = document.createElement('img'); img.src = r.data; img.alt = 'Bukti transfer pencairan';
     img.style.cssText = 'max-width:100%;border-radius:10px;margin-top:8px;border:1px solid #b9d2f0';
@@ -267,7 +275,7 @@ async function kirimKasbon(){
   const g = id => $(id).value.trim();
   if(!g('kbAlasan') || !g('kbAlamat') || !g('kbGajiUnder') || !g('kbNamaD') || !g('kbHub')){ alert('Semua kolom wajib diisi.'); return; }
   if(!$('kbSetuju').checked){ alert('Centang pernyataan persetujuan dulu'); return; }
-  const d = {a:'ajukan', jenis:'KASBON', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, nominal:parseInt($('kbNominal').value, 10), tenor:1,
+  const d = {a:'ajukan', jenis:'KASBON', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, nominal:parseInt($('kbNominal').value, 10), tenor:1,
     alasan:g('kbAlasan'), alamat:g('kbAlamat'), hp:g('kbHp'), email:g('kbEmail'), rek:onlyDigits(g('kbRek')), gajiUnder:g('kbGajiUnder'), gaji1:moneyVal('kbGaji1'),
     namaDarurat:g('kbNamaD'), hpDarurat:g('kbHpD'), hubungan:g('kbHub')};
   const mb = blokir('KASBON'); if(mb){ alert(mb); return; }
@@ -356,7 +364,7 @@ async function kirimLaporan(){
   const lok = await lokasiMinta();
   const btn = $('btnBayar'); btn.disabled = true; btn.innerText = 'Mengunggah...';
   try{
-    const r = await apiPost({a:'lapor', nik:anggotaAktif.nik, lahir:anggotaAktif.lahir, id:p.id, ke:keP, infaq:infaqP,
+    const r = await apiPost({a:'lapor', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id:p.id, ke:keP, infaq:infaqP,
       tgl:$('byTgl').value, jumlah:moneyVal('byJumlah'), catatan:$('byCatatan').value.trim(), foto:fotoData, lok});
     if(r.ok){ alert('✅ Laporan terkirim. Menunggu verifikasi pengurus.'); hapusFoto(); $('byCatatan').value = ''; $('byJumlah').value = ''; $('byInfaq').value = ''; await muatData(); }
     else alert('❌ ' + r.msg);
@@ -499,3 +507,88 @@ async function kartuBagikan(){
 function modalPush(tutupUI){ history.pushState({r: currentRoute}, '', '#' + currentRoute); window.modalRiwayat = tutupUI; } // popup ikut riwayat: tombol back HP = tutup popup
 function kartuTutupUI(){ const m = document.getElementById('kartuModal'); if(m) m.classList.add('hidden'); document.body.classList.remove('kartu-open'); }
 function kartuTutup(){ if(window.modalRiwayat) history.back(); else kartuTutupUI(); }
+
+
+/* ===== LOGIN ANGGOTA: PIN / OTP EMAIL / BUAT PIN ===== */
+let lgNik = '', lgToken = '';
+function lgMode(m){ // 'pin' | 'otp' | 'setpin'
+  ['pin', 'otp', 'setpin'].forEach(k => { const e = $({pin: 'lgPin', otp: 'lgOtp', setpin: 'lgSetPin'}[k]); if(e) e.style.display = k === m ? 'block' : 'none'; });
+  if(m === 'setpin') { $('nikInput').readOnly = true; setTimeout(() => $('pinBaru1').focus(), 50); } else $('nikInput').readOnly = false;
+  if(m !== 'setpin'){ $('pinBaru1').value = ''; $('pinBaru2').value = ''; }
+  $('hasilCek').innerHTML = '';
+}
+function lgReset(){ // NIK diubah / layar login dibuka ulang: kembali ke masuk dengan PIN
+  lgNik = ''; lgToken = ''; if($('otpWrap')) $('otpWrap').style.display = 'none'; if($('otpInput')) $('otpInput').value = ''; if($('lgPin')) lgMode('pin');
+}
+function lgPesan(t, ok){ $('hasilCek').innerHTML = t ? `<div class="${ok ? 'ok' : 'err'}">${ok ? '' : '❌ '}${esc(t)}</div>` : ''; }
+const lgNikVal = () => $('nikInput').value.replace(/\D/g, '');
+async function loginPin(){
+  if(cekBusy) return;
+  const nik = lgNikVal(), pin = $('pinInput').value.replace(/\D/g, '');
+  if(nik.length < 4 || pin.length !== 6){ lgPesan('Isi NIK dan PIN 6 angka'); return; }
+  cekBusy = true; const btn = $('btnCekNik'); btn.disabled = true; btn.innerText = 'Memeriksa...';
+  let token = '';
+  try{
+    const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'pin_login', nik, pin})}).then(x => x.json());
+    if(!r.ok){ lgPesan(r.msg || 'NIK atau PIN tidak sesuai'); $('pinInput').value = ''; if(r.perluOtp) lgMode('otp'), lgPesan(r.msg); return; }
+    $('pinInput').value = ''; nikSimpanIngat(nik);
+    if(r.wajibPin){ lgNik = nik; lgToken = r.atoken; lgMode('setpin'); lgPesan('PIN Anda adalah PIN sementara dari pengurus. Buat PIN baru untuk melanjutkan.', true); return; }
+    token = r.atoken;
+  }catch(e){ lgPesan('Gagal terhubung ke server. Periksa internet lalu coba lagi.'); }
+  finally{ cekBusy = false; btn.disabled = false; btn.innerText = '🔍 Masuk'; }
+  if(token) await masukDenganToken(nik, token);
+}
+function nikSimpanIngat(nik){ try{ localStorage.setItem(NIK_KEY, nik); }catch(e){} }
+async function otpMintaAng(){
+  const nik = lgNikVal(); if(nik.length < 4){ lgPesan('Isi NIK dulu di atas'); return; }
+  const btn = $('btnOtpMinta'); btn.disabled = true; btn.innerText = 'Mengirim...';
+  try{
+    const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'otp_a_req', nik})}).then(x => x.json());
+    lgPesan(r.msg || (r.ok ? 'Kode dikirim.' : 'Gagal mengirim kode.'), r.ok);
+    if(r.ok){ $('otpWrap').style.display = 'block'; $('otpInput').value = ''; $('otpInput').focus(); }
+  }catch(e){ lgPesan('Gagal terhubung ke server. Coba lagi.'); }
+  setTimeout(() => { btn.disabled = false; btn.innerText = '✉️ Kirim Ulang Kode'; }, 20000);
+}
+async function otpVerAng(){
+  if(cekBusy) return;
+  const nik = lgNikVal(), kode = $('otpInput').value.replace(/\D/g, '');
+  if(kode.length !== 6){ lgPesan('Isi kode 6 angka dari email'); return; }
+  cekBusy = true; const btn = $('btnOtpVer'); btn.disabled = true; btn.innerText = 'Memeriksa...';
+  let token = '';
+  try{
+    const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'otp_a_ver', nik, kode, reset: true})}).then(x => x.json());
+    if(!r.ok){ lgPesan(r.msg || 'Kode salah atau kedaluwarsa'); return; }
+    $('otpInput').value = ''; nikSimpanIngat(nik);
+    lgNik = nik; lgToken = r.atoken; lgMode('setpin'); lgPesan('Email terverifikasi. Buat PIN baru Anda.', true);
+  }catch(e){ lgPesan('Gagal terhubung ke server. Coba lagi.'); }
+  finally{ cekBusy = false; btn.disabled = false; btn.innerText = '✔ Verifikasi'; }
+}
+async function pinAturAng(){
+  if(cekBusy) return;
+  const p1 = $('pinBaru1').value, p2 = $('pinBaru2').value;
+  if(!/^\d{6}$/.test(p1)){ lgPesan('PIN harus 6 angka'); return; }
+  if(p1 !== p2){ lgPesan('Kedua PIN tidak sama'); return; }
+  cekBusy = true; const btn = $('btnPinSimpan'); btn.disabled = true; btn.innerText = 'Menyimpan...';
+  let ok = false;
+  try{
+    const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'pin_atur', nik: lgNik, atoken: lgToken, pinBaru: p1})}).then(x => x.json());
+    if(r.expired){ lgPesan('Waktu habis. Silakan ulangi dari awal.'); lgMode('pin'); return; }
+    if(!r.ok){ lgPesan(r.msg || 'Gagal menyimpan PIN'); return; }
+    ok = true;
+  }catch(e){ lgPesan('Gagal terhubung ke server. Coba lagi.'); }
+  finally{ cekBusy = false; btn.disabled = false; btn.innerText = '💾 Simpan PIN & Masuk'; }
+  if(ok){ const n = lgNik, t = lgToken; $('pinBaru1').value = ''; $('pinBaru2').value = ''; await masukDenganToken(n, t); }
+}
+async function pinGantiAng(){ // anggota yang sudah masuk: ganti PIN (butuh PIN lama)
+  if(!anggotaAktif) return;
+  const lama = $('pinLama').value, p1 = $('pinGanti1').value, p2 = $('pinGanti2').value;
+  if(!/^\d{6}$/.test(lama) || !/^\d{6}$/.test(p1)){ alert('PIN lama dan PIN baru harus 6 angka.'); return; }
+  if(p1 !== p2){ alert('Kedua PIN baru tidak sama.'); return; }
+  const btn = $('btnPinGanti'); btn.disabled = true;
+  try{
+    const r = await apiPost({a:'pin_atur', nik: anggotaAktif.nik, atoken: anggotaAktif.atoken, pinLama: lama, pinBaru: p1});
+    alert(r.ok ? '✅ PIN berhasil diganti.' : '❌ ' + (r.msg || 'Gagal mengganti PIN'));
+    if(r.ok){ $('pinLama').value = ''; $('pinGanti1').value = ''; $('pinGanti2').value = ''; }
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+  btn.disabled = false;
+}

@@ -25,7 +25,7 @@ function infoRender(){
 // Daftar terlambat: HANYA untuk yang sudah login (anggota atau pengurus). Tidak pernah dimuat di halaman depan.
 function infoKredensial(){
   if(typeof pkToken !== 'undefined' && pkToken && currentPage === 'pengurus') return {token:pkToken};
-  if(typeof anggotaAktif !== 'undefined' && anggotaAktif && currentPage === 'anggota') return {nik:anggotaAktif.nik, lahir:anggotaAktif.lahir};
+  if(typeof anggotaAktif !== 'undefined' && anggotaAktif && currentPage === 'anggota') return {nik:anggotaAktif.nik, atoken:anggotaAktif.atoken};
   return null;
 }
 async function infoMuatTerlambat(){
