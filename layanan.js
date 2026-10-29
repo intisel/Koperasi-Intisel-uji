@@ -599,7 +599,14 @@ function lgMode(m){ // 'pin' | 'otp' | 'setpin'
 function lgReset(){ // NIK diubah / layar login dibuka ulang: kembali ke masuk dengan PIN
   lgNik = ''; lgToken = ''; if($('otpWrap')) $('otpWrap').style.display = 'none'; if($('otpInput')) $('otpInput').value = ''; if($('lgPin')) lgMode('pin');
 }
-function lgPesan(t, ok){ $('hasilCek').innerHTML = t ? `<div class="${ok ? 'ok' : 'err'}">${ok ? '' : '❌ '}${esc(t)}</div>` : ''; }
+let lgPopT = 0;
+function lgPesan(t, ok){ // peringatan login tampil sebagai popup di atas layar (tidak tertutup keypad / keterbatasan layar HP)
+  $('hasilCek').innerHTML = ''; let el = $('lgPop'); clearTimeout(lgPopT);
+  if(!t){ if(el) el.style.display = 'none'; return; }
+  if(!el){ el = document.createElement('div'); el.id = 'lgPop'; el.setAttribute('role', 'alert'); el.onclick = () => { el.style.display = 'none'; }; document.body.appendChild(el); }
+  el.className = ok ? 'lgpop ok' : 'lgpop err'; el.innerHTML = `<b>${ok ? '✅' : '⚠️'}</b><span>${esc(t)}</span><i>✕</i>`; el.style.display = 'flex';
+  lgPopT = setTimeout(() => { el.style.display = 'none'; }, ok ? 6000 : 5000);
+}
 const lgNikVal = () => $('nikInput').value.replace(/\D/g, '');
 async function loginPin(){
   if(cekBusy) return;
