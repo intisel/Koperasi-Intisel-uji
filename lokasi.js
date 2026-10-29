@@ -1,4 +1,4 @@
-/* LOKASI: dimintai saat anggota mengirim pengajuan / bukti bayar (opsional, atas persetujuan anggota). Hanya Ketua yang dapat melihatnya. */
+/* LOKASI: dimintai saat anggota mengirim pengajuan / bukti bayar (opsional, atas persetujuan anggota). Hanya pengurus yang dapat melihatnya. */
 // Mengembalikan {lat,lng,acc} atau {err:'ditolak'|'tidak_tersedia'}. Tidak pernah menggagalkan pengiriman.
 // Anggota diberi tahu lewat catatan di bawah tombol kirim; izin lokasi tetap diminta oleh Android/Chrome.
 function lokasiMinta(){
@@ -18,7 +18,7 @@ function lokasiMinta(){
 ['btnKb', 'btnKirim', 'btnBayar'].forEach(id => {
   const b = document.getElementById(id); if(!b || !b.parentNode) return;
   const n = document.createElement('p'); n.className = 'small'; n.style.cssText = 'margin:8px 0 6px;text-align:center';
-  n.textContent = '📍 Saat Anda menekan kirim, lokasi Anda dicatat satu kali untuk verifikasi oleh Ketua koperasi. Jika izin lokasi ditolak, data tetap terkirim.';
+  n.textContent = '📍 Saat Anda menekan kirim, lokasi Anda dicatat satu kali untuk verifikasi oleh pengurus koperasi. Jika izin lokasi ditolak, data tetap terkirim.';
   b.parentNode.insertBefore(n, b);
 });
 

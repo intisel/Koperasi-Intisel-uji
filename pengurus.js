@@ -143,7 +143,7 @@ async function pkMuat(){
   try{
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni; $('tileLokasi').classList.toggle('hidden', !r.ketua);
+    pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni; $('tileLokasi').classList.toggle('hidden', !(r.lokasi !== undefined ? r.lokasi : r.ketua));
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
