@@ -41,15 +41,17 @@ function renderKontak(){
 }
 function anggotaRender(name){ // dipanggil router
   if(name === 'anggota'){ resetAnggota(); return; }
+  if(!sesiCek()) return;
   $('loginForm').style.display = 'none'; $('sesiBar').style.display = 'flex';
   tampilView(ROUTE2VIEW[name]);
   muatData().then(terapkanBlokir);
 }
 /* ===== SESI LOGIN ANGGOTA (bertahan saat refresh) + INGAT NIK ===== */
-// Server hanya mengenal NIK + tgl lahir, jadi keduanya disimpan di perangkat (localStorage) maksimal SESI_JAM jam sejak login terakhir (diperpanjang tiap masuk otomatis).
+// Server hanya mengenal NIK + tgl lahir, jadi keduanya disimpan di perangkat (localStorage) maksimal SESI_JAM jam sejak login (masuk otomatis TIDAK memperpanjang; lewat batas = wajib login ulang).
 // Sesi HANYA dihapus saat anggota menekan Keluar (atau kedaluwarsa / ditolak server). Tombol back HP tidak menghapus sesi. NIK (tanpa tgl lahir) diingat terus untuk memudahkan masuk kembali.
-const SESI_KEY = 'ang_sesi', NIK_KEY = 'ang_nik', SESI_JAM = 3;
-function sesiSimpan(nik, lahir, nama){ try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, lahir, nama: nama || '', t: Date.now()})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
+const SESI_KEY = 'ang_sesi', NIK_KEY = 'ang_nik', SESI_JAM = 1;
+let sesiTetap = false, sesiLoginT = 0; // sesiTetap: true saat masuk otomatis (waktu login asli dipertahankan); sesiLoginT: waktu login sesi yang sedang berjalan
+function sesiSimpan(nik, lahir, nama){ let t = Date.now(); if(sesiTetap){ const lama = sesiBaca(); if(lama && lama.nik === nik) t = lama.t; } sesiLoginT = t; try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, lahir, nama: nama || '', t})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
 function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
 function sesiBaca(){
   try{
@@ -65,15 +67,22 @@ async function sesiMasuk(s){ // isi form dari sesi tersimpan lalu masuk otomatis
   try{
     const [y, m, d] = s.lahir.split('-').map(Number);
     initLahir(); // pilihan tgl lahir bisa belum terisi bila refresh terjadi sangat cepat
+    sesiTetap = true;
     $('nikInput').value = s.nik; $('lhThn').value = y; $('lhBln').value = m; $('lhTgl').value = d;
     await cekNIK();
-  } catch(e){ /* cekNIK menampilkan pesan sendiri */ }
+  } catch(e){ /* cekNIK menampilkan pesan sendiri */ } finally { sesiTetap = false; }
 }
 function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggota: ada sesi tersimpan -> langsung masuk
   const s = sesiBaca();
   go('anggota');
   if(s) sesiMasuk(s);
 }
+function sesiCek(){ // false (dan keluar ke layar login) bila batas SESI_JAM jam sejak login sudah lewat
+  if(!anggotaAktif || !sesiLoginT || Date.now() - sesiLoginT < SESI_JAM * 36e5) return true;
+  alert('Sesi berakhir (maksimal ' + SESI_JAM + ' jam). Silakan masuk lagi.');
+  keluarAnggota(); return false;
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden && typeof currentPage !== 'undefined' && currentPage === 'anggota') sesiCek(); });
 function sesiLanjut(){ const s = sesiBaca(); if(s) sesiMasuk(s); else { $('sesiLanjutWrap').style.display = 'none'; alert('Sesi sudah berakhir. Silakan masuk lagi.'); } }
 function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi tersimpan TIDAK dihapus; itu hanya oleh tombol Keluar)
   anggotaAktif = null; dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}; fotoData = '';
