@@ -30,7 +30,7 @@ async function bdMuat(){
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     bdData = r;
-    box.innerHTML = `<div class="warn" style="margin-bottom:10px">Budget bawaan: koperasi <b>${pkRp(r.def.koperasi)}</b> • kasbon <b>${pkRp(r.def.kasbon)}</b> per bulan.
+    box.innerHTML = `<div class="ok" style="margin-bottom:10px">ℹ️ Budget tiap bulan <b>berdiri sendiri</b>: sisa budget bulan ini <b>tidak ditambahkan</b> ke bulan berikutnya (mis. terpakai Rp 10 juta dari Rp 25 juta, bulan depan tetap Rp 25 juta).</div><div class="warn" style="margin-bottom:10px">Budget bawaan: koperasi <b>${pkRp(r.def.koperasi)}</b> • kasbon <b>${pkRp(r.def.kasbon)}</b> per bulan.
       ${r.bisaUbah ? `<button class="btn btn-yellow" style="margin-top:8px;padding:10px;font-size:13.5px" onclick="bdAtur('DEFAULT')">✏️ Ubah budget bawaan</button><div id="bdForm-DEFAULT"></div>` : '<br>Pengaturan hanya dapat dilakukan oleh Ketua dan Bendahara.'}</div>` +
       r.bulan.map(b => bdKartuBulan(b, r.bisaUbah)).join('');
   }catch(e){ box.innerHTML = '<div class="err">Gagal memuat budget. Periksa koneksi.</div>'; }

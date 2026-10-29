@@ -187,12 +187,29 @@ function pkKartu(p){
       <button class="btn" style="background:#dc2626" onclick="pkVote('${esc(p.id)}','N')">✖ Tolak</button>
     </div></div>`;
 }
-function pilihanCair(p){ // hanya muncul untuk pimpinan pada pinjaman koperasi; kasbon otomatis urgen
+function pkBudgetBaris(b){ // satu baris info budget untuk satu pilihan pencairan
+  if(!b) return '';
+  return b.cukup
+    ? `<br><span class="small" style="color:#1b5e20">✅ Budget ${esc(b.label)}: sisa ${pkRp(b.sisa)}${b.sisa === 0 ? ' (pas habis)' : ''}</span>`
+    : `<br><span class="small" style="color:#c0392b;font-weight:700">⚠️ Budget ${esc(b.label)} habis: terlampaui ${pkRp(b.lebih)}</span>`;
+}
+function pilihanCair(p){ // hanya muncul untuk pimpinan; kasbon otomatis urgen. Menampilkan sisa budget bulan pencairan + opsi tanya Bendahara
   const o = p.detail.opsiPencairan; if(!o) return '';
-  if(p.jenis === 'KASBON') return `<div class="ok" style="margin:8px 0"><b>💸 Pencairan:</b> urgen, maksimal 2 hari kerja (paling lambat ${pkTgl(o.URGEN)}).</div>`;
+  const bo = p.detail.budgetOpsi || {}, ada = Object.keys(bo).some(k => !bo[k].cukup);
+  const tanya = `<div style="margin-top:8px"><button class="btn" style="padding:10px;font-size:13.5px;background:${ada ? '#b45309' : '#6b7f99'}" onclick="pkTanyaBudget('${esc(p.id)}')">💬 Tanya Bendahara soal budget</button></div>`;
+  if(p.jenis === 'KASBON') return `<div class="ok" style="margin:8px 0"><b>💸 Pencairan:</b> urgen, maksimal 2 hari kerja (paling lambat ${pkTgl(o.URGEN)}).${pkBudgetBaris(bo.URGEN)}${ada ? tanya : ''}</div>`;
   return `<div class="ok" style="margin:8px 0"><b>💸 Jadwal pencairan (bila disetujui)</b>
-    <label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="radio" name="pc-${esc(p.id)}" value="REGULER" checked style="width:auto;margin-top:3px"><span>Reguler - tanggal 6 (<b>${pkTgl(o.REGULER)}</b>)</span></label>
-    <label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="radio" name="pc-${esc(p.id)}" value="URGEN" style="width:auto;margin-top:3px"><span>Urgen - maksimal 2 hari kerja (paling lambat <b>${pkTgl(o.URGEN)}</b>)</span></label></div>`;
+    <label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="radio" name="pc-${esc(p.id)}" value="REGULER" checked style="width:auto;margin-top:3px"><span>Reguler - tanggal 6 (<b>${pkTgl(o.REGULER)}</b>)${pkBudgetBaris(bo.REGULER)}</span></label>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="radio" name="pc-${esc(p.id)}" value="URGEN" style="width:auto;margin-top:3px"><span>Urgen - maksimal 2 hari kerja (paling lambat <b>${pkTgl(o.URGEN)}</b>)${pkBudgetBaris(bo.URGEN)}</span></label>
+    ${ada ? '<div class="warn" style="margin-top:6px">Budget bulan pencairan tidak mencukupi. Anda tetap dapat menyetujui, atau tanyakan dulu ke Bendahara.</div>' : ''}${ada ? tanya : ''}</div>`;
+}
+async function pkTanyaBudget(id){
+  if(!await dialogKonfirmasi('Kirim pertanyaan budget ke Bendahara (email dan notifikasi)?\n\nBendahara akan mengecek sisa dana rekening dan mengatur budget bila perlu.')) return;
+  try{
+    const r = await pkApi({a:'budget_tanya', token:pkToken, id});
+    if(r.expired){ pkExpired(); return; }
+    alert(r.ok ? r.msg : '❌ ' + r.msg);
+  }catch(e){ alert('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.'); }
 }
 const pkCairFoto = {}; // id pinjaman -> foto bukti transfer (data URL JPEG) yang sudah dikompres
 function pkKompres(file){ // kecilkan foto di HP (maks 1280px, JPEG) supaya ringan dikirim
