@@ -39,7 +39,15 @@ function pkTab(t){
 function pkMasuk(r){ // sesi berhasil dibuat
   pkToken = r.token; sessionStorage.setItem('pk_token', pkToken);
   ['pkKode','pkPw','pkAturKode','pkBaru','pkBaru2'].forEach(i => $(i).value = ''); $('pkKodeWrap').classList.add('hidden');
-  go('pengurus-dashboard');
+  goReplace('pengurus-dashboard'); // ganti layar login di riwayat: tombol back dari dasbor langsung ke halaman depan
+}
+function pkSesiHapus(){ // dipanggil saat berpindah ke Anggota: sesi pengurus dihapus
+  if(pkToken){ pkApi({a:'keluar', token:pkToken}).catch(() => {}); }
+  pkToken = ''; sessionStorage.removeItem('pk_token');
+}
+function pengurusBuka(){ // tombol Pengurus di halaman depan: sesi aktif -> langsung ke dasbor; sesi anggota dihapus
+  if(typeof anggotaSesiHapus === 'function') anggotaSesiHapus();
+  if(pkToken) go('pengurus-dashboard'); else go('pengurus');
 }
 
 /* --- login kode email --- */

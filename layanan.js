@@ -72,8 +72,16 @@ async function sesiMasuk(s){ // isi form dari sesi tersimpan lalu masuk otomatis
     await cekNIK();
   } catch(e){ /* cekNIK menampilkan pesan sendiri */ } finally { sesiTetap = false; }
 }
-function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggota: ada sesi tersimpan -> langsung masuk
-  const s = sesiBaca();
+function anggotaSesiHapus(){ // dipanggil saat berpindah ke Pengurus: sesi anggota (memori + tersimpan) dihapus
+  sesiHapus(); if(anggotaAktif) resetAnggota(); anggotaAktif = null; sesiLoginT = 0;
+}
+function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggota
+  if(typeof pkSesiHapus === 'function') pkSesiHapus(); // berpindah ke Anggota: sesi pengurus dihapus
+  if(anggotaAktif && sesiLoginT){ // masih login di memori: langsung ke menu utama, tanpa layar login
+    if(Date.now() - sesiLoginT < SESI_JAM * 36e5){ go('anggota-menu'); return; }
+    sesiHapus(); anggotaAktif = null; sesiLoginT = 0; alert('Sesi berakhir (maksimal ' + SESI_JAM + ' jam). Silakan masuk lagi.');
+  }
+  const s = sesiBaca(); // setelah refresh: pulihkan dari sesi tersimpan (menu menggantikan layar login di riwayat)
   go('anggota');
   if(s) sesiMasuk(s);
 }
@@ -108,9 +116,9 @@ function masukMenu(){
   $('tlKoperasiSub').innerText = koperasiOk ? 'Maks ' + rpf(limitAktif.maxNominal) + ' • ' + limitAktif.maxTenor + ' bln' : 'Khusus masa kerja ≥ 2 tahun';
   $('tlKasbonSub').innerText = koperasiOk ? 'Khusus masa kerja < 2 tahun' : 'Maks Rp 500.000 • 30 hari';
   profilBarIsi(a); inboxMuat();
-  go('anggota-menu');
+  goReplace('anggota-menu'); // ganti layar login di riwayat: tombol back dari menu langsung ke halaman depan
 }
-function keluarAnggota(){ // tombol Keluar: hapus sesi tersimpan, lalu mundur ke layar Cek NIK
+function keluarAnggota(){ // tombol Keluar: hapus sesi tersimpan, lalu kembali ke halaman depan
   sesiHapus();
   const lv = (typeof ROUTE_LEVEL !== 'undefined' && ROUTE_LEVEL[currentRoute]) || 0;
   if(lv > 0) history.go(-lv); else renderRoute('anggota');
