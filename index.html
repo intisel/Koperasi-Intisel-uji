@@ -231,6 +231,7 @@ body.kartu-open{overflow:hidden}
     <div id="lgPin">
       <label style="margin-top:10px;display:block">PIN (6 angka)</label>
       <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" placeholder="••••••" style="letter-spacing:8px;text-align:center;font-size:22px" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')loginPin()">
+      <p class="small" style="text-align:center;margin:6px 0 0">Pertama kali masuk? Gunakan PIN awal <b>123456</b>, lalu Anda akan diminta membuat PIN sendiri.</p>
       <button class="btn" id="btnCekNik" onclick="loginPin()" style="margin-top:8px">🔍 Masuk</button>
       <p class="small" style="text-align:center;margin:12px 0 0"><span style="text-decoration:underline;cursor:pointer;color:#134e8a;font-weight:700" onclick="lgMode('otp')">Lupa PIN / belum punya PIN? Masuk dengan kode OTP email</span></p>
     </div>
