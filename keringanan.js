@@ -123,7 +123,7 @@ async function pkKrMuat(){
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     const n = r.menunggu.length;
-    $('byTabNK').innerText = n ? '(' + n + ')' : '';
+    $('byTabNK').innerText = n ? '(' + n + ')' : ''; pkTabNotif('K', n);
     pkBadge2('pbBerjalan', pkLapBase + n);
     box.innerHTML = (n ? r.menunggu.map(k => pkKrKartu(k)).join('') : '<p class="small">Tidak ada permohonan keringanan yang menunggu. ✅</p>') +
       (r.riwayat.length ? '<div style="font-weight:800;margin:14px 0 6px">Riwayat terakhir</div>' + r.riwayat.map(k => pkKrKartu(k, false)).join('') : '');

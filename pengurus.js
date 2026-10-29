@@ -150,7 +150,7 @@ async function pkMuat(){
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
     fotoMuatPelamar(r.menunggu);
     pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbCair', r.pencairan.length); pkLapBase = r.laporan.length + bj.terlambat; pkBadge2('pbBerjalan', pkLapBase);
-    $('byTabNV').innerText = r.laporan.length ? '(' + r.laporan.length + ')' : ''; $('byTabNP').innerText = bj.terlambat ? '(⚠️' + bj.terlambat + ')' : '';
+    $('byTabNV').innerText = r.laporan.length ? '(' + r.laporan.length + ')' : ''; $('byTabNP').innerText = bj.terlambat ? '(⚠️' + bj.terlambat + ')' : ''; pkTabNotif('V', r.laporan.length); pkTabNotif('P', bj.terlambat);
     if(!pkBayarTabSet){ pkBayarTabSet = true; pkBayarTab(r.laporan.length ? 'V' : 'P'); }
     $('pkPencairan').innerHTML = r.pencairan.length ? r.pencairan.map(pkCairKartu).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>';
     $('pkLaporan').innerHTML = r.laporan.length ? r.laporan.map(pkLaporanKartu).join('') : '<p class="small">Tidak ada laporan pembayaran yang menunggu verifikasi.</p>';
@@ -160,6 +160,7 @@ async function pkMuat(){
   }catch(e){ $('pkMenunggu').innerHTML = '<div class="err">Gagal memuat data. Coba ↻ Muat ulang.</div>'; }
 }
 let pkBayarTabSet = false, pkLapBase = 0;
+function pkTabNotif(k, n){ const b = $('byTabBtn' + k); if(b) b.classList.toggle('notif', n > 0); } // tab bermerah bila ada yang perlu ditindak
 function pkBayarTab(t){ ['V','P','K'].forEach(k => { $('byTab' + k).classList.toggle('hidden', t !== k); $('byTabBtn' + k).classList.toggle('on', t === k); }); }
 function pkBadge2(id, n){ const e = $(id); e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; }
 function pkVotes(p){
