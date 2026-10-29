@@ -314,7 +314,7 @@ function pkPinjamanKartu(p){
   const rwy = (p.pembayaran || []).slice().reverse().map(x => `<div style="border-top:1px solid #d6e6f8;padding:6px 0">
       <b>${x.alok ? x.alok.map(a => 'Ke-' + a.ke + (a.lunas ? '' : ' (sebagian ' + pkRp(a.jml) + ')')).join(', ') : x.kes.length ? 'Ke-' + x.kes.join(', ') : ''}${x.infaq ? (x.kes.length ? ' + ' : '') + 'Infaq ' + pkRp(x.infaq) : ''}</b> • ${pkTgl(x.tgl)} • ${pkRp(x.jumlah)}${x.jumlah !== x.wajib ? ' <span style="color:#b45309">(tagihan ' + pkRp(x.wajib) + ')</span>' : ''}<br>
       <span class="small">oleh ${esc(x.oleh)}${x.catatan ? ' — “' + esc(x.catatan) + '”' : ''}</span>
-      ${x.adaBukti ? ` <a href="#" class="small" onclick="pkLihatBuktiBayar('${id}',${x.i});return false">📎 Lihat bukti</a><div id="bb-${id}-${x.i}"></div>` : ''}</div>`).join('');
+      ${x.kw ? ` <a href="#" class="small" onclick="pkUnduhKuitansi('${id}',${x.i});return false">🧾 ${esc(x.kw)}</a>` : ''}${x.adaBukti ? ` <a href="#" class="small" onclick="pkLihatBuktiBayar('${id}',${x.i});return false">📎 Lihat bukti</a><div id="bb-${id}-${x.i}"></div>` : ''}</div>`).join('');
   return `<div class="ok" style="background:#fff;margin-bottom:12px${telat ? ';border-color:#e74c3c' : ''}" id="pj-${esc(p.id)}" data-cari="${esc((p.nama + ' ' + p.id).toLowerCase())}">
     ${pkBadge(p.jenis)}<b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)})</span>${telat ? ' <span style="color:#c0392b;font-weight:800">⚠️ TERLAMBAT</span>' : ''}<br>
     <span class="small">${pkRp(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'} • angsuran ${pkRp(p.angsuran)}</span>${ik.target ? `<br><span class="small">Infaq: ${pkRp(ik.terbayar)} / ${pkRp(ik.target)} ${ik.sisa ? '• <b style="color:#b45309">sisa ' + pkRp(ik.sisa) + '</b>' : '✅ lunas'}</span>` : ''}
@@ -390,6 +390,10 @@ async function pkSimpanBayar(id){
     alert(r.ok ? r.msg : '❌ ' + r.msg);
   }catch(e){ alert('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.'); }
   pkMuat();
+}
+async function pkUnduhKuitansi(id, i){
+  try{ const r = await pkApi({a:'kuitansi', token:pkToken, id, i}); if(r.expired){ pkExpired(); return; } kwBuka(r); }
+  catch(e){ alert('Gagal mengunduh kuitansi. Periksa koneksi lalu coba lagi.'); }
 }
 async function pkLihatBuktiBayar(id, i){
   const box = $('bb-' + id + '-' + i); if(!box) return; box.innerHTML = '<span class="small">Memuat foto...</span>';

@@ -245,6 +245,27 @@ function jadwalTabel(a){
       <td>${j.status === 'LUNAS' ? (j.asli === 0 ? '⏸ ditunda' : '✅ ' + tglf(j.tglBayar)) : j.status === 'SEBAGIAN' ? '<span style="color:#b45309">🟡 sebagian (sudah ' + rpf(j.terbayar) + ')</span>' + (j.due < today ? ' <span style="color:#c0392b">⚠️</span>' : '') : (j.due < today ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`).join('') +
     ((a.infaq && a.infaq.riwayat || []).map(x => `<tr><td style="padding:2px 8px 2px 0">Infaq</td><td style="padding:2px 8px 2px 0">-</td><td style="padding:2px 8px 2px 0">${rpf(x.jumlah)}</td><td>✅ ${tglf(x.tgl)}</td></tr>`).join('')) + '</table>';
 }
+/* ===== KUITANSI PDF ===== */
+function kwBuka(r, tombol){ // r: balasan server { ok, data (data URL PDF), nama }
+  if(!r.ok){ alert('❌ ' + r.msg); return; }
+  const bin = atob(r.data.split(',')[1]), u8 = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], {type:'application/pdf'})), a = document.createElement('a');
+  a.href = url; a.download = r.nama || 'Kuitansi.pdf'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+async function kwUnduhAnggota(id, i, btn){
+  if(btn){ btn.disabled = true; }
+  try{ kwBuka(await apiPost({a:'kuitansi', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id, i})); }
+  catch(e){ alert('Gagal mengunduh kuitansi. Periksa koneksi lalu coba lagi.'); }
+  if(btn){ btn.disabled = false; }
+}
+function kwDaftarAnggota(p){
+  const k = (p.kuitansi || []).slice().reverse();
+  if(!k.length) return '';
+  return `<details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">🧾 Kuitansi pembayaran (${k.length})</summary>` +
+    k.map(x => `<div class="small" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #d6e6f8"><span><b>${esc(x.no)}</b><br>${tglf(x.tgl)} • ${rpf(x.jumlah)}</span><button class="btn" style="width:auto;padding:8px 12px;font-size:13px;margin:0" onclick="kwUnduhAnggota('${esc(p.id)}',${x.i},this)">⬇️ PDF</button></div>`).join('') + '</details>';
+}
 function renderBerjalan(){
   const bj = dataSaya.list.filter(p => p.status === 'DISETUJUI' && p.angsuran);
   const lunas = dataSaya.list.filter(p => p.status === 'LUNAS');
@@ -259,6 +280,7 @@ function renderBerjalan(){
       ${p.jenis !== 'KASBON' && a.total - a.lunas >= 1 ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#7c3aed" onclick="goReplace('anggota-keringanan')">🤝 Ajukan Keringanan Angsuran</button>` : ''}
       <button class="btn btn-yellow" style="margin-top:8px;padding:12px;font-size:14px" onclick="kartuBuka('${p.id}')">📄 Lihat Kartu Pinjaman</button>
       ${p.pencairan && p.pencairan.adaBukti ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#6b7f99" onclick="buktiCairLihat('${esc(p.id)}', 'bcB-${esc(p.id)}')">🧾 Lihat Bukti Transfer Pencairan</button><div id="bcB-${esc(p.id)}"></div>` : ''}
+      ${kwDaftarAnggota(p)}
       <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>${jadwalTabel(a)}</details>
     </div>`;
   }).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';
