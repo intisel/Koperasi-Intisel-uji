@@ -310,6 +310,7 @@ body.kartu-open{overflow:hidden}
     <div id="byInfo" class="small" style="margin:6px 0"></div>
     <div id="byForm">
       <label>Angsuran yang dibayar</label><select id="bySelect" onchange="byIsiJumlah()"></select>
+      <div id="byInfaqWrap" style="display:none"><label id="byInfaqLbl">Infaq (opsional)</label><input id="byInfaq" type="text" inputmode="numeric" data-fmt="money" data-opt="1" placeholder="Contoh: 20.000" oninput="byIsiJumlah()"></div>
       <label>Tanggal pembayaran</label><input id="byTgl" type="date">
       <label>Jumlah dibayar (Rp)</label><input id="byJumlah" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 500.000">
       <label>Catatan (opsional)</label><input id="byCatatan" maxlength="200" placeholder="Contoh: Transfer BNI a.n. ...">
