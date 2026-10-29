@@ -191,6 +191,10 @@ body.kartu-open{overflow:hidden}
       <div style="margin-top:10px"><span class="badge" style="background:#134e8a;color:#ffeb3b;border-color:#0d3b6e">4 Pengurus</span></div>
     </div>
   </div>
+  <div style="display:flex;gap:8px;margin:12px 14px 0">
+    <a href="panduan-anggota.html" target="_blank" rel="noopener" style="flex:1;text-align:center;text-decoration:none;background:#fff;border:1.5px solid #134e8a;color:#134e8a;border-radius:12px;padding:11px 6px;font-weight:800;font-size:13.5px">📖 Panduan Anggota</a>
+    <a href="panduan-pengurus.html" target="_blank" rel="noopener" style="flex:1;text-align:center;text-decoration:none;background:#fff;border:1.5px solid #e6c700;color:#4a3b00;border-radius:12px;padding:11px 6px;font-weight:800;font-size:13.5px">📖 Panduan Pengurus</a>
+  </div>
 
   <div class="card hidden" id="apkBox" style="text-align:center;border-color:#b8d96b;background:#f4fbe6">
     <b id="apkJudul">📲 Dapatkan Aplikasi Android</b>
@@ -266,6 +270,7 @@ body.kartu-open{overflow:hidden}
       <button class="mtile" onclick="bukaMenu('vApproval')"><span class="ic">📋</span><b>Status Approval</b><span class="sub" id="tlApprovalSub">Koperasi / Kasbon</span></button>
       <button class="mtile" onclick="bukaMenu('vBerjalan')"><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub" id="tlBerjalanSub"></span></button>
       <button class="mtile wide" onclick="bukaMenu('vBayar')"><span class="ic">🧾</span><b>Laporan Pembayaran Angsuran</b><span class="sub" id="tlBayarSub">Upload foto bukti transaksi</span></button>
+      <button class="mtile wide" onclick="window.open('panduan-anggota.html','_blank')"><span class="ic">📖</span><b>Panduan Penggunaan</b><span class="sub">Cara memakai setiap menu</span></button>
       <button class="mtile wide" onclick="bukaMenu('vKontak')"><span class="ic">📞</span><b>Kontak &amp; Bantuan</b><span class="sub">Hubungi pengurus lewat WhatsApp</span></button>
     </div>
     <details style="margin-top:14px" ontoggle="if(this.open)$('pinLama').focus()"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">🔑 Ganti PIN</summary>
@@ -521,6 +526,7 @@ body.kartu-open{overflow:hidden}
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile hidden" id="tileLokasi" onclick="go('pengurus-lokasi')"><span class="ic">📍</span><b>Lokasi</b><span class="sub">Lokasi saat pengajuan &amp; bukti bayar</span></button>
+          <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
           <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Unduh Excel atau cetak PDF</span></button>
         </div>
       </div>
