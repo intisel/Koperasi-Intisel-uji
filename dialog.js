@@ -15,6 +15,15 @@
     '.dlg-f button.dlg-batal{background:#e6eef8;color:#134e8a}';
   (document.head || document.documentElement).appendChild(gaya);
 
+  function jenisPesan(d){ // ikon sesuai isi: ❓ pertanyaan (konfirmasi), ✅ berhasil, ⚠️ peringatan/kesalahan
+    let t = d.pesan;
+    if(d.konfirmasi) return {ikon: '❓', teks: null};
+    const awal = t.match(/^\s*(✅|❌|⚠️)\s*/), bersih = awal ? t.slice(awal[0].length) : t;
+    if(awal && awal[1] === '✅') return {ikon: '✅', teks: bersih};
+    if(awal) return {ikon: '⚠️', teks: bersih};
+    if(!/gagal|belum|tidak|salah|wajib|harus|tolak|kurang|melebihi|kedaluwarsa|berakhir|habis/i.test(t) && /berhasil|sukses|terkirim|tersimpan|disimpan|dikirim|terverifikasi|diaktifkan|selesai/i.test(t)) return {ikon: '✅', teks: null};
+    return {ikon: '⚠️', teks: null};
+  }
   function buka(){
     if(tampil || !antre.length) return;
     tampil = true;
@@ -22,7 +31,7 @@
     bg.className = 'dlg-bg'; kotak.className = 'dlg'; kotak.setAttribute('role', 'alertdialog'); kotak.setAttribute('aria-modal', 'true');
     const h = document.createElement('div'); h.className = 'dlg-h'; h.textContent = 'Koperasi Intisel';
     const b = document.createElement('div'); b.className = 'dlg-b';
-    const ik = document.createElement('span'); ik.className = 'dlg-ik'; ik.textContent = '⚠️'; ik.setAttribute('aria-hidden', 'true'); // segitiga kuning peringatan
+    const ik = document.createElement('span'); ik.className = 'dlg-ik'; const jenis = jenisPesan(d); ik.textContent = jenis.ikon; if(jenis.teks != null) d.pesan = jenis.teks; ik.setAttribute('aria-hidden', 'true'); // segitiga kuning peringatan
     const tk = document.createElement('span'); tk.className = 'dlg-tk'; tk.textContent = d.pesan; // textContent: aman dari HTML
     b.appendChild(ik); b.appendChild(tk);
     const f = document.createElement('div'); f.className = 'dlg-f';
