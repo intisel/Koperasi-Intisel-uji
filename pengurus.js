@@ -1,3 +1,4 @@
+var pkBisaVerif = false;
 // Dashboard Pengurus & Pimpinan: login (kode email / password), keputusan, angsuran & pelunasan, riwayat
 let pkToken = sessionStorage.getItem('pk_token') || '', pkEmailAktif = '', pkBisaCatat = false, pkHariIni = '';
 const pkRp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
@@ -143,7 +144,7 @@ async function pkMuat(){
   try{
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    pkBisaCatat = r.bisaCatat; pkHariIni = r.hariIni; $('tileLokasi').classList.toggle('hidden', !(r.lokasi !== undefined ? r.lokasi : r.ketua));
+    pkBisaCatat = r.bisaCatat; pkBisaVerif = !!r.bisaVerif; pkHariIni = r.hariIni; $('tileLokasi').classList.toggle('hidden', !(r.lokasi !== undefined ? r.lokasi : r.ketua));
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
@@ -404,12 +405,12 @@ function pkBatalBayar(id){ pkKirimAng({a:'batal_bayar', id}, 'Batalkan pencatata
 
 /* --- laporan pembayaran dari anggota: lihat bukti, verifikasi --- */
 function pkLaporanKartu(l){
-  const aksi = pkBisaCatat ? `
+  const aksi = pkBisaVerif ? `
     <textarea id="pkLA-${esc(l.lid)}" rows="2" placeholder="Komentar (wajib bila menolak)"></textarea>
     <div style="display:flex;gap:8px">
       <button class="btn" style="background:#16a34a;padding:12px;font-size:14px" onclick="pkVerif('${esc(l.lid)}','Y')">✔ Verifikasi</button>
       <button class="btn" style="background:#dc2626;padding:12px;font-size:14px" onclick="pkVerif('${esc(l.lid)}','N')">✖ Tolak</button>
-    </div>` : '<p class="small">Verifikasi dilakukan oleh pengurus.</p>';
+    </div>` : '<p class="small">Verifikasi pembayaran hanya dapat dilakukan oleh Ketua dan Bendahara.</p>';
   return `<div class="ok" style="background:#fff;margin-bottom:12px" id="lp-${esc(l.lid)}">
     <b>${esc(l.nama)}</b> <span class="small">(${esc(l.id)})</span><br>
     <span class="small">${l.ke ? 'Angsuran ke-' + l.ke : 'Infaq saja'}${l.infaq ? (l.ke ? ' + infaq ' : ' ') + pkRp(l.infaq) : ''} • <b>${pkRp(l.jumlah)}</b> • dibayar ${pkTgl(l.tgl)} • dilaporkan ${esc(l.waktu)}${l.catatan ? '<br>Catatan: ' + esc(l.catatan) : ''}</span>
