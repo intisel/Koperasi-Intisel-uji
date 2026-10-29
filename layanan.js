@@ -11,6 +11,14 @@ const rpf = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const tglf = s => s ? String(s).split('-').reverse().join('/') : '-';
 const hariIniStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const apiPost = async body => (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
+const BADGE_ST = {
+  LUNAS:['LUNAS','#d4f5dd','#1b7a3a','#8fd5a6'], BERJALAN:['BERJALAN','#ffdd00','#0d3b6e','#e6c700'], TERLAMBAT:['TERLAMBAT','#fde0e0','#c0392b','#f1a9a9'],
+  DITOLAK:['DITOLAK','#fde0e0','#c0392b','#f1a9a9'], REVIEW_PENGURUS:['DIREVIEW','#dbeafe','#134e8a','#a9c7ee'], MENUNGGU_PIMPINAN:['MENUNGGU PIMPINAN','#dbeafe','#134e8a','#a9c7ee'],
+  MENUNGGU_PENCAIRAN:['MENUNGGU PENCAIRAN','#dbeafe','#134e8a','#a9c7ee']};
+const badgeStatus = p => { // bulatan status pinjaman: hijau lunas, kuning berjalan, merah terlambat/ditolak, biru dalam proses
+  const k = p.status === 'DISETUJUI' ? (p.angsuran && p.angsuran.terlambat > 0 ? 'TERLAMBAT' : 'BERJALAN') : p.status, b = BADGE_ST[k] || [String(p.status || ''), '#eef5ff', '#134e8a', '#b9d2f0'];
+  return `<span class="badge" style="background:${b[1]};color:${b[2]};border-color:${b[3]};margin-left:0">${esc(b[0])}</span>`;
+};
 const badgeJenis = j => j === 'KASBON' ? '<span class="badge" style="background:#fff3cd;color:#8a6100">KASBON</span>' : '<span class="badge">KOPERASI</span>';
 
 /* ===== NAVIGASI (router ada di index.html; tiap layar = 1 entri riwayat) ===== */
@@ -201,7 +209,7 @@ function renderApproval(){
   $('apBox').innerHTML = L.length ? L.map(p => {
     const selesai = ['DITOLAK', 'MENUNGGU_PENCAIRAN', 'DISETUJUI', 'LUNAS'].includes(p.status), done = p.pengurus.filter(x => x.v === 'Y').length;
     return `<div class="ok" style="margin-bottom:10px;background:#fff">
-      ${badgeJenis(p.jenis)} <b>${esc(p.id)}</b> • ${esc(p.waktu)}<br>${rpf(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'}<br>
+      ${badgeStatus(p)} <b>${esc(p.id)}</b> • ${esc(p.waktu)}<br>${p.jenis === 'KASBON' ? 'Kasbon' : 'Koperasi'} • ${rpf(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'}<br>
       <b>${LABEL[p.status] || esc(p.status)}</b>
       ${p.pencairan ? `<div class="small" style="margin-top:4px;color:#134e8a">💸 ${esc(p.pencairan.label)}${p.pencairan.tglCair ? '<br>✅ Dicairkan ' + tglf(p.pencairan.tglCair) : ''}${p.pencairan.adaBukti ? '<br><span class="chip" onclick="buktiCairLihat(\'' + esc(p.id) + '\')">🧾 Lihat bukti transfer</span><div id="bcA-' + esc(p.id) + '"></div>' : ''}</div>` : ''}
       <div class="small" style="margin-top:6px">
