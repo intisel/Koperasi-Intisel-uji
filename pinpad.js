@@ -5,7 +5,7 @@ function pinPadRender(){
 }
 function pinPadKosong(){ $('pinInput').value = ''; pinPadRender(); }
 function pinPadTekan(n){
-  if(typeof cekBusy !== 'undefined' && cekBusy) return;
+  if(typeof cekBusy !== 'undefined' && cekBusy) return; if($('ppProses') && $('ppProses').style.display === 'flex') return;
   const el = $('pinInput'); if(el.value.length >= 6) return;
   el.value += String(n).replace(/\D/g, ''); pinPadRender();
   if(el.value.length === 6) setTimeout(() => { if($('pinInput').value.length === 6) loginPin(); }, 160); // otomatis masuk setelah 6 angka
@@ -16,3 +16,12 @@ document.addEventListener('keydown', e => { // papan ketik fisik (komputer) ikut
   const a = document.activeElement; if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
   if(/^\d$/.test(e.key)) pinPadTekan(e.key); else if(e.key === 'Backspace') pinPadHapus();
 });
+
+function pinPadSibuk(on, teks){ // animasi proses: putaran + teks, keypad dikunci sementara
+  const w = $('ppProses'); if(!w) return;
+  if(on) $('ppProsesTeks').textContent = teks || 'Memproses...';
+  w.style.display = on ? 'flex' : 'none';
+  $('pinDots').style.display = on ? 'none' : 'flex';
+  document.querySelectorAll('.pp-grid button').forEach(b => b.disabled = !!on);
+  document.querySelector('.pp-grid').style.opacity = on ? '.45' : '1';
+}

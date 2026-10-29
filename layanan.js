@@ -606,6 +606,7 @@ async function loginPin(){
   const nik = lgNikVal(), pin = $('pinInput').value.replace(/\D/g, '');
   if(nik.length < 4 || pin.length !== 6){ lgPesan('Isi NIK dulu, lalu masukkan PIN 6 angka'); pinPadKosong(); return; }
   cekBusy = true; const btn = $('btnCekNik'); btn.disabled = true; btn.innerText = 'Memeriksa...';
+  pinPadSibuk(true, 'Memeriksa PIN...');
   let token = '';
   try{
     const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'pin_login', nik, pin})}).then(x => x.json());
@@ -614,8 +615,8 @@ async function loginPin(){
     if(r.wajibPin){ lgNik = nik; lgToken = r.atoken; lgMode('setpin'); lgPesan('PIN Anda adalah PIN sementara dari pengurus. Buat PIN baru untuk melanjutkan.', true); return; }
     token = r.atoken;
   }catch(e){ lgPesan('Gagal terhubung ke server. Periksa internet lalu coba lagi.'); }
-  finally{ cekBusy = false; btn.disabled = false; btn.innerText = '🔍 Masuk'; }
-  if(token) await masukDenganToken(nik, token);
+  finally{ cekBusy = false; btn.disabled = false; btn.innerText = '🔍 Masuk'; if(!token) pinPadSibuk(false); }
+  if(token){ pinPadSibuk(true, 'Berhasil, memuat data Anda...'); try{ await masukDenganToken(nik, token); } finally{ pinPadSibuk(false); } }
 }
 function nikSimpanIngat(nik){ try{ localStorage.setItem(NIK_KEY, nik); }catch(e){} }
 async function otpMintaAng(){
