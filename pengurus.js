@@ -151,7 +151,7 @@ async function pkMuat(){
     pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbBayar', r.laporan.length); pkBadge2('pbCair', r.pencairan.length); pkBadge2('pbBerjalan', bj.terlambat);
     $('pkPencairan').innerHTML = r.pencairan.length ? r.pencairan.map(pkCairKartu).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>';
     $('pkLaporan').innerHTML = r.laporan.length ? r.laporan.map(pkLaporanKartu).join('') : '<p class="small">Tidak ada laporan pembayaran yang menunggu verifikasi.</p>';
-    $('pkPinjaman').innerHTML = r.pinjaman.length ? r.pinjaman.map(pkPinjamanKartu).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>';
+    $('pkPinjaman').innerHTML = r.pinjaman.length ? r.pinjaman.map(pkPinjamanKartu).join('') : '<p class="small">Tidak ada pinjaman yang sedang berjalan.</p>'; pkCari();
     $('pkRiwayat').innerHTML = r.riwayat.length ? r.riwayat.map(pkBaris).join('') : '<p class="small">Belum ada pengajuan.</p>';
   }catch(e){ $('pkMenunggu').innerHTML = '<div class="err">Gagal memuat data. Coba ↻ Muat ulang.</div>'; }
 }
@@ -279,14 +279,33 @@ function pkPinjamanKartu(p){
     return `<tr><td style="padding:2px 8px 2px 0">${j.ke}</td><td style="padding:2px 8px 2px 0">${pkTgl(j.due)}</td><td style="padding:2px 8px 2px 0">${pkRp(j.jumlah)}</td>
       <td>${j.status === 'LUNAS' ? '✅ ' + pkTgl(j.tglBayar) : (lewat ? '<span style="color:#c0392b">⚠️ terlambat</span>' : '⏳')}</td></tr>`;
   }).join('');
-  const aksi = pkBisaCatat ? `
-    <label class="small" style="margin:6px 0 0">Tanggal bayar</label>
-    <input type="date" id="pkT-${esc(p.id)}" value="${esc(pkHariIni)}" max="${esc(pkHariIni)}" style="margin-bottom:8px">
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" style="flex:2;min-width:160px;padding:12px;font-size:14px" onclick="pkBayar('${esc(p.id)}')">✔ Catat angsuran ke-${p.berikut ? p.berikut.ke : ''}</button>
-      <button class="btn" style="flex:1;min-width:110px;padding:12px;font-size:14px;background:#0f766e" onclick="pkLunasi('${esc(p.id)}',${p.sisa})">Lunasi semua</button>
-    </div>` : '<p class="small">Pencatatan angsuran dilakukan oleh pengurus.</p>';
-  return `<div class="ok" style="background:#fff;margin-bottom:12px${telat ? ';border-color:#e74c3c' : ''}" id="pj-${esc(p.id)}">
+  const id = esc(p.id), belum = p.jadwal.filter(j => j.status !== 'LUNAS');
+  const aksi = !pkBisaCatat ? '<p class="small">Pencatatan angsuran dilakukan oleh pengurus.</p>' : !belum.length ? '' : `
+    <button class="btn" style="padding:12px;font-size:14px;margin-top:8px" onclick="pkPanel('${id}')">✔ Tandai Lunas Angsuran Ke</button>
+    <div id="pkP-${id}" style="display:${pkPanelBuka[p.id] ? 'block' : 'none'};margin-top:8px;padding:10px;border:1px solid #b9d2f0;border-radius:10px;background:#f4f9ff">
+      <div class="small"><b>Pilih angsuran yang dibayar</b> (boleh lebih dari satu)</div>
+      ${belum.map(j => { const plus = j.ke === 1 && p.infaq ? p.infaq : 0, lewat = j.due < pkHariIni;
+        return `<label style="display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px"><input type="checkbox" class="pkK-${id}" value="${j.ke}" data-nom="${j.jumlah + plus}" onchange="pkHitung('${id}')" style="width:auto">
+        <span>Ke-${j.ke} • ${pkTgl(j.due)} • <b>${pkRp(j.jumlah + plus)}</b>${plus ? ' <span class="small">(incl. infaq ' + pkRp(plus) + ')</span>' : ''}${lewat ? ' <span style="color:#c0392b">⚠️</span>' : ''}</span></label>`; }).join('')}
+      <label class="small" style="margin:8px 0 0">Tanggal pembayaran</label>
+      <input type="date" id="pkT-${id}" value="${esc(pkHariIni)}" max="${esc(pkHariIni)}" style="margin-bottom:8px">
+      <label class="small" style="margin:0">Jumlah uang diterima (Rp)</label>
+      <input type="text" inputmode="numeric" id="pkJ-${id}" placeholder="Terisi otomatis sesuai angsuran yang dipilih" oninput="pkJumlahUbah('${id}')" style="margin-bottom:8px">
+      <label class="small" style="margin:0 0 4px;display:block">Foto bukti pembayaran (opsional)</label>
+      <input type="file" accept="image/*" onchange="pkBayarPilih('${id}', this)" style="margin-bottom:6px">
+      <div id="pkBW-${id}" style="display:${pkBayarFoto[p.id] ? 'block' : 'none'};margin-bottom:8px">
+        <img id="pkBP-${id}" alt="Bukti pembayaran" ${pkBayarFoto[p.id] ? 'src="' + pkBayarFoto[p.id] + '"' : ''} style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid #b9d2f0"><br>
+        <a href="#" class="small" onclick="pkBayarHapusFoto('${id}');return false" style="color:#c0392b">Hapus foto</a>
+      </div>
+      <label class="small" style="margin:0">Catatan (opsional)</label>
+      <textarea id="pkN-${id}" rows="2" maxlength="300" placeholder="Mis. dibayar tunai / transfer lewat WA, infaq, dll." style="margin-bottom:8px"></textarea>
+      <button class="btn" style="background:#0f766e;padding:12px;font-size:14px" onclick="pkSimpanBayar('${id}')">💾 Simpan pembayaran</button>
+    </div>`;
+  const rwy = (p.pembayaran || []).slice().reverse().map(x => `<div style="border-top:1px solid #d6e6f8;padding:6px 0">
+      <b>Ke-${x.kes.join(', ')}</b> • ${pkTgl(x.tgl)} • ${pkRp(x.jumlah)}${x.jumlah !== x.wajib ? ' <span style="color:#b45309">(tagihan ' + pkRp(x.wajib) + ')</span>' : ''}<br>
+      <span class="small">oleh ${esc(x.oleh)}${x.catatan ? ' — “' + esc(x.catatan) + '”' : ''}</span>
+      ${x.adaBukti ? ` <a href="#" class="small" onclick="pkLihatBuktiBayar('${id}',${x.i});return false">📎 Lihat bukti</a><div id="bb-${id}-${x.i}"></div>` : ''}</div>`).join('');
+  return `<div class="ok" style="background:#fff;margin-bottom:12px${telat ? ';border-color:#e74c3c' : ''}" id="pj-${esc(p.id)}" data-cari="${esc((p.nama + ' ' + p.id).toLowerCase())}">
     ${pkBadge(p.jenis)}<b>${esc(p.nama)}</b> <span class="small">(${esc(p.id)})</span>${telat ? ' <span style="color:#c0392b;font-weight:800">⚠️ TERLAMBAT</span>' : ''}<br>
     <span class="small">${pkRp(p.nominal)} / ${p.jenis === 'KASBON' ? '30 hari' : p.tenor + ' bln'} • angsuran ${pkRp(p.angsuran)}</span>
     <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
@@ -296,6 +315,7 @@ function pkPinjamanKartu(p){
     ${p.adaBuktiCair ? `<div style="margin-top:8px"><button class="btn" style="padding:10px;font-size:13px;background:#6b7f99" onclick="pkLihatBuktiCair('${esc(p.id)}')">🧾 Lihat bukti transfer pencairan</button><div id="bc-${esc(p.id)}"></div></div>` : ''}
     <details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">Jadwal angsuran</summary>
       <table class="small" style="margin-top:6px;border-collapse:collapse"><tr style="color:#5a7aa0"><td>Ke</td><td>Jatuh tempo</td><td>Jumlah</td><td>Status</td></tr>${baris}</table>
+      ${rwy ? '<div class="small" style="margin-top:10px"><b>Riwayat pencatatan</b>' + rwy + '</div>' : ''}
       ${pkBisaCatat && p.lunas > 0 ? `<button class="btn" style="margin-top:8px;padding:8px;font-size:13px;background:#6b7f99" onclick="pkBatalBayar('${esc(p.id)}')">↩ Batalkan pembayaran terakhir (salah input)</button>` : ''}
     </details></div>`;
 }
@@ -309,8 +329,55 @@ async function pkKirimAng(body, konfirmasi){
   }catch(e){ alert('Gagal terhubung ke server.'); }
   pkMuat();
 }
-function pkBayar(id){ const t = $('pkT-' + id).value; pkKirimAng({a:'bayar', id, tgl:t}, 'Catat angsuran pengajuan ' + id + ' lunas pada ' + pkTgl(t) + '?'); }
-function pkLunasi(id, sisa){ const t = $('pkT-' + id).value; pkKirimAng({a:'bayar', id, tgl:t, mode:'semua'}, 'LUNASI SEMUA sisa angsuran (' + pkRp(sisa) + ') pengajuan ' + id + ' pada ' + pkTgl(t) + '?'); }
+const pkPanelBuka = {}, pkBayarFoto = {};
+function pkPanel(id){ const e = $('pkP-' + id); if(!e) return; const b = e.style.display === 'none'; e.style.display = b ? 'block' : 'none'; pkPanelBuka[id] = b; }
+function pkHitung(id){ // isi otomatis jumlah = total angsuran terpilih (selama belum diubah manual)
+  const j = $('pkJ-' + id); if(j.dataset.manual) return;
+  const t = Array.from(document.querySelectorAll('.pkK-' + id + ':checked')).reduce((a, c) => a + (+c.dataset.nom || 0), 0);
+  j.value = t ? fmtMoney(String(t)) : '';
+}
+function pkJumlahUbah(id){ const j = $('pkJ-' + id); j.value = fmtMoney(j.value); j.dataset.manual = j.value ? '1' : ''; if(!j.value) pkHitung(id); }
+async function pkBayarPilih(id, input){
+  const f = input.files && input.files[0]; if(!f) return;
+  try{
+    pkBayarFoto[id] = await pkKompres(f);
+    $('pkBP-' + id).src = pkBayarFoto[id]; $('pkBW-' + id).style.display = 'block';
+  }catch(e){ alert(e.message); }
+  input.value = '';
+}
+function pkBayarHapusFoto(id){ delete pkBayarFoto[id]; $('pkBW-' + id).style.display = 'none'; $('pkBP-' + id).removeAttribute('src'); }
+async function pkSimpanBayar(id){
+  const kes = Array.from(document.querySelectorAll('.pkK-' + id + ':checked')).map(c => +c.value);
+  if(!kes.length){ alert('Pilih dulu angsuran yang dibayar.'); return; }
+  const tgl = $('pkT-' + id).value; if(!tgl){ alert('Isi tanggal pembayaran.'); return; }
+  const jumlah = parseInt(onlyDigits($('pkJ-' + id).value) || '0', 10); if(!jumlah){ alert('Isi jumlah uang yang diterima.'); return; }
+  const catatan = $('pkN-' + id).value.trim(), foto = pkBayarFoto[id] || '';
+  if(!await dialogKonfirmasi('Tandai LUNAS angsuran ke-' + kes.join(', ') + ' pengajuan ' + id + '\nTanggal: ' + pkTgl(tgl) + '\nJumlah: ' + pkRp(jumlah) + (foto ? '\nDengan foto bukti.' : '') + '\n\nLanjutkan?')) return;
+  document.querySelectorAll('#pj-' + id + ' button').forEach(b => b.disabled = true);
+  try{
+    const r = await pkApi({a:'bayar', token:pkToken, id, kes, tgl, jumlah, catatan, foto});
+    if(r.expired){ pkExpired(); return; }
+    if(r.ok){ delete pkBayarFoto[id]; delete pkPanelBuka[id]; }
+    alert(r.ok ? r.msg : '❌ ' + r.msg);
+  }catch(e){ alert('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.'); }
+  pkMuat();
+}
+async function pkLihatBuktiBayar(id, i){
+  const box = $('bb-' + id + '-' + i); if(!box) return; box.innerHTML = '<span class="small">Memuat foto...</span>';
+  try{
+    const r = await pkApi({a:'bukti_bayar', token:pkToken, id, i});
+    if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
+    const img = document.createElement('img'); img.src = r.data; img.alt = 'Bukti pembayaran';
+    img.style.cssText = 'max-width:100%;border-radius:10px;margin-top:6px;border:1px solid #b9d2f0';
+    box.innerHTML = ''; box.appendChild(img);
+  }catch(e){ box.innerHTML = '<div class="err">Gagal memuat foto.</div>'; }
+}
+function pkCari(){ // saring kartu pinjaman berjalan menurut nama / nomor pengajuan
+  const q = ($('pkCari') ? $('pkCari').value : '').trim().toLowerCase(); let n = 0;
+  document.querySelectorAll('#pkPinjaman [data-cari]').forEach(e => { const ok = !q || e.dataset.cari.indexOf(q) >= 0; e.style.display = ok ? '' : 'none'; if(ok) n++; });
+  const k = $('pkCariInfo'); if(k) k.innerText = q ? (n ? n + ' pinjaman ditemukan' : 'Tidak ada peminjam dengan nama tersebut.') : '';
+}
 function pkBatalBayar(id){ pkKirimAng({a:'batal_bayar', id}, 'Batalkan pembayaran angsuran terakhir yang tercatat untuk ' + id + '?'); }
 
 /* --- laporan pembayaran dari anggota: lihat bukti, verifikasi --- */
