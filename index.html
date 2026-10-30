@@ -670,11 +670,13 @@ body.kartu-open{overflow:hidden}
         <div class="stt" style="margin:8px 0 0"><div><b id="kasMasukBln" style="color:#166534">Rp 0</b><span class="small">Kas masuk bulan dipilih</span></div><div><b id="kasKeluarBln" style="color:#b91c1c">Rp 0</b><span class="small">Kas keluar bulan dipilih</span></div></div>
         <div id="kasBanner"></div><label style="margin-top:6px">Bulan</label><input type="month" id="kasBulan" onchange="kasMuat()">
       </div>
+      <div class="card hidden" id="kasKbBox"><b>🤝 Kasbon Pengelola belum kembali</b><div id="kasKbIsi" style="margin-top:6px"></div></div>
       <div class="pktabs"><button id="kasTabBtnM" class="on" onclick="kasTab('MASUK')">⬇ Kas Masuk</button><button id="kasTabBtnK" onclick="kasTab('KELUAR')">⬆ Kas Keluar</button></div>
       <div class="card hidden" id="kasForm">
         <b id="kasFormJudul" style="display:block">Catat Kas Masuk</b>
-        <label>Kategori</label><select id="kasKat"></select>
+        <label>Kategori</label><select id="kasKat" onchange="kasKatUbah()"></select>
         <label>Tanggal</label><input type="date" id="kasTgl">
+        <div id="kasNamaWrap" class="hidden"><label>Nama pengelola / peminjam <span class="small" style="font-weight:400">(wajib untuk kasbon pengelola)</span></label><input id="kasNama" maxlength="60" placeholder="Contoh: Akhmad Sofyan"></div>
         <label>Jumlah (Rp)</label><input id="kasJml" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 250.000">
         <label id="kasKetLbl">Keterangan (opsional)</label><input id="kasKet" maxlength="200" placeholder="Contoh: Premi asuransi Oktober">
         <button class="btn" id="kasBtn" onclick="kasSimpan()" style="margin-top:10px">Simpan</button>

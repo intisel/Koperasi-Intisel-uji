@@ -23,17 +23,22 @@ function kasPengisian(){ // form input (hanya Ketua & Bendahara)
   const m = kasJenis === 'MASUK', kat = m ? r.katMasuk : r.katKeluar, lama = $('kasKat').value;
   $('kasFormJudul').innerText = m ? '⬇ Catat Kas Masuk' : '⬆ Catat Kas Keluar';
   $('kasKat').innerHTML = kat.filter(x => !(m && x === 'Saldo awal' && r.saldoAwalAda)).map(k => `<option>${esc(k)}</option>`).join(''); if(kat.indexOf(lama) >= 0) $('kasKat').value = lama;
-  $('kasKetLbl').innerText = m ? 'Keterangan (wajib bila "Lainnya")' : 'Keterangan (wajib bila "Lainnya", mis. rapat, fotokopi, bensin)';
+  $('kasKetLbl').innerText = m ? 'Keterangan (wajib bila "Lainnya")' : 'Keterangan (wajib bila "Lainnya")';
   if(!$('kasTgl').value) $('kasTgl').value = r.hariIni; $('kasTgl').max = r.hariIni;
+  kasKatUbah();
 }
+function kasKatUbah(){ const r = kasData; $('kasNamaWrap').classList.toggle('hidden', !(r && r.katNama.indexOf($('kasKat').value) >= 0)); }
 function kasRender(){
   const r = kasData; if(!r) return;
+  const kb = r.kasbonPengelola || [], tk = kb.reduce((t, x) => t + x.sisa, 0);
+  $('kasKbBox').classList.toggle('hidden', !kb.length);
+  $('kasKbIsi').innerHTML = kb.map(x => `<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #d6e6f8"><span>${esc(x.nama)}<br><span class="small">keluar ${pkRp(x.keluar)} • kembali ${pkRp(x.kembali)}</span></span><b style="color:#b45309">${pkRp(x.sisa)}</b></div>`).join('') + `<div style="display:flex;justify-content:space-between;padding-top:6px"><b>Total belum kembali</b><b>${pkRp(tk)}</b></div>`;
   $('kasSaldo').innerText = pkRp(r.saldo); $('kasSaldo').style.color = r.saldo < 0 ? '#b91c1c' : '#134e8a';
   $('kasMasukBln').innerText = pkRp(r.masuk); $('kasKeluarBln').innerText = pkRp(r.keluar);
   const m = kasJenis === 'MASUK', daftar = r.baris.filter(x => x.jenis === kasJenis), tot = daftar.reduce((t, x) => t + x.jumlah, 0), ym = $('kasBulan').value;
   $('kasDaftarJudul').innerText = (m ? 'Daftar Kas Masuk' : 'Daftar Kas Keluar') + ' • ' + ym.split('-').reverse().join('/');
-  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima. <b>Manual</b> (Ketua/Bendahara): asuransi, bunga, denda, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman yang ditandai sudah dicairkan. <b>Manual</b> (Ketua/Bendahara): ATK, transport, konsumsi, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
-  const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
+  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima. <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, bunga bank, pengembalian kasbon pengelola, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan. <b>Manual</b> (Ketua/Bendahara): sumbangan, admin bank &amp; pajak, kasbon pengelola (talangan), operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
+  const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
     <div class="small">${pkTgl(x.tgl)}${x.ket ? ' • ' + esc(x.ket) : ''}${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
     ${r.bisaInput && !x.otomatis ? `<span class="back-link" style="margin:4px 0 0" onclick="kasBatalBuka('${esc(x.id)}')">✖ Batalkan</span><div id="kb_${esc(x.id)}" class="hidden" style="margin-top:6px"><input id="kba_${esc(x.id)}" maxlength="200" placeholder="Alasan pembatalan (wajib)"><button class="btn" style="margin-top:6px;padding:10px;font-size:14px;background:#b91c1c" onclick="kasBatal('${esc(x.id)}')">Batalkan Catatan</button></div>` : ''}</div>`;
   const bt = r.dibatalkan.filter(x => x.jenis === kasJenis);
@@ -41,16 +46,17 @@ function kasRender(){
     (bt.length ? `<details style="margin-top:10px"><summary class="small"><b>${bt.length} catatan dibatalkan</b></summary>${bt.map(x => `<div class="small" style="padding:6px 0;border-bottom:1px dashed #d6e6f8;color:#6b7f99"><s>${esc(x.kategori)} ${pkRp(x.jumlah)} • ${pkTgl(x.tgl)}</s><br>Dibatalkan oleh ${esc(x.batalOleh)}: “${esc(x.batalAlasan)}”</div>`).join('')}</details>` : '');
 }
 async function kasSimpan(){
-  const kat = $('kasKat').value, jumlah = moneyVal('kasJml'), ket = $('kasKet').value.trim();
+  const kat = $('kasKat').value, jumlah = moneyVal('kasJml'), ket = $('kasKet').value.trim(), nama = $('kasNama').value.trim();
+  if(kasData.katNama.indexOf(kat) >= 0 && nama.length < 2){ alert('Isi nama pengelola/peminjam untuk kategori "' + kat + '".'); $('kasNama').focus(); return; }
   if(!(jumlah > 0)){ alert('Isi jumlah dengan benar.'); return; }
   if(kat === 'Lainnya' && ket.length < 3){ alert('Kategori "Lainnya": isi keterangan.'); $('kasKet').focus(); return; }
   if(!await dialogKonfirmasi((kasJenis === 'MASUK' ? 'Catat KAS MASUK ' : 'Catat KAS KELUAR ') + pkRp(jumlah) + ' (' + kat + ') tanggal ' + pkTgl($('kasTgl').value) + '?')) return;
   const b = $('kasBtn'); b.disabled = true; b.innerText = 'Menyimpan...';
   try{
-    const r = await pkApi({a:'kas_simpan', token:pkToken, jenis:kasJenis, kategori:kat, tgl:$('kasTgl').value, jumlah, ket});
+    const r = await pkApi({a:'kas_simpan', token:pkToken, jenis:kasJenis, kategori:kat, tgl:$('kasTgl').value, jumlah, ket, nama});
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ alert(r.msg); }
-    else { alert('✅ ' + r.msg); $('kasJml').value = ''; $('kasKet').value = ''; await kasMuat(); }
+    else { alert('✅ ' + r.msg); $('kasJml').value = ''; $('kasKet').value = ''; $('kasNama').value = ''; await kasMuat(); }
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
   finally{ b.disabled = false; b.innerText = 'Simpan'; }
 }
