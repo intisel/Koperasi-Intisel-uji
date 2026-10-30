@@ -562,29 +562,47 @@ body.kartu-open{overflow:hidden}
     </div>
     <!-- MENU UTAMA PENGURUS -->
     <div class="pkv" id="pkvMenu">
-      <style>.mgrup{margin-top:14px}.mgrup:first-child{margin-top:4px}.mhead{display:flex;align-items:center;gap:8px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:#fff;background:#134e8a;border-radius:10px;padding:8px 12px;margin:0 0 2px}.mhead i{font-style:normal;background:#ffdd00;color:#0d3b6e;border-radius:99px;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}.mtile.soon{opacity:.6;background:#f3f6fa}</style>
+      <style>.mtile.big{padding:22px 8px}.mtile.big .ic{font-size:44px}.mtile.big b{font-size:15px;margin:8px 0 4px}.mtile.big .pbadge{top:10px;right:12px;font-size:12px;padding:2px 8px}.mtile.soon{opacity:.6;background:#f3f6fa}.grupHead{display:flex;align-items:center;gap:10px}.grupHead .back-link{margin:0}</style>
       <div class="card"><b>Menu Pengurus</b>
-        <div class="mgrup"><div class="mhead"><i>1</i>ADMINISTRASI PINJAMAN</div><div class="mgrid" style="margin-top:8px">
+        <div class="mgrid">
+          <button class="mtile big" onclick="go('pengurus-g1')"><span class="pbadge" id="pbG1"></span><span class="ic">📋</span><b>Administrasi Pinjaman</b><span class="sub">Validasi, pencairan &amp; pembayaran angsuran</span></button>
+          <button class="mtile big" onclick="go('pengurus-g2')"><span class="ic">🏦</span><b>Keuangan Koperasi</b><span class="sub">Kas, budget pinjaman &amp; SHU</span></button>
+          <button class="mtile big" onclick="go('pengurus-g3')"><span class="ic">📊</span><b>Monitoring &amp; Laporan</b><span class="sub">Dasbor, grafik &amp; ekspor</span></button>
+          <button class="mtile big" onclick="go('pengurus-g4')"><span class="ic">⚙️</span><b>Informasi &amp; Sistem</b><span class="sub">Anggota, lokasi, pengumuman &amp; panduan</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="pkv hidden" id="pkvG1">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>📋 Administrasi Pinjaman</b></div>
+        <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-validasi')"><span class="pbadge" id="pbValidasi"></span><span class="ic">✅</span><b>Validasi Pinjaman</b><span class="sub">Tinjau, setujui, atau tolak pengajuan</span></button>
           <button class="mtile" onclick="go('pengurus-cair')"><span class="pbadge" id="pbCair"></span><span class="ic">💸</span><b>Pencairan Dana</b><span class="sub">Pinjaman disetujui, siap dicairkan</span></button>
           <button class="mtile wide" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">🧾</span><b>Pembayaran Angsuran</b><span class="sub">Pembayaran • Pinjaman • Keringanan</span></button>
         </div></div>
-        <div class="mgrup"><div class="mhead"><i>2</i>KEUANGAN KOPERASI</div><div class="mgrid" style="margin-top:8px">
+    </div>
+    <div class="pkv hidden" id="pkvG2">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>🏦 Keuangan Koperasi</b></div>
+        <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-kas')"><span class="ic">🏦</span><b>Kas Koperasi</b><span class="sub">Kas masuk, kas keluar &amp; saldo</span></button>
           <button class="mtile" onclick="go('pengurus-budget')"><span class="ic">💰</span><b>Budget Pinjaman</b><span class="sub">Kuota pencairan per bulan</span></button>
           <button class="mtile soon wide" onclick="alert('SHU &amp; Tutup Buku belum tersedia. Fitur ini akan ditambahkan nanti.')"><span class="ic">📒</span><b>SHU &amp; Tutup Buku</b><span class="sub">Segera hadir</span></button>
         </div></div>
-        <div class="mgrup"><div class="mhead"><i>3</i>MONITORING &amp; LAPORAN</div><div class="mgrid" style="margin-top:8px">
+    </div>
+    <div class="pkv hidden" id="pkvG3">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>📊 Monitoring &amp; Laporan</b></div>
+        <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
           <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Laporan pinjaman &amp; laporan kas</span></button>
         </div></div>
-        <div class="mgrup"><div class="mhead"><i>4</i>INFORMASI &amp; SISTEM</div><div class="mgrid" style="margin-top:8px">
+    </div>
+    <div class="pkv hidden" id="pkvG4">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>⚙️ Informasi &amp; Sistem</b></div>
+        <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
           <button class="mtile hidden" id="tileLokasi" onclick="go('pengurus-lokasi')"><span class="ic">📍</span><b>Lokasi</b><span class="sub">Lokasi saat pengajuan &amp; bukti bayar</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
         </div></div>
-      </div>
     </div>
     <div class="pkv hidden" id="pkvValidasi">
       <div class="card"><b>✅ Validasi Pinjaman</b><p class="small" style="margin:2px 0 8px">Tinjau, setujui, atau tolak pengajuan yang menunggu keputusan Anda.</p><div id="pkMenunggu"></div></div>
@@ -766,8 +784,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2,'pengurus-budget':2,'pengurus-kas':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-statistik':3,'pengurus-anggota':3,'pengurus-laporan':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -815,7 +833,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0) go(start);
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-budget':'g2','pengurus-statistik':'g3','pengurus-laporan':'g3','pengurus-anggota':'g4','pengurus-lokasi':'g4','pengurus-info':'g4'};
+      if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }
 });

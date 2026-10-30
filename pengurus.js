@@ -33,7 +33,7 @@ function pengurusRender(name){
     else pkMuat();
   }
 }
-const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi', 'pengurus-budget':'pkvBudget', 'pengurus-kas':'pkvKas'};
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-statistik':'pkvStatistik', 'pengurus-anggota':'pkvAnggota', 'pengurus-laporan':'pkvLaporan', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi', 'pengurus-budget':'pkvBudget', 'pengurus-kas':'pkvKas', 'pengurus-g1':'pkvG1', 'pengurus-g2':'pkvG2', 'pengurus-g3':'pkvG3', 'pengurus-g4':'pkvG4'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
@@ -165,7 +165,10 @@ async function pkMuat(){
 let pkBayarTabSet = false, pkLapBase = 0;
 function pkTabNotif(k, n){ const b = $('byTabBtn' + k); if(b) b.classList.toggle('notif', n > 0); } // tab bermerah bila ada yang perlu ditindak
 function pkBayarTab(t){ ['V','P','K'].forEach(k => { $('byTab' + k).classList.toggle('hidden', t !== k); $('byTabBtn' + k).classList.toggle('on', t === k); }); }
-function pkBadge2(id, n){ const e = $(id); e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; }
+function pkBadge2(id, n){ const e = $(id); e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; if(id === 'pbValidasi' || id === 'pbCair' || id === 'pbBerjalan') pkBadgeGrup(); }
+function pkBadgeGrup(){ // angka merah di tile Administrasi Pinjaman = jumlah angka di submenunya
+  const t = ['pbValidasi', 'pbCair', 'pbBerjalan'].reduce((s, i) => s + (parseInt($(i).innerText, 10) || 0), 0), g = $('pbG1'); g.innerText = t; g.style.display = t > 0 ? 'block' : 'none';
+}
 function pkVotes(p){
   const k = x => `<div>${pkIc(x.v)} ${esc(x.nama)}${x.jabatan ? ' <span class="small">(' + esc(x.jabatan) + ')</span>' : ''}</div>` + (x.a ? `<div style="margin:0 0 4px 22px"><i>“${esc(x.a)}”</i></div>` : '');
   return p.pengurus.map(k).join('') + (p.status !== 'REVIEW_PENGURUS' ? k(p.pimpinan) : '');
