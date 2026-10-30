@@ -1,10 +1,12 @@
 /* ===== KAS KOPERASI (menu Keuangan Koperasi) + LAPORAN KAS ===== */
-let kasJenis = 'MASUK', kasData = null;
+let kasJenis = 'MASUK', kasData = null, kasFotoData = '';
 const kasBlnIni = () => (pkHariIni || isoLokal(new Date())).slice(0, 7);
 function kasRentang(ym){ const [y, m] = ym.split('-').map(Number); return {dari: ym + '-01', sampai: ym + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0')}; }
 function kasInit(){ if(!$('kasBulan').value) $('kasBulan').value = kasBlnIni(); kasMuat(); }
 function kasTab(j){
   kasJenis = j; $('kasTabBtnM').classList.toggle('on', j === 'MASUK'); $('kasTabBtnK').classList.toggle('on', j === 'KELUAR');
+  ['kasForm', 'kasDaftarCard'].forEach(i => { $(i).classList.toggle('kas-m', j === 'MASUK'); $(i).classList.toggle('kas-k', j === 'KELUAR'); });
+  $('kasBtn').style.background = j === 'MASUK' ? '#16a34a' : '#dc2626';
   kasPengisian(); kasRender();
 }
 async function kasMuat(){
@@ -25,9 +27,13 @@ function kasPengisian(){ // form input (hanya Ketua & Bendahara)
   $('kasKat').innerHTML = kat.filter(x => !(m && x === 'Saldo awal' && r.saldoAwalAda)).map(k => `<option>${esc(k)}</option>`).join(''); if(kat.indexOf(lama) >= 0) $('kasKat').value = lama;
   $('kasKetLbl').innerText = m ? 'Keterangan (wajib bila "Lainnya")' : 'Keterangan (wajib bila "Lainnya")';
   if(!$('kasTgl').value) $('kasTgl').value = r.hariIni; $('kasTgl').max = r.hariIni;
+  $('kasBtn').style.background = kasJenis === 'MASUK' ? '#16a34a' : '#dc2626';
   kasKatUbah();
 }
-function kasKatUbah(){ const r = kasData; $('kasNamaWrap').classList.toggle('hidden', !(r && r.katNama.indexOf($('kasKat').value) >= 0)); }
+function kasFotoPilih(inp){ const f = inp.files && inp.files[0]; if(!f) return; pkKompres(f).then(d => { kasFotoData = d; $('kasFotoImg').src = d; $('kasFotoInfo').innerText = 'Ukuran terkirim ±' + Math.round(d.length * 0.75 / 1024) + ' KB'; $('kasFotoPrev').style.display = 'block'; }).catch(e => alert(e.message)); inp.value = ''; }
+function kasFotoHapus(){ kasFotoData = ''; $('kasFotoPrev').style.display = 'none'; $('kasFotoImg').removeAttribute('src'); }
+async function kasLihatFoto(id){ const b = $('kf_' + id); if(!b) return; b.innerHTML = '<span class="small">Memuat foto...</span>'; try{ const r = await pkApi({a:'kas_foto', token:pkToken, kid:id}); if(r.expired){ pkExpired(); return; } if(!r.ok){ b.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; } b.innerHTML = `<img src="${r.data}" alt="Bukti" style="max-width:100%;border-radius:10px;margin-top:6px;border:1px solid #b9d2f0">`; }catch(e){ b.innerHTML = '<div class="err">Gagal memuat foto.</div>'; } }
+function kasKatUbah(){ $('kasFotoWrap').classList.toggle('hidden', $('kasKat').value === 'Saldo awal'); const r = kasData; $('kasNamaWrap').classList.toggle('hidden', !(r && r.katNama.indexOf($('kasKat').value) >= 0)); }
 function kasRender(){
   const r = kasData; if(!r) return;
   const kb = r.kasbonPengelola || [], tk = kb.reduce((t, x) => t + x.sisa, 0);
@@ -40,6 +46,7 @@ function kasRender(){
   $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima. <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, bunga bank, pengembalian kasbon pengelola, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan. <b>Manual</b> (Ketua/Bendahara): sumbangan, admin bank &amp; pajak, kasbon pengelola (talangan), operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
   const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
     <div class="small">${pkTgl(x.tgl)}${x.ket ? ' • ' + esc(x.ket) : ''}${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
+    ${x.foto ? `<span class="back-link" style="margin:4px 8px 0 0;display:inline-block" onclick="kasLihatFoto('${esc(x.id)}')">📷 Lihat foto bukti</span><div id="kf_${esc(x.id)}"></div>` : ''}
     ${r.bisaInput && !x.otomatis ? `<span class="back-link" style="margin:4px 0 0" onclick="kasBatalBuka('${esc(x.id)}')">✖ Batalkan</span><div id="kb_${esc(x.id)}" class="hidden" style="margin-top:6px"><input id="kba_${esc(x.id)}" maxlength="200" placeholder="Alasan pembatalan (wajib)"><button class="btn" style="margin-top:6px;padding:10px;font-size:14px;background:#b91c1c" onclick="kasBatal('${esc(x.id)}')">Batalkan Catatan</button></div>` : ''}</div>`;
   const bt = r.dibatalkan.filter(x => x.jenis === kasJenis);
   $('kasDaftar').innerHTML = (daftar.length ? daftar.map(kartu).join('') : '<p class="small">Belum ada catatan pada bulan ini.</p>') +
@@ -50,13 +57,14 @@ async function kasSimpan(){
   if(kasData.katNama.indexOf(kat) >= 0 && nama.length < 2){ alert('Isi nama pengelola/peminjam untuk kategori "' + kat + '".'); $('kasNama').focus(); return; }
   if(!(jumlah > 0)){ alert('Isi jumlah dengan benar.'); return; }
   if(kat === 'Lainnya' && ket.length < 3){ alert('Kategori "Lainnya": isi keterangan.'); $('kasKet').focus(); return; }
+  if(kat !== 'Saldo awal' && !kasFotoData){ alert('Foto bukti wajib dilampirkan.'); $('kasFoto').focus(); return; }
   if(!await dialogKonfirmasi((kasJenis === 'MASUK' ? 'Catat KAS MASUK ' : 'Catat KAS KELUAR ') + pkRp(jumlah) + ' (' + kat + ') tanggal ' + pkTgl($('kasTgl').value) + '?')) return;
   const b = $('kasBtn'); b.disabled = true; b.innerText = 'Menyimpan...';
   try{
-    const r = await pkApi({a:'kas_simpan', token:pkToken, jenis:kasJenis, kategori:kat, tgl:$('kasTgl').value, jumlah, ket, nama});
+    const r = await pkApi({a:'kas_simpan', token:pkToken, jenis:kasJenis, kategori:kat, tgl:$('kasTgl').value, jumlah, ket, nama, foto: kat === 'Saldo awal' ? '' : kasFotoData});
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ alert(r.msg); }
-    else { alert('✅ ' + r.msg); $('kasJml').value = ''; $('kasKet').value = ''; $('kasNama').value = ''; await kasMuat(); }
+    else { alert('✅ ' + r.msg); $('kasJml').value = ''; $('kasKet').value = ''; $('kasNama').value = ''; kasFotoHapus(); await kasMuat(); }
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
   finally{ b.disabled = false; b.innerText = 'Simpan'; }
 }
