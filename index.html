@@ -128,6 +128,7 @@ body.kartu-open{overflow:hidden}
 .pass-wrap{position:relative;display:flex;align-items:center}
 .pass-wrap input{padding-right:44px;margin-bottom:12px}
 .eye-btn{position:absolute;right:8px;top:50%;transform:translateY(-60%);background:none;border:none;font-size:20px;cursor:pointer;padding:6px;line-height:1}
+.kbpHit{display:block;width:100%;text-align:left;background:#fff;border:1px solid #b9d2f0;border-radius:10px;padding:9px 12px;margin-top:6px;font-size:15px;color:#0d3b6e;cursor:pointer}.kbpHit:active{background:#eef5ff}
 </style>
 </head>
 <body>
@@ -293,6 +294,7 @@ body.kartu-open{overflow:hidden}
     <div class="warn" id="mnStatus" style="display:none;margin-top:8px"></div>
     <div class="mgrid">
       <button class="mtile" id="tlKasbon" onclick="bukaMenu('vKasbon')"><span class="ic">💸</span><b>Pengajuan Kasbon</b><span class="sub" id="tlKasbonSub"></span></button>
+      <button class="mtile" id="tlTalangan" style="display:none" onclick="bukaMenu('vTalangan')"><span class="ic">🤝</span><b>Dana Talangan Operasional</b><span class="sub">Kasbon pengelola</span></button>
       <button class="mtile" id="tlKoperasi" onclick="bukaMenu('formPinjam')"><span class="ic">🏦</span><b>Pengajuan Koperasi</b><span class="sub" id="tlKoperasiSub"></span></button>
       <button class="mtile" onclick="bukaMenu('vApproval')"><span class="ic">📋</span><b>Status Approval</b><span class="sub" id="tlApprovalSub">Koperasi / Kasbon</span></button>
       <button class="mtile" onclick="bukaMenu('vBerjalan')"><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub" id="tlBerjalanSub"></span></button>
@@ -320,6 +322,20 @@ body.kartu-open{overflow:hidden}
       • Pencairan reguler tanggal 6; pencairan urgen maksimal 2 hari kerja.<br>
       • Kasbon: maksimal Rp 500.000, 30 hari (masa kerja &lt; 2 tahun).<br>
       • Pinjaman koperasi: masa kerja ≥ 2 tahun, masa tunggu 3 bulan setelah lunas.</div>
+  </div>
+
+  <!-- DANA TALANGAN OPERASIONAL (pengelola) -->
+  <div class="card view" id="vTalangan" style="display:none">
+    <b style="font-size:16px">🤝 Dana Talangan Operasional</b>
+    <div id="tlnSisa"></div>
+    <div class="warn" style="margin:8px 0">Khusus pengelola/managerial. Permintaan diputuskan langsung oleh <b>Pimpinan</b>; bila disetujui, Bendahara mencairkannya dan Anda diberi tahu.</div>
+    <label>Nominal (Rp)</label><input id="tlnNominal" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 5.000.000">
+    <label>Keperluan</label><textarea id="tlnKet" rows="3" maxlength="300" placeholder="Contoh: Dana operasional proyek Metro minggu ini"></textarea>
+    <label>Tanggal dana dibutuhkan</label><input type="date" id="tlnTglButuh">
+    <label>Perkiraan tanggal pembayaran (dikembalikan)</label><input type="date" id="tlnTglBayar">
+    <button class="btn" id="tlnBtn" onclick="tlnKirim()" style="margin-top:12px">Kirim Permintaan</button>
+    <div style="font-weight:800;margin:16px 0 4px">Permintaan Saya</div>
+    <div id="tlnList"></div>
   </div>
 
   <!-- KASBON -->
@@ -594,9 +610,11 @@ body.kartu-open{overflow:hidden}
         <div style="text-align:center;margin:10px 0 4px"><div class="small">Total belum dikembalikan</div><div id="kbpTotal" style="font-size:26px;font-weight:800;color:#b91c1c">Rp 0</div><div class="small" id="kbpJml"></div></div>
         <p class="small" style="margin:6px 0">Dicatat manual oleh Ketua/Bendahara. Peminjam harus sudah terdaftar di data Anggota. Pencatatan otomatis mengurangi / menambah saldo Kas Koperasi.</p>
       </div>
+      <div class="card hidden" id="kbpReqCard"><b>📝 Permintaan Dana Talangan</b><p class="small" style="margin:4px 0">Diajukan pengelola lewat aplikasi, diputuskan oleh Pimpinan, lalu dicairkan Bendahara.</p><div id="kbpReq"></div></div>
       <div class="card hidden kas-k" id="kbpForm">
         <div class="pktabs" style="margin:0 0 8px"><button id="kbpTabK" class="on" onclick="kbpTab('KELUAR')">⬆ Kasbon (keluar)</button><button id="kbpTabM" onclick="kbpTab('MASUK')">⬇ Pengembalian</button></div>
-        <label id="kbpOrangLbl">Peminjam</label><select id="kbpOrang"></select><div class="small" id="kbpKosong"></div>
+        <div id="kbpRegInfo" class="warn hidden" style="margin-bottom:8px"></div>
+        <label id="kbpOrangLbl">Peminjam</label><input id="kbpCari" type="text" autocomplete="off" placeholder="Ketik nama anggota..." oninput="kbpCariUbah()"><div id="kbpHasil"></div><div id="kbpTerpilih" class="ok hidden"></div><div class="small" id="kbpKosong"></div>
         <label>Tanggal</label><input type="date" id="kbpTgl">
         <label>Jumlah (Rp)</label><input id="kbpJml2" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 5.000.000">
         <label>Keterangan (opsional)</label><input id="kbpKet" maxlength="200" placeholder="Contoh: Talangan operasional">
@@ -808,8 +826,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -894,7 +912,7 @@ async function masukDenganToken(v,atoken){ // setelah PIN / OTP benar: ambil dat
      hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'Silakan masuk lagi')+'</div>';
      return;
    }
-   anggotaAktif={nik:v,atoken:atoken,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun};
+   anggotaAktif={nik:v,atoken:atoken,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun,pengelola:!!r.pengelola};
    sesiSimpan(v,atoken,r.nama); // sesi bertahan saat refresh + NIK diingat
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
@@ -1011,6 +1029,7 @@ function hitungAngsuran(){
 <script src="pinpad.js"></script>
 <script src="kas.js"></script>
 <script src="kbp.js"></script>
+<script src="talangan.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>

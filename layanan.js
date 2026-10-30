@@ -1,8 +1,8 @@
 // Layanan anggota: menu, kasbon, status approval, pinjaman berjalan, laporan pembayaran + foto bukti
 let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoData = '';
-const VIEW2ROUTE = {vKasbon:'anggota-kasbon', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vKontak:'anggota-kontak'};
-const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-kontak':'vKontak'};
-const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vKontak'];
+const VIEW2ROUTE = {vKasbon:'anggota-kasbon', vTalangan:'anggota-talangan', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vKontak:'anggota-kontak'};
+const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-talangan':'vTalangan', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-kontak':'vKontak'};
+const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vTalangan', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vKontak'];
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'💸 Disetujui - Menunggu Pencairan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v === 'Y' ? '✅' : v === 'N' ? '❌' : (selesai ? '➖' : '⏳');
@@ -34,6 +34,7 @@ const badgeJenis = j => j === 'KASBON' ? '<span class="badge" style="background:
 function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
   VIEWS.forEach(id => { const el = $(id); if(el) el.style.display = id === v ? 'block' : 'none'; });
   if(v === 'vKasbon') kbUpdate();
+  if(v === 'vTalangan') tlnMuat();
   if(v === 'vBayar') renderBayar();
   if(v === 'vKeringanan') renderKeringanan();
   if(v === 'vKontak') renderKontak();
@@ -191,6 +192,7 @@ function masukMenu(){
   const a = anggotaAktif, koperasiOk = !limitAktif.notEligible;
   fotoMuatAnggota();
   $('tlKoperasi').classList.toggle('off', !koperasiOk); $('tlKasbon').classList.toggle('off', koperasiOk);
+  const pg = !!a.pengelola; $('tlKasbon').style.display = pg ? 'none' : ''; $('tlTalangan').style.display = pg ? '' : 'none'; // pengelola: menu Kasbon diganti Dana Talangan
   $('tlKoperasiSub').innerText = koperasiOk ? 'Maks ' + rpf(limitAktif.maxNominal) + ' • ' + limitAktif.maxTenor + ' bln' : 'Khusus masa kerja ≥ 2 tahun';
   $('tlKasbonSub').innerText = koperasiOk ? 'Khusus masa kerja < 2 tahun' : 'Maks Rp 500.000 • 30 hari';
   profilBarIsi(a); inboxMuat();

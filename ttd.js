@@ -2,6 +2,8 @@
 let ttdResolve = null, ttdInk = 0, ttdMinX = 1e9, ttdMaxX = -1, ttdLast = null, ttdDrawing = false, ttdBusy = false;
 
 function janjiTeks(nama, jenis, nominal, tenor, infaq){ // sama persis dengan teks di server
+  if(jenis === 'TALANGAN') // tenor = tanggal perkiraan pembayaran (yyyy-MM-dd)
+    return `Saya, ${nama}, menerima dana talangan operasional sebesar ${rpf(nominal)} dari Koperasi Intisel dan berjanji mengembalikannya paling lambat pada tanggal ${String(tenor).split('-').reverse().join('/')}.`;
   if(jenis === 'KASBON')
     return `Saya, ${nama}, meminjam uang (kasbon) sebesar ${rpf(nominal)} untuk jangka waktu 30 hari, tanpa bunga, kepada Koperasi Intisel. Saya berjanji akan melunasinya tepat waktu sesuai tanggal jatuh tempo.`;
   return `Saya, ${nama}, meminjam uang sebesar ${rpf(nominal)} dengan tenor ${tenor} bulan${infaq > 0 ? ', dengan infaq sukarela ' + rpf(infaq) : ''}, tanpa bunga, kepada Koperasi Intisel. Saya berjanji akan selalu disiplin membayar angsuran tepat waktu, paling lambat tanggal 5 setiap bulannya.`;
