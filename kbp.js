@@ -66,7 +66,7 @@ async function kbpPutus(id, kep){
 const TLN_ST = {MENUNGGU_PIMPINAN:['Menunggu Pimpinan', '#dbeafe', '#134e8a'], DISETUJUI:['Disetujui — siap dicairkan', '#fef3c7', '#92400e'], DICAIRKAN:['Sudah dicairkan', '#dcfce7', '#166534'], DITOLAK:['Ditolak', '#fee2e2', '#991b1b']};
 function kbpRenderReq(){
   const r = kbpData, list = r.permintaan || []; $('kbpReqCard').classList.toggle('hidden', !list.length); if(!list.length) return;
-  $('kbpReq').innerHTML = list.map(p => {
+  const cd = r.cadangan; $('kbpReq').innerHTML = (cd ? `<div class="ok" style="margin:6px 0;display:flex;justify-content:space-between;gap:8px"><span>Dana talangan tersedia<br><span class="small">cadangan ${pkRp(cd.penuh)} • terpakai ${pkRp(cd.pakai)}</span></span><b>${pkRp(cd.sisa)}</b></div>` : '') + list.map(p => {
     const st = TLN_ST[p.status] || [p.status, '#eef5ff', '#134e8a'];
     return `<div style="border-bottom:1px solid #d6e6f8;padding:10px 0"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><b>${esc(p.nama)}</b><br><span class="small">No. ${esc(p.id)} • diajukan ${pkTgl(p.waktu.slice(0, 10))}</span></div><span class="badge" style="background:${st[1]};color:${st[2]}">${st[0]}</span></div>
       <div style="margin-top:6px"><b style="font-size:18px">${pkRp(p.nominal)}</b></div>

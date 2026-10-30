@@ -11,6 +11,7 @@ async function tlnMuat(){
     const t = $('tlnTglButuh'); t.min = r.hariIni; if(!t.value) t.value = r.hariIni;
     const b = $('tlnTglBayar'); b.min = r.hariIni;
     $('tlnSisa').innerHTML = r.sisa > 0 ? `<div class="warn" style="margin:8px 0">Dana talangan yang <b>belum Anda kembalikan: ${rpf(r.sisa)}</b>${r.sejak ? ' (sejak ' + tglf(r.sejak) + ')' : ''}.</div>` : '';
+    tlnBudgetTampil();
     const aktif = r.list.some(x => x.status === 'MENUNGGU_PIMPINAN');
     $('tlnBtn').disabled = aktif; $('tlnBtn').innerText = aktif ? 'Masih ada permintaan yang menunggu' : 'Kirim Permintaan';
     $('tlnList').innerHTML = r.list.length ? r.list.map(p => {
@@ -48,4 +49,11 @@ async function tlnBatal(id){
   if(!await dialogKonfirmasi('Batalkan permintaan ' + id + '?')) return;
   try{ const r = await apiPost({a:'tln_batal', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id}); alert((r.ok ? '✅ ' : '❌ ') + r.msg); await tlnMuat(); }
   catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+}
+
+function tlnBudgetTampil(){ // sisa dana talangan (cadangan) + peringatan bila nominal melebihi
+  const r = tlnData; if(!r || !r.cadangan) return;
+  const n = moneyVal('tlnNominal'), c = r.cadangan, lebih = n > c.sisa;
+  $('tlnBudget').innerHTML = `<div class="ok" style="margin:8px 0;display:flex;justify-content:space-between;gap:8px"><span>Dana talangan tersedia<br><span class="small">dari cadangan ${rpf(c.penuh)} • terpakai ${rpf(c.pakai)}</span></span><b style="font-size:18px">${rpf(c.sisa)}</b></div>` +
+    (n > 0 && lebih ? `<div class="warn" style="margin:0 0 8px">Nominal ${rpf(n)} melebihi dana talangan tersedia (${rpf(c.sisa)}). Permintaan tetap dapat diajukan, tetapi keputusan ada pada Pimpinan.</div>` : '');
 }

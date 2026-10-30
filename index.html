@@ -328,8 +328,9 @@ body.kartu-open{overflow:hidden}
   <div class="card view" id="vTalangan" style="display:none">
     <b style="font-size:16px">🤝 Dana Talangan Operasional</b>
     <div id="tlnSisa"></div>
+    <div id="tlnBudget"></div>
     <div class="warn" style="margin:8px 0">Khusus pengelola/managerial. Permintaan diputuskan langsung oleh <b>Pimpinan</b>; bila disetujui, Bendahara mencairkannya dan Anda diberi tahu.</div>
-    <label>Nominal (Rp)</label><input id="tlnNominal" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 5.000.000">
+    <label>Nominal (Rp)</label><input id="tlnNominal" type="text" inputmode="numeric" data-fmt="money" oninput="tlnBudgetTampil()" placeholder="Contoh: 5.000.000">
     <label>Keperluan</label><textarea id="tlnKet" rows="3" maxlength="300" placeholder="Contoh: Dana operasional proyek Metro minggu ini"></textarea>
     <label>Tanggal dana dibutuhkan</label><input type="date" id="tlnTglButuh">
     <label>Perkiraan tanggal pembayaran (dikembalikan)</label><input type="date" id="tlnTglBayar">
