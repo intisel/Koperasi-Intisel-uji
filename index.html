@@ -736,6 +736,16 @@ body.kartu-open{overflow:hidden}
         <button class="btn" id="kasBtn" onclick="kasSimpan()" style="margin-top:10px">Simpan</button>
         <div id="kasPesan" style="margin-top:8px"></div>
       </div>
+      <div class="card hidden" id="kasKorBox"><details><summary><b>🛠 Koreksi biaya &amp; bunga bank</b></summary>
+        <p class="small" style="margin:6px 0">Biaya admin, bunga, dan pajak bank dihitung otomatis tiap akhir bulan (perkiraan). Bila berbeda dengan mutasi rekening, koreksi di sini sesuai angka dari bank.</p>
+        <label>Bulan</label><select id="korBulan" onchange="korUbah()"></select>
+        <label>Komponen</label><select id="korKomp" onchange="korUbah()"><option value="ADMIN">Biaya admin bank (rekening + kartu)</option><option value="BUNGA">Bunga bank</option><option value="PAJAK">Pajak bunga</option></select>
+        <div id="korInfo" class="small" style="margin:4px 0 6px"></div>
+        <label>Jumlah sesuai mutasi bank (Rp)</label><input id="korJml" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 15.000 (boleh 0)">
+        <label>Alasan koreksi</label><input id="korAlasan" maxlength="200" placeholder="Contoh: sesuai mutasi rekening tgl 30">
+        <label>Foto bukti mutasi bank <span class="small" style="font-weight:400">(wajib)</span></label><input type="file" accept="image/*" onchange="korFotoPilih(this)">
+        <div id="korFotoPrev" style="display:none;margin:6px 0;text-align:center"><img id="korFotoImg" alt="Pratinjau" style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid #b9d2f0"><br><a href="#" class="small" style="color:#c0392b" onclick="korFotoHapus();return false">Hapus foto</a></div>
+        <button class="btn" id="korBtn" onclick="korSimpan()" style="margin-top:8px">Simpan Koreksi</button></details></div>
       <div class="card kas-m" id="kasDaftarCard"><b id="kasDaftarJudul">Daftar Kas Masuk</b><p class="small" id="kasCatatan" style="margin:2px 0 6px"></p><div id="kasDaftar"><p class="small">Memuat...</p></div></div>
     </div>
   </div>

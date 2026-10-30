@@ -28,7 +28,40 @@ function kasPengisian(){ // form input (hanya Ketua & Bendahara)
   $('kasKetLbl').innerText = m ? 'Keterangan (wajib bila "Lainnya")' : 'Keterangan (wajib bila "Lainnya")';
   if(!$('kasTgl').value) $('kasTgl').value = r.hariIni; $('kasTgl').max = r.hariIni;
   $('kasBtn').style.background = kasJenis === 'MASUK' ? '#16a34a' : '#dc2626';
+  kasKorSiap();
   kasKatUbah();
+}
+let korFotoData = '';
+function kasKorSiap(){
+  const r = kasData, box = $('kasKorBox'), bb = r.bankBulan || [];
+  box.classList.toggle('hidden', !r.bisaInput || !bb.length);
+  const lama = $('korBulan').value;
+  $('korBulan').innerHTML = bb.map(b => `<option value="${esc(b.ym)}">${esc(b.label)}</option>`).join(''); if(bb.some(b => b.ym === lama)) $('korBulan').value = lama;
+  korUbah();
+}
+function korUbah(){
+  const r = kasData; if(!r) return; const b = (r.bankBulan || []).find(x => x.ym === $('korBulan').value), k = $('korKomp').value;
+  $('korInfo').innerHTML = b ? 'Perkiraan otomatis ' + esc(b.label) + ': <b>' + pkRp(b[k]) + '</b>' : '';
+}
+function korIsi(ym, komp){ $('kasKorBox').querySelector('details').open = true; if(Array.from($('korBulan').options).some(o => o.value === ym)) $('korBulan').value = ym; $('korKomp').value = komp; korUbah(); $('kasKorBox').scrollIntoView({behavior:'smooth', block:'center'}); $('korJml').focus(); }
+function korFotoPilih(inp){ const f = inp.files && inp.files[0]; if(!f) return; pkKompres(f).then(d => { korFotoData = d; $('korFotoImg').src = d; $('korFotoPrev').style.display = 'block'; }).catch(e => alert(e.message)); inp.value = ''; }
+function korFotoHapus(){ korFotoData = ''; $('korFotoPrev').style.display = 'none'; $('korFotoImg').removeAttribute('src'); }
+async function korSimpan(){
+  const bulan = $('korBulan').value, komp = $('korKomp').value, jml = $('korJml').value.trim() === '' ? -1 : moneyVal('korJml'), alasan = $('korAlasan').value.trim();
+  if(!bulan){ alert('Pilih bulan yang dikoreksi.'); return; }
+  if(!(jml >= 0)){ alert('Isi jumlah sesuai mutasi bank (boleh 0).'); $('korJml').focus(); return; }
+  if(alasan.length < 3){ alert('Alasan koreksi wajib diisi.'); $('korAlasan').focus(); return; }
+  if(!korFotoData){ alert('Foto bukti mutasi bank wajib dilampirkan.'); return; }
+  const b = (kasData.bankBulan || []).find(x => x.ym === bulan), nm = {ADMIN:'Biaya admin bank', BUNGA:'Bunga bank', PAJAK:'Pajak bunga'}[komp];
+  if(!await dialogKonfirmasi('Koreksi ' + nm + ' ' + (b ? b.label : bulan) + ' menjadi ' + pkRp(jml) + '?\n(Perkiraan otomatis: ' + pkRp(b ? b[komp] : 0) + ')\n\nSaldo kas akan disesuaikan.')) return;
+  const bt = $('korBtn'); bt.disabled = true; bt.innerText = 'Menyimpan...';
+  try{
+    const r = await pkApi({a:'kas_koreksi', token:pkToken, bulan, komp, jumlah:jml, alasan, foto:korFotoData});
+    if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ alert(r.msg); }
+    else { alert('✅ ' + r.msg); $('korJml').value = ''; $('korAlasan').value = ''; korFotoHapus(); $('kasKorBox').querySelector('details').open = false; $('kasBulan').value = bulan; await kasMuat(); }
+  }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+  finally{ bt.disabled = false; bt.innerText = 'Simpan Koreksi'; }
 }
 function kasFotoPilih(inp){ const f = inp.files && inp.files[0]; if(!f) return; pkKompres(f).then(d => { kasFotoData = d; $('kasFotoImg').src = d; $('kasFotoInfo').innerText = 'Ukuran terkirim ±' + Math.round(d.length * 0.75 / 1024) + ' KB'; $('kasFotoPrev').style.display = 'block'; }).catch(e => alert(e.message)); inp.value = ''; }
 function kasFotoHapus(){ kasFotoData = ''; $('kasFotoPrev').style.display = 'none'; $('kasFotoImg').removeAttribute('src'); }
@@ -43,12 +76,13 @@ function kasRender(){
   $('kasMasukBln').innerText = pkRp(r.masuk); $('kasKeluarBln').innerText = pkRp(r.keluar);
   const m = kasJenis === 'MASUK', daftar = r.baris.filter(x => x.jenis === kasJenis), tot = daftar.reduce((t, x) => t + x.jumlah, 0), ym = $('kasBulan').value;
   $('kasDaftarJudul').innerText = (m ? 'Daftar Kas Masuk' : 'Daftar Kas Keluar') + ' • ' + ym.split('-').reverse().join('/');
-  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima, serta bunga bank (bila saldo di atas Rp 50 juta). <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, bunga bank, pengembalian kasbon pengelola, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan, serta biaya admin &amp; pajak bank tiap akhir bulan. <b>Manual</b> (Ketua/Bendahara): sumbangan, admin bank &amp; pajak, kasbon pengelola (talangan), operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
-  const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
+  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima, serta bunga bank (bila saldo di atas Rp 50 juta; dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, pengembalian kasbon pengelola, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan, serta biaya admin &amp; pajak bank tiap akhir bulan (dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): sumbangan, biaya bank lainnya, kasbon pengelola (talangan), operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
+  const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.koreksi ? ' <span class="badge" style="background:#fef3c7;color:#92400e">dikoreksi</span>' : x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
     <div class="small">${pkTgl(x.tgl)}${x.ket ? ' • ' + esc(x.ket) : ''}${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
+    ${r.bisaInput && x.otomatis && x.komp && !x.koreksi ? `<span class="back-link" style="margin:4px 8px 0 0;display:inline-block" onclick="korIsi('${esc(x.bulan)}','${esc(x.komp)}')">✏️ Koreksi sesuai mutasi bank</span>` : ''}
     ${x.foto ? `<span class="back-link" style="margin:4px 8px 0 0;display:inline-block" onclick="kasLihatFoto('${esc(x.id)}')">📷 Lihat foto bukti</span><div id="kf_${esc(x.id)}"></div>` : ''}
     ${r.bisaInput && !x.otomatis && !x.bisaBatal ? '<div class="small" style="margin-top:4px;color:#6b7f99">🔒 Sudah lebih dari 3 hari — pembatalan hanya oleh Ketua.</div>' : ''}
-    ${x.bisaBatal ? `<span class="back-link" style="margin:4px 0 0" onclick="kasBatalBuka('${esc(x.id)}')">✖ Batalkan</span><div id="kb_${esc(x.id)}" class="hidden" style="margin-top:6px"><input id="kba_${esc(x.id)}" maxlength="200" placeholder="Alasan pembatalan (wajib)"><button class="btn" style="margin-top:6px;padding:10px;font-size:14px;background:#b91c1c" onclick="kasBatal('${esc(x.id)}')">Batalkan Catatan</button></div>` : ''}</div>`;
+    ${x.bisaBatal ? `<span class="back-link" style="margin:4px 0 0" onclick="kasBatalBuka('${esc(x.id)}')">${x.koreksi ? '↩ Batalkan koreksi' : '✖ Batalkan'}</span><div id="kb_${esc(x.id)}" class="hidden" style="margin-top:6px"><input id="kba_${esc(x.id)}" maxlength="200" placeholder="Alasan pembatalan (wajib)"><button class="btn" style="margin-top:6px;padding:10px;font-size:14px;background:#b91c1c" onclick="kasBatal('${esc(x.id)}')">${x.koreksi ? 'Batalkan Koreksi' : 'Batalkan Catatan'}</button></div>` : ''}</div>`;
   const bt = r.dibatalkan.filter(x => x.jenis === kasJenis);
   $('kasDaftar').innerHTML = (daftar.length ? daftar.map(kartu).join('') : '<p class="small">Belum ada catatan pada bulan ini.</p>') +
     (bt.length ? `<details style="margin-top:10px"><summary class="small"><b>${bt.length} catatan dibatalkan</b></summary>${bt.map(x => `<div class="small" style="padding:6px 0;border-bottom:1px dashed #d6e6f8;color:#6b7f99"><s>${esc(x.kategori)} ${pkRp(x.jumlah)} • ${pkTgl(x.tgl)}</s><br>Dibatalkan oleh ${esc(x.batalOleh)}: “${esc(x.batalAlasan)}”</div>`).join('')}</details>` : '');
@@ -73,9 +107,10 @@ function kasBatalBuka(id){ const e = $('kb_' + id); if(e) e.classList.toggle('hi
 async function kasBatal(id){
   const alasan = ($('kba_' + id).value || '').trim();
   if(alasan.length < 3){ alert('Alasan pembatalan wajib diisi.'); return; }
-  if(!await dialogKonfirmasi('Batalkan catatan kas ini? Saldo akan dikoreksi.')) return;
+  const kor = id.indexOf('KB-') === 0;
+  if(!await dialogKonfirmasi(kor ? 'Batalkan koreksi ini? Angka bulan itu kembali ke perkiraan otomatis.' : 'Batalkan catatan kas ini? Saldo akan dikoreksi.')) return;
   try{
-    const r = await pkApi({a:'kas_batal', token:pkToken, kid:id, alasan});
+    const r = await pkApi({a:kor ? 'kas_koreksi_batal' : 'kas_batal', token:pkToken, kid:id, alasan});
     if(r.expired){ pkExpired(); return; }
     alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok) await kasMuat();
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
