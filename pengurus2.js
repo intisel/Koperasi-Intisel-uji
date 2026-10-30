@@ -56,14 +56,24 @@ async function pkBuka(status, kunci){
     box.scrollIntoView({behavior:'smooth', block:'nearest'});
   }catch(e){ box.innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; }
 }
+function pkMenungguPimpinan(list){ // kartu di halaman Validasi: pengajuan yang menunggu keputusan akhir pimpinan + tombol pengingat
+  if(!list || !list.length) return '';
+  const hari = s => s ? Math.max(0, Math.round((new Date(pkHariIni) - new Date(s)) / 864e5)) : 0;
+  return `<div class="card"><b>⏳ Menunggu Keputusan Pimpinan (${list.length})</b><p class="small" style="margin:2px 0 8px">Sudah disetujui 3 pengurus, tinggal keputusan akhir pimpinan. Ketuk tombol bila perlu mengingatkan.</p>` + list.map(x => {
+    const h = hari(x.sejak), ig = x.ingat ? `<div class="small" style="margin-top:3px">🔔 Terakhir diingatkan ${esc(pkWaktuLalu(x.ingat.t))} oleh ${esc(x.ingat.oleh)}${x.ingat.n > 1 ? ' (' + x.ingat.n + '×)' : ''}</div>` : '';
+    return `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0">${pkBadge(x.jenis)}<b>${esc(x.nama)}</b> <span class="small">${esc(x.id)}</span>
+      <div class="small">${pkRp(x.nominal)}${x.jenis === 'KASBON' ? ' / 30 hari' : ' / ' + x.tenor + ' bln'}${x.sejak ? ' • menunggu ' + (h > 0 ? h + ' hari' : 'sejak hari ini') : ''}</div>${ig}
+      ${pkBisaCatat ? `<div style="margin-top:6px"><button class="btn" style="width:auto;display:inline-block;padding:9px 14px;font-size:13.5px;background:#ea580c" onclick="pkIngatPimpinan('${esc(x.id)}', '${esc(x.nama)}')">🔔 Ingatkan Pimpinan</button></div>` : ''}</div>`;
+  }).join('') + '</div>';
+}
 function pkWaktuLalu(t){ const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? m + ' menit lalu' : m < 1440 ? Math.round(m / 60) + ' jam lalu' : Math.round(m / 1440) + ' hari lalu'; }
-async function pkIngatkan(id, nama){
+async function pkIngatPimpinan(id, nama){
   if(!await dialogKonfirmasi('Ingatkan pimpinan untuk memutuskan pengajuan ' + nama + '?\n\nPimpinan akan menerima email baru dan notifikasi.')) return;
   try{
     const r = await pkApi({a:'ingatkan_pimpinan', token:pkToken, id});
     if(r.expired){ pkExpired(); return; }
     alert(r.ok ? r.msg : '❌ ' + r.msg);
-    if(r.ok){ const k = pkDetailAktif; pkDetailAktif = ''; pkBuka('MENUNGGU_PIMPINAN', k || 'MENUNGGU_PIMPINAN'); }
+    if(r.ok){ const k = pkDetailAktif; if(k === 'MENUNGGU_PIMPINAN'){ pkDetailAktif = ''; pkBuka('MENUNGGU_PIMPINAN', k); } pkMuat(); }
   }catch(e){ alert('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.'); }
 }
 function pkDetailBaris(x, status){
@@ -77,7 +87,7 @@ function pkDetailBaris(x, status){
   }
   if(status === 'MENUNGGU_PIMPINAN'){
     const ig = x.ingat ? `<div class="small" style="margin-top:4px">🔔 Terakhir diingatkan ${esc(pkWaktuLalu(x.ingat.t))} oleh ${esc(x.ingat.oleh)}${x.ingat.n > 1 ? ' (' + x.ingat.n + '×)' : ''}</div>` : '';
-    extra = ig + (pkBisaCatat ? `<div style="margin-top:6px"><button class="btn" style="width:auto;display:inline-block;padding:9px 14px;font-size:13.5px;background:#ea580c" onclick="pkIngatkan('${esc(x.id)}', '${esc(x.nama)}')">🔔 Ingatkan Pimpinan</button></div>` : '');
+    extra = ig + (pkBisaCatat ? `<div style="margin-top:6px"><button class="btn" style="width:auto;display:inline-block;padding:9px 14px;font-size:13.5px;background:#ea580c" onclick="pkIngatPimpinan('${esc(x.id)}', '${esc(x.nama)}')">🔔 Ingatkan Pimpinan</button></div>` : '');
   }
   if(status === 'LUNAS' && x.tglLunas) extra = `<div class="small">🎉 Lunas ${pkTgl(x.tglLunas)}</div>`;
   if(status === 'DITOLAK' && x.alasan) extra = `<div class="small"><i>“${esc(x.alasan)}”</i></div>`;

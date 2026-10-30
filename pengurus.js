@@ -150,6 +150,7 @@ async function pkMuat(){
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
+    $('pkMenungguPimpinan').innerHTML = pkMenungguPimpinan(r.menungguPimpinan);
     fotoMuatPelamar(r.menunggu);
     pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbCair', r.pencairan.length); pkLapBase = r.laporan.length + bj.terlambat; pkBadge2('pbBerjalan', pkLapBase);
     $('byTabNV').innerText = r.laporan.length ? '(' + r.laporan.length + ')' : ''; $('byTabNP').innerText = bj.terlambat ? '(⚠️' + bj.terlambat + ')' : ''; pkTabNotif('V', r.laporan.length); pkTabNotif('P', bj.terlambat);
