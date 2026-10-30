@@ -584,7 +584,7 @@ body.kartu-open{overflow:hidden}
       <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>🏦 Keuangan Koperasi</b></div>
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-kas')"><span class="ic">🏦</span><b>Kas Koperasi</b><span class="sub">Kas masuk, kas keluar &amp; saldo</span></button>
-          <button class="mtile" onclick="go('pengurus-budget')"><span class="ic">💰</span><b>Budget Pinjaman</b><span class="sub">Kuota pencairan per bulan</span></button>
+          <button class="mtile" onclick="go('pengurus-budget')"><span class="ic">💰</span><b>Budget Pinjaman</b><span class="sub">Dana tersedia dari saldo kas</span></button>
           <button class="mtile soon wide" onclick="alert('SHU &amp; Tutup Buku belum tersedia. Fitur ini akan ditambahkan nanti.')"><span class="ic">📒</span><b>SHU &amp; Tutup Buku</b><span class="sub">Segera hadir</span></button>
         </div></div>
     </div>
@@ -712,7 +712,7 @@ body.kartu-open{overflow:hidden}
     </div>
     <div class="pkv hidden" id="pkvBudget">
       <div class="card"><b>💰 Budget Pinjaman</b>
-        <p class="small" style="margin:2px 0 8px">Kuota pencairan per bulan untuk pinjaman koperasi dan kasbon. Kuota terpakai sejak pengajuan masuk. Bila penuh, anggota ditawari masuk pencairan bulan berikutnya.</p>
+        <p class="small" style="margin:2px 0 8px">Dana tersedia untuk pinjaman koperasi dan kasbon, otomatis dihitung dari saldo Kas Koperasi dikurangi cadangan dan pinjaman yang belum cair.</p>
         <div id="bdIsi"></div></div>
     </div>
     <div class="pkv hidden" id="pkvKas">

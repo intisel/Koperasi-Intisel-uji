@@ -30,6 +30,7 @@ async function bdMuat(){
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     bdData = r;
+    if(r.auto){ bdOtomatis(r, box); return; }
     box.innerHTML = `<div class="ok" style="margin-bottom:10px">ℹ️ Budget tiap bulan <b>berdiri sendiri</b>: sisa budget bulan ini <b>tidak ditambahkan</b> ke bulan berikutnya (mis. terpakai Rp 10 juta dari Rp 25 juta, bulan depan tetap Rp 25 juta).</div><div class="warn" style="margin-bottom:10px">Budget bawaan: koperasi <b>${pkRp(r.def.koperasi)}</b> • kasbon <b>${pkRp(r.def.kasbon)}</b> per bulan.
       ${r.bisaUbah ? `<button class="btn btn-yellow" style="margin-top:8px;padding:10px;font-size:13.5px" onclick="bdAtur('DEFAULT')">✏️ Ubah budget bawaan</button><div id="bdForm-DEFAULT"></div>` : '<br>Pengaturan hanya dapat dilakukan oleh Ketua dan Bendahara.'}</div>` +
       r.bulan.map(b => bdKartuBulan(b, r.bisaUbah)).join('');
@@ -55,4 +56,14 @@ async function bdSimpan(ym){
     alert(r.ok ? r.msg : '❌ ' + r.msg);
     if(r.ok) bdMuat();
   }catch(e){ alert('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.'); }
+}
+
+function bdOtomatis(r, box){ // budget otomatis mengikuti saldo Kas Koperasi
+  const ok = r.tersedia >= 0, jenisLbl = {KOPERASI:'Pinjaman', KASBON:'Kasbon'};
+  box.innerHTML = `<div class="ok" style="margin-bottom:10px">ℹ️ Budget kini <b>otomatis mengikuti saldo Kas Koperasi</b>. Tidak perlu diatur manual.</div>
+    <div class="stt"><div><b style="color:#134e8a">${pkRp(r.saldo)}</b><span class="small">Saldo kas real-time</span></div><div><b style="color:#b45309">− ${pkRp(r.cadangan)}</b><span class="small">Cadangan dana darurat (tidak boleh dipakai)</span></div></div>
+    <div class="stt" style="margin-top:0"><div><b style="color:#b45309">− ${pkRp(r.komit)}</b><span class="small">Pinjaman/kasbon diajukan atau disetujui, belum cair</span></div><div style="border-color:${ok ? '#86efac' : '#fca5a5'};background:${ok ? '#ecfdf3' : '#fef2f2'}"><b style="color:${ok ? '#166534' : '#b91c1c'}">${pkRp(r.tersedia)}</b><span class="small">Dana tersedia untuk pengajuan baru</span></div></div>
+    ${ok ? '' : '<div class="warn" style="margin-bottom:10px">Dana tersedia minus: pinjaman yang belum cair melebihi saldo kas setelah cadangan. Pengajuan baru ditolak sistem sampai dana tersedia lagi.</div>'}
+    <b>Belum dicairkan (${r.daftar.length})</b>
+    ${r.daftar.length ? r.daftar.map(x => `<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #d6e6f8;padding:7px 0"><span>${esc(x.nama)}<br><span class="small">${esc(x.id)} • ${jenisLbl[x.jenis] || x.jenis} • ${esc(pkLabel[x.status] || x.status)}</span></span><b>${pkRp(x.nominal)}</b></div>`).join('') : '<p class="small">Tidak ada pinjaman yang menunggu pencairan.</p>'}`;
 }
