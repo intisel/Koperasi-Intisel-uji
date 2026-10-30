@@ -66,17 +66,14 @@ async function korSimpan(){
 function kasFotoPilih(inp){ const f = inp.files && inp.files[0]; if(!f) return; pkKompres(f).then(d => { kasFotoData = d; $('kasFotoImg').src = d; $('kasFotoInfo').innerText = 'Ukuran terkirim ±' + Math.round(d.length * 0.75 / 1024) + ' KB'; $('kasFotoPrev').style.display = 'block'; }).catch(e => alert(e.message)); inp.value = ''; }
 function kasFotoHapus(){ kasFotoData = ''; $('kasFotoPrev').style.display = 'none'; $('kasFotoImg').removeAttribute('src'); }
 async function kasLihatFoto(id){ const b = $('kf_' + id); if(!b) return; b.innerHTML = '<span class="small">Memuat foto...</span>'; try{ const r = await pkApi({a:'kas_foto', token:pkToken, kid:id}); if(r.expired){ pkExpired(); return; } if(!r.ok){ b.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; } b.innerHTML = `<img src="${r.data}" alt="Bukti" style="max-width:100%;border-radius:10px;margin-top:6px;border:1px solid #b9d2f0">`; }catch(e){ b.innerHTML = '<div class="err">Gagal memuat foto.</div>'; } }
-function kasKatUbah(){ $('kasFotoWrap').classList.toggle('hidden', $('kasKat').value === 'Saldo awal'); const r = kasData; $('kasNamaWrap').classList.toggle('hidden', !(r && r.katNama.indexOf($('kasKat').value) >= 0)); }
+function kasKatUbah(){ $('kasFotoWrap').classList.toggle('hidden', $('kasKat').value === 'Saldo awal'); }
 function kasRender(){
   const r = kasData; if(!r) return;
-  const kb = r.kasbonPengelola || [], tk = kb.reduce((t, x) => t + x.sisa, 0);
-  $('kasKbBox').classList.toggle('hidden', !kb.length);
-  $('kasKbIsi').innerHTML = kb.map(x => `<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #d6e6f8"><span>${esc(x.nama)}<br><span class="small">keluar ${pkRp(x.keluar)} • kembali ${pkRp(x.kembali)}</span></span><b style="color:#b45309">${pkRp(x.sisa)}</b></div>`).join('') + `<div style="display:flex;justify-content:space-between;padding-top:6px"><b>Total belum kembali</b><b>${pkRp(tk)}</b></div>`;
   $('kasSaldo').innerText = pkRp(r.saldo); $('kasSaldo').style.color = r.saldo < 0 ? '#b91c1c' : '#134e8a';
   $('kasMasukBln').innerText = pkRp(r.masuk); $('kasKeluarBln').innerText = pkRp(r.keluar);
   const m = kasJenis === 'MASUK', daftar = r.baris.filter(x => x.jenis === kasJenis), tot = daftar.reduce((t, x) => t + x.jumlah, 0), ym = $('kasBulan').value;
   $('kasDaftarJudul').innerText = (m ? 'Daftar Kas Masuk' : 'Daftar Kas Keluar') + ' • ' + ym.split('-').reverse().join('/');
-  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima, serta bunga bank (bila saldo di atas Rp 50 juta; dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, pengembalian kasbon pengelola, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan, serta biaya admin &amp; pajak bank tiap akhir bulan (dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): sumbangan, biaya bank lainnya, kasbon pengelola (talangan), operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
+  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima, serta bunga bank (bila saldo di atas Rp 50 juta; dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan, serta biaya admin &amp; pajak bank tiap akhir bulan (dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): sumbangan, biaya bank lainnya, operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
   const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.koreksi ? ' <span class="badge" style="background:#fef3c7;color:#92400e">dikoreksi</span>' : x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
     <div class="small">${pkTgl(x.tgl)}${x.ket ? ' • ' + esc(x.ket) : ''}${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
     ${r.bisaInput && x.otomatis && x.komp && !x.koreksi ? `<span class="back-link" style="margin:4px 8px 0 0;display:inline-block" onclick="korIsi('${esc(x.bulan)}','${esc(x.komp)}')">✏️ Koreksi sesuai mutasi bank</span>` : ''}
@@ -88,8 +85,7 @@ function kasRender(){
     (bt.length ? `<details style="margin-top:10px"><summary class="small"><b>${bt.length} catatan dibatalkan</b></summary>${bt.map(x => `<div class="small" style="padding:6px 0;border-bottom:1px dashed #d6e6f8;color:#6b7f99"><s>${esc(x.kategori)} ${pkRp(x.jumlah)} • ${pkTgl(x.tgl)}</s><br>Dibatalkan oleh ${esc(x.batalOleh)}: “${esc(x.batalAlasan)}”</div>`).join('')}</details>` : '');
 }
 async function kasSimpan(){
-  const kat = $('kasKat').value, jumlah = moneyVal('kasJml'), ket = $('kasKet').value.trim(), nama = $('kasNama').value.trim();
-  if(kasData.katNama.indexOf(kat) >= 0 && nama.length < 2){ alert('Isi nama pengelola/peminjam untuk kategori "' + kat + '".'); $('kasNama').focus(); return; }
+  const kat = $('kasKat').value, jumlah = moneyVal('kasJml'), ket = $('kasKet').value.trim(), nama = '';
   if(!(jumlah > 0)){ alert('Isi jumlah dengan benar.'); return; }
   if(kat === 'Lainnya' && ket.length < 3){ alert('Kategori "Lainnya": isi keterangan.'); $('kasKet').focus(); return; }
   if(kat !== 'Saldo awal' && !kasFotoData){ alert('Foto bukti wajib dilampirkan.'); $('kasFoto').focus(); return; }
@@ -99,7 +95,7 @@ async function kasSimpan(){
     const r = await pkApi({a:'kas_simpan', token:pkToken, jenis:kasJenis, kategori:kat, tgl:$('kasTgl').value, jumlah, ket, nama, foto: kat === 'Saldo awal' ? '' : kasFotoData});
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ alert(r.msg); }
-    else { alert('✅ ' + r.msg); $('kasJml').value = ''; $('kasKet').value = ''; $('kasNama').value = ''; kasFotoHapus(); await kasMuat(); }
+    else { alert('✅ ' + r.msg); $('kasJml').value = ''; $('kasKet').value = ''; kasFotoHapus(); await kasMuat(); }
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
   finally{ b.disabled = false; b.innerText = 'Simpan'; }
 }

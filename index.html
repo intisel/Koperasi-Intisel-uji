@@ -584,9 +584,28 @@ body.kartu-open{overflow:hidden}
       <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>🏦 Keuangan Koperasi</b></div>
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-kas')"><span class="ic">🏦</span><b>Kas Koperasi</b><span class="sub">Kas masuk, kas keluar &amp; saldo</span></button>
+          <button class="mtile" onclick="go('pengurus-kbp')"><span class="ic">🤝</span><b>Kasbon Pengelola</b><span class="sub">Dana talangan &amp; pengembalian</span></button>
           <button class="mtile" onclick="go('pengurus-budget')"><span class="ic">💰</span><b>Budget Pinjaman</b><span class="sub">Dana tersedia dari saldo kas</span></button>
-          <button class="mtile soon wide" onclick="alert('SHU &amp; Tutup Buku belum tersedia. Fitur ini akan ditambahkan nanti.')"><span class="ic">📒</span><b>SHU &amp; Tutup Buku</b><span class="sub">Segera hadir</span></button>
+          <button class="mtile soon" onclick="alert('SHU &amp; Tutup Buku belum tersedia. Fitur ini akan ditambahkan nanti.')"><span class="ic">📒</span><b>SHU &amp; Tutup Buku</b><span class="sub">Segera hadir</span></button>
         </div></div>
+    </div>
+    <div class="pkv hidden" id="pkvKbp">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Keuangan</span><b>🤝 Kasbon Pengelola</b></div>
+        <div style="text-align:center;margin:10px 0 4px"><div class="small">Total belum dikembalikan</div><div id="kbpTotal" style="font-size:26px;font-weight:800;color:#b91c1c">Rp 0</div><div class="small" id="kbpJml"></div></div>
+        <p class="small" style="margin:6px 0">Dicatat manual oleh Ketua/Bendahara. Peminjam harus sudah terdaftar di data Anggota. Pencatatan otomatis mengurangi / menambah saldo Kas Koperasi.</p>
+      </div>
+      <div class="card hidden kas-k" id="kbpForm">
+        <div class="pktabs" style="margin:0 0 8px"><button id="kbpTabK" class="on" onclick="kbpTab('KELUAR')">⬆ Kasbon (keluar)</button><button id="kbpTabM" onclick="kbpTab('MASUK')">⬇ Pengembalian</button></div>
+        <label id="kbpOrangLbl">Peminjam</label><select id="kbpOrang"></select><div class="small" id="kbpKosong"></div>
+        <label>Tanggal</label><input type="date" id="kbpTgl">
+        <label>Jumlah (Rp)</label><input id="kbpJml2" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 5.000.000">
+        <label>Keterangan (opsional)</label><input id="kbpKet" maxlength="200" placeholder="Contoh: Talangan operasional">
+        <label>Foto bukti <span class="small" style="font-weight:400">(wajib)</span></label>
+        <input type="file" accept="image/*" id="kbpFoto" onchange="kbpFotoPilih(this)">
+        <div id="kbpFotoPrev" style="display:none;margin:6px 0;text-align:center"><img id="kbpFotoImg" alt="Pratinjau" style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid #b9d2f0"><br><a href="#" class="small" style="color:#c0392b" onclick="kbpFotoHapus();return false">Hapus foto</a></div>
+        <button class="btn" id="kbpBtn" onclick="kbpSimpan()" style="margin-top:10px;background:#dc2626">Simpan Kasbon</button>
+      </div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>Status per orang</b><label class="small" style="margin:0"><input type="checkbox" onchange="kbpLunas=this.checked;kbpRender()" style="width:auto;margin-right:4px">tampilkan yang lunas</label></div><div id="kbpIsi"></div></div>
     </div>
     <div class="pkv hidden" id="pkvG3">
       <div class="pktabs"><button id="lpTabBtnD" class="on" onclick="lpTab('D')">📈 Dasbor &amp; Grafik</button><button id="lpTabBtnP" onclick="lpTab('P')">📑 Laporan Pinjaman</button><button id="lpTabBtnK" onclick="lpTab('K')">💵 Laporan Kas</button></div>
@@ -722,13 +741,11 @@ body.kartu-open{overflow:hidden}
         <div class="stt" style="margin:8px 0 0"><div><b id="kasMasukBln" style="color:#166534">Rp 0</b><span class="small">Kas masuk bulan dipilih</span></div><div><b id="kasKeluarBln" style="color:#b91c1c">Rp 0</b><span class="small">Kas keluar bulan dipilih</span></div></div>
         <div id="kasBanner"></div><label style="margin-top:6px">Bulan</label><input type="month" id="kasBulan" onchange="kasMuat()">
       </div>
-      <div class="card hidden" id="kasKbBox"><b>🤝 Kasbon Pengelola belum kembali</b><div id="kasKbIsi" style="margin-top:6px"></div></div>
       <div class="pktabs"><button id="kasTabBtnM" class="on" onclick="kasTab('MASUK')">⬇ Kas Masuk</button><button id="kasTabBtnK" onclick="kasTab('KELUAR')">⬆ Kas Keluar</button></div>
       <div class="card hidden kas-m" id="kasForm">
         <b id="kasFormJudul" style="display:block">Catat Kas Masuk</b>
         <label>Kategori</label><select id="kasKat" onchange="kasKatUbah()"></select>
         <label>Tanggal</label><input type="date" id="kasTgl">
-        <div id="kasNamaWrap" class="hidden"><label>Nama pengelola / peminjam <span class="small" style="font-weight:400">(wajib untuk kasbon pengelola)</span></label><input id="kasNama" maxlength="60" placeholder="Contoh: Akhmad Sofyan"></div>
         <label>Jumlah (Rp)</label><input id="kasJml" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 250.000">
         <label id="kasKetLbl">Keterangan (opsional)</label><input id="kasKet" maxlength="200" placeholder="Contoh: Premi asuransi Oktober">
         <div id="kasFotoWrap"><label>Foto bukti <span class="small" style="font-weight:400">(wajib — nota, kwitansi, atau screenshot transfer)</span></label>
@@ -791,8 +808,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -840,7 +857,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-lokasi':'g4','pengurus-info':'g4'};
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-lokasi':'g4','pengurus-info':'g4'};
       if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }
@@ -993,6 +1010,7 @@ function hitungAngsuran(){
 <script src="rencana.js"></script>
 <script src="pinpad.js"></script>
 <script src="kas.js"></script>
+<script src="kbp.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>

@@ -29,10 +29,11 @@ function pengurusRender(name){
     else if(name === 'pengurus-lokasi') lokMuat();
     else if(name === 'pengurus-budget') bdMuat();
     else if(name === 'pengurus-kas') kasInit();
+    else if(name === 'pengurus-kbp') kbpMuat();
     else pkMuat();
   }
 }
-const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-anggota':'pkvAnggota', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi', 'pengurus-budget':'pkvBudget', 'pengurus-kas':'pkvKas', 'pengurus-g1':'pkvG1', 'pengurus-g2':'pkvG2', 'pengurus-g3':'pkvG3', 'pengurus-g4':'pkvG4'};
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-anggota':'pkvAnggota', 'pengurus-info':'pkvInfo', 'pengurus-lokasi':'pkvLokasi', 'pengurus-budget':'pkvBudget', 'pengurus-kas':'pkvKas', 'pengurus-kbp':'pkvKbp', 'pengurus-g1':'pkvG1', 'pengurus-g2':'pkvG2', 'pengurus-g3':'pkvG3', 'pengurus-g4':'pkvG4'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
