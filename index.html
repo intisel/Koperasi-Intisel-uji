@@ -562,19 +562,28 @@ body.kartu-open{overflow:hidden}
     </div>
     <!-- MENU UTAMA PENGURUS -->
     <div class="pkv" id="pkvMenu">
+      <style>.mgrup{margin-top:14px}.mgrup:first-child{margin-top:4px}.mhead{display:flex;align-items:center;gap:8px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:#fff;background:#134e8a;border-radius:10px;padding:8px 12px;margin:0 0 2px}.mhead i{font-style:normal;background:#ffdd00;color:#0d3b6e;border-radius:99px;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}.mtile.soon{opacity:.6;background:#f3f6fa}</style>
       <div class="card"><b>Menu Pengurus</b>
-        <div class="mgrid">
+        <div class="mgrup"><div class="mhead"><i>1</i>ADMINISTRASI PINJAMAN</div><div class="mgrid" style="margin-top:8px">
           <button class="mtile" onclick="go('pengurus-validasi')"><span class="pbadge" id="pbValidasi"></span><span class="ic">✅</span><b>Validasi Pinjaman</b><span class="sub">Tinjau, setujui, atau tolak pengajuan</span></button>
           <button class="mtile" onclick="go('pengurus-cair')"><span class="pbadge" id="pbCair"></span><span class="ic">💸</span><b>Pencairan Dana</b><span class="sub">Pinjaman disetujui, siap dicairkan</span></button>
-          <button class="mtile" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">🧾</span><b>Pembayaran Angsuran</b><span class="sub">Validasi bukti bayar &amp; pinjaman berjalan</span></button>
-          <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
-          <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
-          <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
-          <button class="mtile hidden" id="tileLokasi" onclick="go('pengurus-lokasi')"><span class="ic">📍</span><b>Lokasi</b><span class="sub">Lokasi saat pengajuan &amp; bukti bayar</span></button>
+          <button class="mtile wide" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">🧾</span><b>Pembayaran Angsuran</b><span class="sub">Pembayaran • Pinjaman • Keringanan</span></button>
+        </div></div>
+        <div class="mgrup"><div class="mhead"><i>2</i>KEUANGAN KOPERASI</div><div class="mgrid" style="margin-top:8px">
+          <button class="mtile" onclick="go('pengurus-kas')"><span class="ic">🏦</span><b>Kas Koperasi</b><span class="sub">Kas masuk, kas keluar &amp; saldo</span></button>
           <button class="mtile" onclick="go('pengurus-budget')"><span class="ic">💰</span><b>Budget Pinjaman</b><span class="sub">Kuota pencairan per bulan</span></button>
+          <button class="mtile soon wide" onclick="alert('SHU &amp; Tutup Buku belum tersedia. Fitur ini akan ditambahkan nanti.')"><span class="ic">📒</span><b>SHU &amp; Tutup Buku</b><span class="sub">Segera hadir</span></button>
+        </div></div>
+        <div class="mgrup"><div class="mhead"><i>3</i>MONITORING &amp; LAPORAN</div><div class="mgrid" style="margin-top:8px">
+          <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
+          <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Laporan pinjaman &amp; laporan kas</span></button>
+        </div></div>
+        <div class="mgrup"><div class="mhead"><i>4</i>INFORMASI &amp; SISTEM</div><div class="mgrid" style="margin-top:8px">
+          <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
+          <button class="mtile hidden" id="tileLokasi" onclick="go('pengurus-lokasi')"><span class="ic">📍</span><b>Lokasi</b><span class="sub">Lokasi saat pengajuan &amp; bukti bayar</span></button>
+          <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
-          <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Unduh Excel atau cetak PDF</span></button>
-        </div>
+        </div></div>
       </div>
     </div>
     <div class="pkv hidden" id="pkvValidasi">
@@ -655,7 +664,27 @@ body.kartu-open{overflow:hidden}
         <p class="small" style="margin:2px 0 8px">Kuota pencairan per bulan untuk pinjaman koperasi dan kasbon. Kuota terpakai sejak pengajuan masuk. Bila penuh, anggota ditawari masuk pencairan bulan berikutnya.</p>
         <div id="bdIsi"></div></div>
     </div>
+    <div class="pkv hidden" id="pkvKas">
+      <div class="card"><b>🏦 Kas Koperasi</b>
+        <div style="text-align:center;margin:10px 0 4px"><div class="small">Saldo kas saat ini (real-time)</div><div id="kasSaldo" style="font-size:28px;font-weight:800;color:#134e8a">Rp 0</div></div>
+        <div class="stt" style="margin:8px 0 0"><div><b id="kasMasukBln" style="color:#166534">Rp 0</b><span class="small">Kas masuk bulan dipilih</span></div><div><b id="kasKeluarBln" style="color:#b91c1c">Rp 0</b><span class="small">Kas keluar bulan dipilih</span></div></div>
+        <label style="margin-top:6px">Bulan</label><input type="month" id="kasBulan" onchange="kasMuat()">
+      </div>
+      <div class="pktabs"><button id="kasTabBtnM" class="on" onclick="kasTab('MASUK')">⬇ Kas Masuk</button><button id="kasTabBtnK" onclick="kasTab('KELUAR')">⬆ Kas Keluar</button></div>
+      <div class="card hidden" id="kasForm">
+        <b id="kasFormJudul" style="display:block">Catat Kas Masuk</b>
+        <label>Kategori</label><select id="kasKat"></select>
+        <label>Tanggal</label><input type="date" id="kasTgl">
+        <label>Jumlah (Rp)</label><input id="kasJml" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 250.000">
+        <label id="kasKetLbl">Keterangan (opsional)</label><input id="kasKet" maxlength="200" placeholder="Contoh: Premi asuransi Oktober">
+        <button class="btn" id="kasBtn" onclick="kasSimpan()" style="margin-top:10px">Simpan</button>
+        <div id="kasPesan" style="margin-top:8px"></div>
+      </div>
+      <div class="card"><b id="kasDaftarJudul">Daftar Kas Masuk</b><p class="small" id="kasCatatan" style="margin:2px 0 6px"></p><div id="kasDaftar"><p class="small">Memuat...</p></div></div>
+    </div>
     <div class="pkv hidden" id="pkvLaporan">
+      <div class="pktabs"><button id="lpTabBtnP" class="on" onclick="lpTab('P')">📊 Laporan Pinjaman</button><button id="lpTabBtnK" onclick="lpTab('K')">💵 Laporan Kas</button></div>
+      <div id="lpTabP">
       <div class="card"><b>📑 Laporan &amp; Ekspor</b>
         <p class="small" style="margin:2px 0 8px">Data operasional dan rekap keuangan pada rentang tanggal tertentu.</p>
         <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lpDari" onchange="lpStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lpSampai" onchange="lpStale()"></div></div>
@@ -673,6 +702,24 @@ body.kartu-open{overflow:hidden}
         </div>
         <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
         <div id="lpPreview"></div>
+      </div>
+      </div>
+      <div id="lpTabK" class="hidden">
+      <div class="card"><b>💵 Laporan Kas</b>
+        <p class="small" style="margin:2px 0 8px">Kas masuk, kas keluar, dan saldo pada rentang tanggal tertentu.</p>
+        <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lkDari" onchange="lkStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lkSampai" onchange="lkStale()"></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px"><span class="chip" onclick="lkPreset('bulan')">Bulan ini</span><span class="chip" onclick="lkPreset('3bulan')">3 bulan</span><span class="chip" onclick="lkPreset('tahun')">Tahun ini</span></div>
+        <button class="btn" id="lkBtn" onclick="lkMuat()">Tampilkan Laporan Kas</button>
+        <div id="lkPesan" style="margin-top:8px"></div>
+      </div>
+      <div class="card hidden" id="lkHasil">
+        <div id="lkRingkas"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" style="flex:1;min-width:140px;background:#0f766e;padding:12px;font-size:14px" onclick="lkExcel()">⬇ Excel (.xlsx)</button>
+          <button class="btn" style="flex:1;min-width:140px;background:#134e8a;padding:12px;font-size:14px" onclick="lkCetak()">🖨 PDF / Cetak</button>
+        </div>
+        <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
+      </div>
       </div>
     </div>
   </div>
@@ -717,8 +764,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi','pengurus-budget'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2,'pengurus-budget':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':2,'pengurus-cair':2,'pengurus-berjalan':2,'pengurus-statistik':2,'pengurus-anggota':2,'pengurus-laporan':2,'pengurus-budget':2,'pengurus-kas':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -917,6 +964,7 @@ function hitungAngsuran(){
 <script src="budget.js"></script>
 <script src="rencana.js"></script>
 <script src="pinpad.js"></script>
+<script src="kas.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
 <script src="pengumuman.js"></script>
