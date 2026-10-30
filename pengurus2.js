@@ -38,9 +38,9 @@ function svgBar(judul, bulan, seri){ // seri: [{key,warna,nama}] batang berkelom
   return `<div style="margin:14px 0 4px"><b class="small" style="font-size:13px">${esc(judul)}</b></div><div class="small" style="margin-bottom:2px">${leg}</div>
     <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(judul)}" style="background:#fff;border:1px solid #d6e6f8;border-radius:12px"><line x1="${pl}" x2="${W - pl}" y1="${H - pb}" y2="${H - pb}" stroke="#c9d8ea"></line>${g}</svg>`;
 }
-const STATUS_URUT = [['REVIEW_PENGURUS', 'Review pengurus', '#f59e0b'], ['MENUNGGU_PIMPINAN', 'Menunggu pimpinan', '#f97316'], ['MENUNGGU_PENCAIRAN', 'Menunggu pencairan', '#0ea5e9'], ['DISETUJUI', 'Berjalan', '#16a34a'], ['LUNAS', 'Lunas', '#64748b'], ['DITOLAK', 'Ditolak', '#dc2626']];
+const STATUS_URUT = [['REVIEW_PENGURUS', 'Review Pengurus', '#f59e0b'], ['MENUNGGU_PIMPINAN', 'Menunggu Pimpinan', '#f97316'], ['MENUNGGU_PENCAIRAN', 'Menunggu Pencairan', '#0ea5e9'], ['DISETUJUI', 'Berjalan', '#16a34a'], ['LUNAS', 'Lunas', '#64748b'], ['DITOLAK', 'Ditolak', '#dc2626']];
 let pkStatData = null, pkDetailAktif = '';
-const DETAIL_JUDUL = {REVIEW_PENGURUS:'Direview pengurus', MENUNGGU_PIMPINAN:'Menunggu pimpinan', MENUNGGU_PENCAIRAN:'Menunggu pencairan', DISETUJUI:'Pinjaman berjalan', LUNAS:'Lunas', DITOLAK:'Ditolak', TERLAMBAT:'Angsuran terlambat', BERJALAN_SISA:'Sisa pinjaman beredar'};
+const DETAIL_JUDUL = {REVIEW_PENGURUS:'Direview Pengurus', MENUNGGU_PIMPINAN:'Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'Menunggu Pencairan', DISETUJUI:'Pinjaman Berjalan', LUNAS:'Lunas', DITOLAK:'Ditolak', TERLAMBAT:'Angsuran Terlambat', BERJALAN_SISA:'Sisa Pinjaman Beredar'};
 async function pkBuka(status, kunci){
   kunci = kunci || status; const box = $('pkDetail');
   if(pkDetailAktif === kunci){ pkDetailAktif = ''; box.innerHTML = ''; document.querySelectorAll('#pkStat .stile').forEach(e => e.classList.remove('on')); return; }
@@ -56,6 +56,16 @@ async function pkBuka(status, kunci){
     box.scrollIntoView({behavior:'smooth', block:'nearest'});
   }catch(e){ box.innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; }
 }
+function pkWaktuLalu(t){ const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? m + ' menit lalu' : m < 1440 ? Math.round(m / 60) + ' jam lalu' : Math.round(m / 1440) + ' hari lalu'; }
+async function pkIngatkan(id, nama){
+  if(!await dialogKonfirmasi('Ingatkan pimpinan untuk memutuskan pengajuan ' + nama + '?\n\nPimpinan akan menerima email baru dan notifikasi.')) return;
+  try{
+    const r = await pkApi({a:'ingatkan_pimpinan', token:pkToken, id});
+    if(r.expired){ pkExpired(); return; }
+    alert(r.ok ? r.msg : '❌ ' + r.msg);
+    if(r.ok){ const k = pkDetailAktif; pkDetailAktif = ''; pkBuka('MENUNGGU_PIMPINAN', k || 'MENUNGGU_PIMPINAN'); }
+  }catch(e){ alert('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.'); }
+}
 function pkDetailBaris(x, status){
   const kas = x.jenis === 'KASBON';
   let info = `${pkRp(x.nominal)}${kas ? ' / 30 hari' : ' / ' + x.tenor + ' bln'} • diajukan ${pkTgl(x.waktu)}`, extra = '';
@@ -64,6 +74,10 @@ function pkDetailBaris(x, status){
     extra = `<div class="small">Sisa <b>${pkRp(x.sisa)}</b> • ${x.lunasKe}/${x.total} lunas${x.tglCair ? ' • cair ' + pkTgl(x.tglCair) : ''}</div>` +
       (x.berikut ? `<div class="small">Berikutnya: ${kas ? 'pelunasan' : 'ke-' + x.berikut.ke}, jatuh tempo ${pkTgl(x.berikut.due)} (${pkRp(x.berikut.jumlah)})${x.telatHari ? ' <b style="color:#b42318">terlambat ' + x.telatHari + ' hari</b>' : ''}</div>` : '');
     if(x.telatHari) extra += `<div style="margin-top:6px">${waBtn(waTagih(x.hp, x.nama, x.berikut.ke, x.berikut.jumlah, x.berikut.due, x.telatHari, kas), 'Tagih via WA')}</div>`;
+  }
+  if(status === 'MENUNGGU_PIMPINAN'){
+    const ig = x.ingat ? `<div class="small" style="margin-top:4px">🔔 Terakhir diingatkan ${esc(pkWaktuLalu(x.ingat.t))} oleh ${esc(x.ingat.oleh)}${x.ingat.n > 1 ? ' (' + x.ingat.n + '×)' : ''}</div>` : '';
+    extra = ig + (pkBisaCatat ? `<div style="margin-top:6px"><button class="btn" style="width:auto;display:inline-block;padding:9px 14px;font-size:13.5px;background:#ea580c" onclick="pkIngatkan('${esc(x.id)}', '${esc(x.nama)}')">🔔 Ingatkan Pimpinan</button></div>` : '');
   }
   if(status === 'LUNAS' && x.tglLunas) extra = `<div class="small">🎉 Lunas ${pkTgl(x.tglLunas)}</div>`;
   if(status === 'DITOLAK' && x.alasan) extra = `<div class="small"><i>“${esc(x.alasan)}”</i></div>`;
@@ -77,7 +91,7 @@ async function pkStatMuat(){
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ $('pkStat').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     pkStatData = r;
-    const tiles = [['REVIEW_PENGURUS', 'Direview pengurus', '#d97706'], ['MENUNGGU_PIMPINAN', 'Menunggu pimpinan', '#ea580c'], ['MENUNGGU_PENCAIRAN', 'Menunggu pencairan', '#0369a1'], ['DISETUJUI', 'Pinjaman berjalan', '#15803d'], ['LUNAS', 'Lunas', '#475569'], ['DITOLAK', 'Ditolak', '#b42318']]
+    const tiles = [['REVIEW_PENGURUS', 'Direview Pengurus', '#d97706'], ['MENUNGGU_PIMPINAN', 'Menunggu Pimpinan', '#ea580c'], ['MENUNGGU_PENCAIRAN', 'Menunggu Pencairan', '#0369a1'], ['DISETUJUI', 'Pinjaman Berjalan', '#15803d'], ['LUNAS', 'Lunas', '#475569'], ['DITOLAK', 'Ditolak', '#b42318']]
       .map(([k, t, w]) => `<button class="stile" data-k="${k}" onclick="pkBuka('${k}')"><span class="num" style="color:${w}">${r.status[k] || 0}</span><span class="lbl">${t}</span><span class="hint">Lihat daftar ›</span></button>`).join('');
     const total = Object.values(r.status).reduce((a, b) => a + b, 0);
     const perhatian = r.perhatian.length ? r.perhatian.map(x => {
@@ -88,7 +102,7 @@ async function pkStatMuat(){
     $('pkStat').innerHTML = `
       <b style="font-size:15px">Ringkasan</b><span class="small"> • ${total} pengajuan (${r.jenis.KOPERASI} koperasi, ${r.jenis.KASBON} kasbon). Ketuk kotak untuk melihat datanya.</span>
       <div class="mgrid" style="margin-top:8px">${tiles}
-        <button class="stile wide" data-k="BERJALAN_SISA" onclick="pkBuka('DISETUJUI','BERJALAN_SISA')"><span class="num" style="font-size:26px;color:#134e8a">${pkRp(r.sisaBeredar)}</span><span class="lbl">Sisa pinjaman beredar</span><span class="hint">Lihat daftar ›</span></button>
+        <button class="stile wide" data-k="BERJALAN_SISA" onclick="pkBuka('DISETUJUI','BERJALAN_SISA')"><span class="num" style="font-size:26px;color:#134e8a">${pkRp(r.sisaBeredar)}</span><span class="lbl">Sisa Pinjaman Beredar</span><span class="hint">Lihat daftar ›</span></button>
         <button class="stile wide" data-k="TERLAMBAT" onclick="pkBuka('TERLAMBAT')" style="${r.terlambat.n ? 'border-color:#e74c3c' : ''}"><span class="num" style="font-size:26px;color:${r.terlambat.n ? '#b42318' : '#15803d'}">${r.terlambat.n} angsuran</span><span class="lbl">Terlambat • ${pkRp(r.terlambat.total)}</span><span class="hint">${r.terlambat.n ? 'Lihat daftar & tagih ›' : 'Tidak ada tunggakan ✅'}</span></button></div>
       <div id="pkDetail" style="margin-top:10px"></div>
       ${svgBar('Dana dicairkan vs angsuran masuk (6 bulan)', r.bulan, [{key:'cair', warna:'#134e8a', nama:'Dicairkan', fmt:juta}, {key:'angsuran', warna:'#16a34a', nama:'Angsuran masuk', fmt:juta}])}
@@ -166,7 +180,7 @@ function lpTampil(){
     <div style="grid-column:1/3;${k.tunggakanN ? 'border-color:#e74c3c' : ''}"><b>${k.tunggakanN} angsuran • ${pkRp(k.tunggakanRp)}</b><span class="small">Tunggakan (saat ini)</span></div></div>`;
   $('lpPreview').innerHTML = `<p class="small">Berkas ekspor memuat <b>${r.pengajuan.length}</b> baris pengajuan dan <b>${r.angsuran.length}</b> baris angsuran.</p>`;
 }
-const ST_TXT = {REVIEW_PENGURUS:'Review pengurus', MENUNGGU_PIMPINAN:'Menunggu pimpinan', MENUNGGU_PENCAIRAN:'Menunggu pencairan', DISETUJUI:'Berjalan', LUNAS:'Lunas', DITOLAK:'Ditolak', BELUM:'Belum bayar'};
+const ST_TXT = {REVIEW_PENGURUS:'Review Pengurus', MENUNGGU_PIMPINAN:'Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'Menunggu Pencairan', DISETUJUI:'Berjalan', LUNAS:'Lunas', DITOLAK:'Ditolak', BELUM:'Belum Bayar'};
 function lpTabel(){ // data tabular untuk Excel & cetak
   const r = lpData, k = r.ringkas;
   return {
