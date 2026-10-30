@@ -360,23 +360,34 @@ async function kirimKasbon(){
 }
 
 /* ===== LAPORAN PEMBAYARAN ===== */
+function byPinjaman(){ return dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran); }
+function byKes(){ return Array.from(document.querySelectorAll('#byList input:checked')).map(e => parseInt(e.value, 10)).sort((a, b) => a - b); } // angsuran yang dicentang
+function byTotalPilih(){ const p = byPinjaman(), k = byKes(); return p ? p.angsuran.jadwal.filter(j => k.indexOf(j.ke) >= 0).reduce((t, j) => t + j.jumlah, 0) : 0; }
+function byToggle(el){ // mencentang angsuran ke-N otomatis mencentang yang lebih awal; membatalkan, membatalkan yang lebih akhir (pembayaran berurutan)
+  const cb = Array.from(document.querySelectorAll('#byList input')), i = cb.indexOf(el);
+  cb.forEach((c, j) => { if(el.checked ? j < i : j > i) c.checked = el.checked; });
+  byIsiJumlah();
+}
 function byIsiJumlah(){
-  const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran), ke = parseInt($('bySelect').value, 10);
-  const j = p && p.angsuran.jadwal.find(x => x.ke === ke), tot = (j ? j.jumlah : 0) + (moneyVal('byInfaq') || 0); $('byJumlah').value = tot ? fmtMoney(String(tot)) : '';
+  document.querySelectorAll('#byList .byck').forEach(l => l.classList.toggle('on', l.querySelector('input').checked));
+  const k = byKes(), inf = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), tot = byTotalPilih() + inf;
+  $('byJumlah').value = tot ? fmtMoney(String(tot)) : '';
+  const h = $('byHintPilih');
+  h.innerHTML = k.length ? '<b>' + k.length + ' angsuran dipilih</b> (ke-' + k.join(', ') + ') = ' + rpf(byTotalPilih()) + (inf ? ' + infaq ' + rpf(inf) + ' = <b>' + rpf(tot) + '</b>' : '') : ($('byInfaqWrap').style.display === 'none' ? '' : 'Tidak ada angsuran dicentang: laporan ini hanya untuk <b>infaq</b>.');
   byCekSebagian();
 }
 function byCekSebagian(){ // peringatan bila jumlah < angsuran: catatan alasan jadi wajib
-  const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran), ke = parseInt($('bySelect').value, 10), h = $('byHintSebagian'); if(!h) return;
-  const j = p && ke > 0 ? p.angsuran.jadwal.find(x => x.ke === ke) : null;
+  const p = byPinjaman(), k = byKes(), h = $('byHintSebagian'); if(!h) return;
+  const sisa = byTotalPilih();
   const inf = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), uang = moneyVal('byJumlah') - inf;
-  if(j && uang > 0 && uang < j.jumlah){
-    h.style.display = 'block'; h.innerHTML = '🟡 Jumlah ini <b>kurang ' + rpf(j.jumlah - uang) + '</b> dari angsuran. Pembayaran dicatat sebagai <b>sebagian</b> dan <b>catatan alasan wajib diisi</b>. Bila kekurangan belum dilunasi sampai tanggal 15, akan digeser ke angsuran bulan berikutnya. Kesulitan membayar? Ajukan <a href="#" onclick="goReplace(\'anggota-keringanan\');return false" style="color:#7c3aed;font-weight:700">keringanan</a> dulu.';
+  if(p && k.length && uang > 0 && uang < sisa){
+    h.style.display = 'block'; h.innerHTML = '🟡 Jumlah ini <b>kurang ' + rpf(sisa - uang) + '</b> dari angsuran. Pembayaran dicatat sebagai <b>sebagian</b> dan <b>catatan alasan wajib diisi</b>. Bila kekurangan belum dilunasi sampai tanggal 15, akan digeser ke angsuran bulan berikutnya. Kesulitan membayar? Ajukan <a href="#" onclick="goReplace(\'anggota-keringanan\');return false" style="color:#7c3aed;font-weight:700">keringanan</a> dulu.';
     $('byCatLbl').innerText = 'Catatan alasan (WAJIB karena pembayaran kurang)';
   } else { h.style.display = 'none'; $('byCatLbl').innerText = 'Catatan (opsional)'; }
 }
 function renderBayar(){
   const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran), wait = {};
-  dataSaya.laporan.filter(l => l.status === 'MENUNGGU').forEach(l => wait[l.id + '|' + l.ke] = true);
+  dataSaya.laporan.filter(l => l.status === 'MENUNGGU').forEach(l => (l.kes || (l.ke ? [l.ke] : [])).forEach(k => wait[l.id + '|' + k] = true));
   if(!p){
     $('byInfo').innerText = 'Tidak ada pinjaman berjalan, jadi belum ada angsuran yang perlu dilaporkan.'; $('byForm').style.display = 'none';
   } else {
@@ -384,20 +395,19 @@ function renderBayar(){
     $('byInfo').innerHTML = `Pinjaman <b>${esc(p.id)}</b> (${p.jenis === 'KASBON' ? 'Kasbon' : 'Koperasi'}) • sisa ${rpf(p.angsuran.sisa)}. Transfer angsuran lalu unggah foto bukti transaksi.${ik.target ? '<br>Infaq: terbayar ' + rpf(ik.terbayar) + ' dari ' + rpf(ik.target) + (ik.sisa ? ' • <b>sisa ' + rpf(ik.sisa) + '</b>' : ' ✅ lunas') : ''}`;
     if(!opsi.length && !ik.sisa){ $('byForm').style.display = 'none'; $('byInfo').innerHTML += '<div class="ok" style="margin-top:8px">Semua angsuran yang tersisa sedang menunggu verifikasi pengurus.</div>'; }
     else {
-      const sebelum = $('bySelect').value;
+      const sebelum = Array.from(document.querySelectorAll('#byList input:checked')).map(e => e.value), ada = document.querySelectorAll('#byList input').length > 0;
       $('byForm').style.display = 'block';
-      $('bySelect').innerHTML = opsi.map(j => `<option value="${j.ke}">Angsuran ke-${j.ke} • jatuh tempo ${tglf(j.due)} • ${j.status === 'SEBAGIAN' ? 'kurang ' : ''}${rpf(j.jumlah)}</option>`).join('') + (ik.sisa ? '<option value="0">Hanya bayar infaq (tanpa angsuran)</option>' : '');
-      if(sebelum && Array.from($('bySelect').options).some(o => o.value === sebelum)) $('bySelect').value = sebelum;
+      $('byList').innerHTML = opsi.map(j => `<label class="byck"><input type="checkbox" value="${j.ke}" onchange="byToggle(this)"><span><b>Angsuran ke-${j.ke}</b> • ${rpf(j.jumlah)}${j.status === 'SEBAGIAN' ? ' <i>(kurang)</i>' : ''}<br><span class="small">jatuh tempo ${tglf(j.due)}</span></span></label>`).join('');
+      document.querySelectorAll('#byList input').forEach((c, i) => { c.checked = ada ? sebelum.indexOf(c.value) >= 0 : (i === 0 && opsi.length > 0); }); // angsuran terdekat tercentang bawaan
       $('byInfaqWrap').style.display = ik.sisa ? 'block' : 'none';
       $('byInfaqLbl').innerText = ik.sisa ? 'Infaq (sisa ' + rpf(ik.sisa) + ' dari ' + rpf(ik.target) + ') — boleh dicicil atau lebih; wajib lunas bersama angsuran terakhir' : '';
       if(!$('byTgl').value) $('byTgl').value = hariIniStr(); $('byTgl').max = hariIniStr();
-      if(!$('byJumlah').value) byIsiJumlah();
-      byCekSebagian();
+      if(!$('byJumlah').value) byIsiJumlah(); else { document.querySelectorAll('#byList .byck').forEach(l => l.classList.toggle('on', l.querySelector('input').checked)); byCekSebagian(); }
     }
   }
   const L = dataSaya.laporan;
   $('byRiwayat').innerHTML = L.length ? L.map(l => `<div style="border-bottom:1px solid #d6e6f8;padding:8px 0" class="small">
-      <b>${esc(l.id)} • ${l.ke ? 'angsuran ke-' + l.ke : 'infaq'}${l.infaq && l.ke ? ' + infaq ' + rpf(l.infaq) : ''}</b> • ${rpf(l.jumlah)}<br>Dibayar ${tglf(l.tgl)} • dilaporkan ${esc(l.waktu)}<br><b>${LAPLABEL[l.status] || esc(l.status)}</b>${l.alasan ? '<br><i>“' + esc(l.alasan) + '”</i>' : ''}</div>`).join('')
+      <b>${esc(l.id)} • ${(l.kes && l.kes.length) || l.ke ? 'angsuran ke-' + ((l.kes && l.kes.length) ? l.kes.join(', ') : l.ke) : 'infaq'}${l.infaq && (l.ke || (l.kes && l.kes.length)) ? ' + infaq ' + rpf(l.infaq) : ''}</b> • ${rpf(l.jumlah)}<br>Dibayar ${tglf(l.tgl)} • dilaporkan ${esc(l.waktu)}<br><b>${LAPLABEL[l.status] || esc(l.status)}</b>${l.alasan ? '<br><i>“' + esc(l.alasan) + '”</i>' : ''}</div>`).join('')
     : '<p class="small">Belum ada laporan.</p>';
 }
 // kompres foto di perangkat (maks 1280px, JPEG) agar ringan dikirim
@@ -427,24 +437,23 @@ async function pilihFoto(input){
 }
 function hapusFoto(){ fotoData = ''; $('byPreviewWrap').style.display = 'none'; $('byPreview').removeAttribute('src'); }
 async function kirimLaporan(){
-  const p = dataSaya.list.find(x => x.status === 'DISETUJUI' && x.angsuran); if(!p){ alert('Tidak ada pinjaman berjalan.'); return; }
-  if($('bySelect').value === ''){ alert('Pilih angsuran.'); return; }
-  const keP = parseInt($('bySelect').value, 10), infaqP = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), ikP = p.angsuran.infaq || {sisa:0};
-  if(keP === 0 && !infaqP){ alert('Isi jumlah infaq yang dibayar.'); return; }
-  const belumP = p.angsuran.jadwal.filter(j => j.status !== 'LUNAS'), jP = belumP.find(j => j.ke === keP), uangP = moneyVal('byJumlah') - infaqP;
-  if(keP > 0 && jP){
+  const p = byPinjaman(); if(!p){ alert('Tidak ada pinjaman berjalan.'); return; }
+  const kesP = byKes(), infaqP = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), ikP = p.angsuran.infaq || {sisa:0};
+  if(!kesP.length && !infaqP){ alert(ikP.sisa ? 'Centang angsuran yang dibayar, atau isi jumlah infaq bila hanya membayar infaq.' : 'Centang angsuran yang dibayar.'); return; }
+  const belumP = p.angsuran.jadwal.filter(j => j.status !== 'LUNAS'), jP = belumP.filter(j => kesP.indexOf(j.ke) >= 0), sisaP = jP.reduce((t, j) => t + j.jumlah, 0), uangP = moneyVal('byJumlah') - infaqP;
+  if(kesP.length){
     if(!(uangP > 0)){ alert('Jumlah untuk angsuran harus lebih dari Rp 0 (jumlah dibayar dikurangi infaq).'); return; }
-    if(uangP > jP.jumlah){ alert('Jumlah melebihi angsuran yang harus dibayar (' + rpf(jP.jumlah) + (infaqP ? ' + infaq ' + rpf(infaqP) : '') + '). Periksa kembali.'); return; }
-    if(uangP < jP.jumlah && !$('byCatatan').value.trim()){ alert('Pembayaran kurang dari angsuran (kurang ' + rpf(jP.jumlah - uangP) + '). Isi catatan alasan pembayaran sebagian.'); $('byCatatan').focus(); return; }
+    if(uangP > sisaP){ alert('Jumlah melebihi angsuran yang harus dibayar (' + rpf(sisaP) + (infaqP ? ' + infaq ' + rpf(infaqP) : '') + '). Periksa kembali.'); return; }
+    if(uangP < sisaP && !$('byCatatan').value.trim()){ alert('Pembayaran kurang dari angsuran (kurang ' + rpf(sisaP - uangP) + '). Isi catatan alasan pembayaran sebagian.'); $('byCatatan').focus(); return; }
   }
-  if(keP > 0 && belumP.length === 1 && ikP.sisa > infaqP && !(jP && uangP < jP.jumlah)){ alert('Ini angsuran terakhir, infaq harus lunas bersamanya. Isi infaq minimal ' + rpf(ikP.sisa) + ' (boleh lebih).'); return; }
+  if(kesP.length && kesP.length === belumP.length && ikP.sisa > infaqP && !(uangP < sisaP)){ alert('Ini angsuran terakhir, infaq harus lunas bersamanya. Isi infaq minimal ' + rpf(ikP.sisa) + ' (boleh lebih).'); return; }
   if(!$('byTgl').value){ alert('Isi tanggal pembayaran.'); return; }
   if(!validasiForm($('byForm'))) return;
   if(!fotoData){ alert('Lampirkan foto bukti transaksi (ambil foto atau pilih dari galeri).'); return; }
   const lok = await lokasiMinta();
   const btn = $('btnBayar'); btn.disabled = true; btn.innerText = 'Mengunggah...';
   try{
-    const r = await apiPost({a:'lapor', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id:p.id, ke:keP, infaq:infaqP,
+    const r = await apiPost({a:'lapor', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id:p.id, kes:kesP, ke:kesP[0] || 0, infaq:infaqP,
       tgl:$('byTgl').value, jumlah:moneyVal('byJumlah'), catatan:$('byCatatan').value.trim(), foto:fotoData, lok});
     if(r.ok){ alert('✅ Laporan terkirim. Menunggu verifikasi pengurus.'); hapusFoto(); $('byCatatan').value = ''; $('byJumlah').value = ''; $('byInfaq').value = ''; await muatData(); }
     else alert('❌ ' + r.msg);

@@ -462,7 +462,7 @@ function pkLaporanKartu(l){
     </div>` : '<p class="small">Verifikasi pembayaran hanya dapat dilakukan oleh Ketua dan Bendahara.</p>';
   return `<div class="ok" style="background:#fff;margin-bottom:12px" id="lp-${esc(l.lid)}">
     <b>${esc(l.nama)}</b> <span class="small">(${esc(l.id)})</span><br>
-    <span class="small">${l.ke ? 'Angsuran ke-' + l.ke : 'Infaq saja'}${l.infaq ? (l.ke ? ' + infaq ' : ' ') + pkRp(l.infaq) : ''} • <b>${pkRp(l.jumlah)}</b> • dibayar ${pkTgl(l.tgl)} • dilaporkan ${esc(l.waktu)}${l.catatan ? '<br>Catatan: ' + esc(l.catatan) : ''}</span>
+    <span class="small">${(l.kes && l.kes.length) || l.ke ? 'Angsuran ke-' + ((l.kes && l.kes.length) ? l.kes.join(', ') : l.ke) : 'Infaq saja'}${l.infaq ? (l.ke || (l.kes && l.kes.length) ? ' + infaq ' : ' ') + pkRp(l.infaq) : ''} • <b>${pkRp(l.jumlah)}</b> • dibayar ${pkTgl(l.tgl)} • dilaporkan ${esc(l.waktu)}${l.catatan ? '<br>Catatan: ' + esc(l.catatan) : ''}</span>
     <div style="margin:8px 0"><button class="btn" style="padding:10px;font-size:13px;background:#6b7f99" onclick="pkBukti('${esc(l.lid)}')">🖼️ Lihat foto bukti</button><div id="bk-${esc(l.lid)}"></div></div>
     ${aksi}</div>`;
 }

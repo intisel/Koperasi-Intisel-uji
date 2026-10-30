@@ -364,7 +364,9 @@ body.kartu-open{overflow:hidden}
     <b style="font-size:16px">🧾 Laporan Pembayaran Angsuran</b>
     <div id="byInfo" class="small" style="margin:6px 0"></div>
     <div id="byForm">
-      <label>Angsuran yang dibayar</label><select id="bySelect" onchange="byIsiJumlah()"></select>
+      <label>Angsuran yang dibayar <span class="small" style="font-weight:400">(boleh lebih dari satu)</span></label>
+      <style>.byck{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;margin:6px 0;border:1.5px solid #b9d2f0;border-radius:12px;background:#fff;font-size:14px;line-height:1.35;cursor:pointer}.byck input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:#134e8a}.byck.on{background:#eaf3ff;border-color:#134e8a}</style>
+      <div id="byList"></div><div id="byHintPilih" class="small" style="margin:2px 0 4px"></div>
       <div id="byInfaqWrap" style="display:none"><label id="byInfaqLbl">Infaq (opsional)</label><input id="byInfaq" type="text" inputmode="numeric" data-fmt="money" data-opt="1" placeholder="Contoh: 20.000" oninput="byIsiJumlah()"></div>
       <label>Tanggal pembayaran</label><input id="byTgl" type="date">
       <label>Jumlah dibayar (Rp)</label><input id="byJumlah" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 500.000" oninput="byCekSebagian()">
