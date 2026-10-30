@@ -75,8 +75,9 @@ async function kasBatal(id){
 /* ----- Laporan Kas (tab di Laporan & Ekspor) ----- */
 let lkData = null;
 function lpTab(t){
-  $('lpTabP').classList.toggle('hidden', t !== 'P'); $('lpTabK').classList.toggle('hidden', t !== 'K');
-  $('lpTabBtnP').classList.toggle('on', t === 'P'); $('lpTabBtnK').classList.toggle('on', t === 'K');
+  ['D','P','K'].forEach(x => { $('lpTab' + x).classList.toggle('hidden', t !== x); $('lpTabBtn' + x).classList.toggle('on', t === x); });
+  if(t === 'D') pkStatMuat();
+  if(t === 'P') lpInit();
   if(t === 'K' && !$('lkSampai').value) lkPreset('bulan');
 }
 function lkPreset(k){

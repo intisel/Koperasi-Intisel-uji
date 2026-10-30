@@ -589,11 +589,47 @@ body.kartu-open{overflow:hidden}
         </div></div>
     </div>
     <div class="pkv hidden" id="pkvG3">
-      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>📊 Monitoring &amp; Laporan</b></div>
-        <div class="mgrid">
-          <button class="mtile" onclick="go('pengurus-statistik')"><span class="ic">📈</span><b>Dasbor &amp; Grafik</b><span class="sub">Rekap pinjaman &amp; tunggakan</span></button>
-          <button class="mtile" onclick="go('pengurus-laporan')"><span class="ic">📑</span><b>Laporan &amp; Ekspor</b><span class="sub">Laporan pinjaman &amp; laporan kas</span></button>
-        </div></div>
+      <div class="pktabs"><button id="lpTabBtnD" class="on" onclick="lpTab('D')">📈 Dasbor &amp; Grafik</button><button id="lpTabBtnP" onclick="lpTab('P')">📑 Laporan Pinjaman</button><button id="lpTabBtnK" onclick="lpTab('K')">💵 Laporan Kas</button></div>
+      <div id="lpTabD">
+      <div class="card"><b>📈 Dasbor &amp; Grafik</b><div id="pkStat" style="margin-top:8px"><p class="small">Memuat...</p></div></div>
+      </div>
+      <div id="lpTabP" class="hidden">
+      <div class="card"><b>📑 Laporan &amp; Ekspor</b>
+        <p class="small" style="margin:2px 0 8px">Data operasional dan rekap keuangan pada rentang tanggal tertentu.</p>
+        <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lpDari" onchange="lpStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lpSampai" onchange="lpStale()"></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px">
+          <span class="chip" onclick="lpPreset('bulan')">Bulan ini</span><span class="chip" onclick="lpPreset('3bulan')">3 bulan</span><span class="chip" onclick="lpPreset('tahun')">Tahun ini</span>
+        </div>
+        <button class="btn" id="lpBtn" onclick="lpMuat()">Tampilkan Laporan</button>
+        <div id="lpPesan" style="margin-top:8px"></div>
+      </div>
+      <div class="card hidden" id="lpHasil">
+        <div id="lpRingkas"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" style="flex:1;min-width:140px;background:#0f766e;padding:12px;font-size:14px" onclick="lpExcel()">⬇ Excel (.xlsx)</button>
+          <button class="btn" style="flex:1;min-width:140px;background:#134e8a;padding:12px;font-size:14px" onclick="lpCetak()">🖨 PDF / Cetak</button>
+        </div>
+        <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
+        <div id="lpPreview"></div>
+      </div>
+      </div>
+      <div id="lpTabK" class="hidden">
+      <div class="card"><b>💵 Laporan Kas</b>
+        <p class="small" style="margin:2px 0 8px">Kas masuk, kas keluar, dan saldo pada rentang tanggal tertentu.</p>
+        <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lkDari" onchange="lkStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lkSampai" onchange="lkStale()"></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px"><span class="chip" onclick="lkPreset('bulan')">Bulan ini</span><span class="chip" onclick="lkPreset('3bulan')">3 bulan</span><span class="chip" onclick="lkPreset('tahun')">Tahun ini</span></div>
+        <button class="btn" id="lkBtn" onclick="lkMuat()">Tampilkan Laporan Kas</button>
+        <div id="lkPesan" style="margin-top:8px"></div>
+      </div>
+      <div class="card hidden" id="lkHasil">
+        <div id="lkRingkas"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" style="flex:1;min-width:140px;background:#0f766e;padding:12px;font-size:14px" onclick="lkExcel()">⬇ Excel (.xlsx)</button>
+          <button class="btn" style="flex:1;min-width:140px;background:#134e8a;padding:12px;font-size:14px" onclick="lkCetak()">🖨 PDF / Cetak</button>
+        </div>
+        <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
+      </div>
+      </div>
     </div>
     <div class="pkv hidden" id="pkvG4">
       <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>⚙️ Informasi &amp; Sistem</b></div>
@@ -622,9 +658,6 @@ body.kartu-open{overflow:hidden}
       <div id="byTabP" class="hidden">
       <div class="card"><b>📊 Pinjaman Berjalan</b><p class="small" style="margin:2px 0 8px">Tandai lunas angsuran (bisa lebih dari satu) dan ingatkan anggota lewat WhatsApp.</p><input type="search" id="pkCari" placeholder="🔍 Cari nama peminjam..." oninput="pkCari()" autocomplete="off" style="margin-bottom:4px"><div class="small" id="pkCariInfo" style="margin-bottom:8px"></div><div id="pkPinjaman"></div></div>
       </div>
-    </div>
-    <div class="pkv hidden" id="pkvStatistik">
-      <div class="card"><b>📈 Dasbor &amp; Grafik</b><div id="pkStat" style="margin-top:8px"><p class="small">Memuat...</p></div></div>
     </div>
     <div class="pkv hidden" id="pkvAnggota">
       <div class="card"><b>👥 Database Anggota</b>
@@ -702,46 +735,6 @@ body.kartu-open{overflow:hidden}
       </div>
       <div class="card"><b id="kasDaftarJudul">Daftar Kas Masuk</b><p class="small" id="kasCatatan" style="margin:2px 0 6px"></p><div id="kasDaftar"><p class="small">Memuat...</p></div></div>
     </div>
-    <div class="pkv hidden" id="pkvLaporan">
-      <div class="pktabs"><button id="lpTabBtnP" class="on" onclick="lpTab('P')">📊 Laporan Pinjaman</button><button id="lpTabBtnK" onclick="lpTab('K')">💵 Laporan Kas</button></div>
-      <div id="lpTabP">
-      <div class="card"><b>📑 Laporan &amp; Ekspor</b>
-        <p class="small" style="margin:2px 0 8px">Data operasional dan rekap keuangan pada rentang tanggal tertentu.</p>
-        <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lpDari" onchange="lpStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lpSampai" onchange="lpStale()"></div></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px">
-          <span class="chip" onclick="lpPreset('bulan')">Bulan ini</span><span class="chip" onclick="lpPreset('3bulan')">3 bulan</span><span class="chip" onclick="lpPreset('tahun')">Tahun ini</span>
-        </div>
-        <button class="btn" id="lpBtn" onclick="lpMuat()">Tampilkan Laporan</button>
-        <div id="lpPesan" style="margin-top:8px"></div>
-      </div>
-      <div class="card hidden" id="lpHasil">
-        <div id="lpRingkas"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button class="btn" style="flex:1;min-width:140px;background:#0f766e;padding:12px;font-size:14px" onclick="lpExcel()">⬇ Excel (.xlsx)</button>
-          <button class="btn" style="flex:1;min-width:140px;background:#134e8a;padding:12px;font-size:14px" onclick="lpCetak()">🖨 PDF / Cetak</button>
-        </div>
-        <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
-        <div id="lpPreview"></div>
-      </div>
-      </div>
-      <div id="lpTabK" class="hidden">
-      <div class="card"><b>💵 Laporan Kas</b>
-        <p class="small" style="margin:2px 0 8px">Kas masuk, kas keluar, dan saldo pada rentang tanggal tertentu.</p>
-        <div style="display:flex;gap:8px"><div style="flex:1"><label>Dari</label><input type="date" id="lkDari" onchange="lkStale()"></div><div style="flex:1"><label>Sampai</label><input type="date" id="lkSampai" onchange="lkStale()"></div></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px"><span class="chip" onclick="lkPreset('bulan')">Bulan ini</span><span class="chip" onclick="lkPreset('3bulan')">3 bulan</span><span class="chip" onclick="lkPreset('tahun')">Tahun ini</span></div>
-        <button class="btn" id="lkBtn" onclick="lkMuat()">Tampilkan Laporan Kas</button>
-        <div id="lkPesan" style="margin-top:8px"></div>
-      </div>
-      <div class="card hidden" id="lkHasil">
-        <div id="lkRingkas"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button class="btn" style="flex:1;min-width:140px;background:#0f766e;padding:12px;font-size:14px" onclick="lkExcel()">⬇ Excel (.xlsx)</button>
-          <button class="btn" style="flex:1;min-width:140px;background:#134e8a;padding:12px;font-size:14px" onclick="lkCetak()">🖨 PDF / Cetak</button>
-        </div>
-        <p class="small">PDF: pada jendela cetak pilih <b>Simpan sebagai PDF</b>.</p>
-      </div>
-      </div>
-    </div>
   </div>
   <div class="hero hero-small">
     <div class="slideshow">
@@ -784,8 +777,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-statistik','pengurus-anggota','pengurus-laporan','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-statistik':3,'pengurus-anggota':3,'pengurus-laporan':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -833,7 +826,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-budget':'g2','pengurus-statistik':'g3','pengurus-laporan':'g3','pengurus-anggota':'g4','pengurus-lokasi':'g4','pengurus-info':'g4'};
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-lokasi':'g4','pengurus-info':'g4'};
       if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }
