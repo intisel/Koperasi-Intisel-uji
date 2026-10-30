@@ -668,7 +668,7 @@ body.kartu-open{overflow:hidden}
       <div class="card"><b>🏦 Kas Koperasi</b>
         <div style="text-align:center;margin:10px 0 4px"><div class="small">Saldo kas saat ini (real-time)</div><div id="kasSaldo" style="font-size:28px;font-weight:800;color:#134e8a">Rp 0</div></div>
         <div class="stt" style="margin:8px 0 0"><div><b id="kasMasukBln" style="color:#166534">Rp 0</b><span class="small">Kas masuk bulan dipilih</span></div><div><b id="kasKeluarBln" style="color:#b91c1c">Rp 0</b><span class="small">Kas keluar bulan dipilih</span></div></div>
-        <label style="margin-top:6px">Bulan</label><input type="month" id="kasBulan" onchange="kasMuat()">
+        <div id="kasBanner"></div><label style="margin-top:6px">Bulan</label><input type="month" id="kasBulan" onchange="kasMuat()">
       </div>
       <div class="pktabs"><button id="kasTabBtnM" class="on" onclick="kasTab('MASUK')">⬇ Kas Masuk</button><button id="kasTabBtnK" onclick="kasTab('KELUAR')">⬆ Kas Keluar</button></div>
       <div class="card hidden" id="kasForm">

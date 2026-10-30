@@ -18,10 +18,11 @@ async function kasMuat(){
 }
 function kasPengisian(){ // form input (hanya Ketua & Bendahara)
   const r = kasData; if(!r) return;
+  $('kasBanner').innerHTML = r.saldoAwalAda ? '' : `<div class="err" style="margin-top:8px">⚠️ <b>Saldo awal belum dicatat.</b> Sebelum itu saldo kas belum akurat dan transaksi otomatis (infaq, angsuran, pencairan) belum dihitung.${r.bisaInput ? ' Catat lewat <b>Kas Masuk → kategori Saldo awal</b> sesuai saldo rekening koperasi.' : ' Mohon Ketua/Bendahara mencatatnya.'}</div>`;
   $('kasForm').classList.toggle('hidden', !r.bisaInput);
   const m = kasJenis === 'MASUK', kat = m ? r.katMasuk : r.katKeluar, lama = $('kasKat').value;
   $('kasFormJudul').innerText = m ? '⬇ Catat Kas Masuk' : '⬆ Catat Kas Keluar';
-  $('kasKat').innerHTML = kat.map(k => `<option>${esc(k)}</option>`).join(''); if(kat.indexOf(lama) >= 0) $('kasKat').value = lama;
+  $('kasKat').innerHTML = kat.filter(x => !(m && x === 'Saldo awal' && r.saldoAwalAda)).map(k => `<option>${esc(k)}</option>`).join(''); if(kat.indexOf(lama) >= 0) $('kasKat').value = lama;
   $('kasKetLbl').innerText = m ? 'Keterangan (wajib bila "Lainnya")' : 'Keterangan (wajib bila "Lainnya", mis. rapat, fotokopi, bensin)';
   if(!$('kasTgl').value) $('kasTgl').value = r.hariIni; $('kasTgl').max = r.hariIni;
 }
@@ -31,7 +32,7 @@ function kasRender(){
   $('kasMasukBln').innerText = pkRp(r.masuk); $('kasKeluarBln').innerText = pkRp(r.keluar);
   const m = kasJenis === 'MASUK', daftar = r.baris.filter(x => x.jenis === kasJenis), tot = daftar.reduce((t, x) => t + x.jumlah, 0), ym = $('kasBulan').value;
   $('kasDaftarJudul').innerText = (m ? 'Daftar Kas Masuk' : 'Daftar Kas Keluar') + ' • ' + ym.split('-').reverse().join('/');
-  $('kasCatatan').innerHTML = (m ? 'Infaq dari pembayaran angsuran masuk <b>otomatis</b>; asuransi, bunga, denda, dan lainnya dicatat manual oleh Ketua/Bendahara. ' : '') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
+  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima. <b>Manual</b> (Ketua/Bendahara): asuransi, bunga, denda, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman yang ditandai sudah dicairkan. <b>Manual</b> (Ketua/Bendahara): ATK, transport, konsumsi, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
   const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
     <div class="small">${pkTgl(x.tgl)}${x.ket ? ' • ' + esc(x.ket) : ''}${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
     ${r.bisaInput && !x.otomatis ? `<span class="back-link" style="margin:4px 0 0" onclick="kasBatalBuka('${esc(x.id)}')">✖ Batalkan</span><div id="kb_${esc(x.id)}" class="hidden" style="margin-top:6px"><input id="kba_${esc(x.id)}" maxlength="200" placeholder="Alasan pembatalan (wajib)"><button class="btn" style="margin-top:6px;padding:10px;font-size:14px;background:#b91c1c" onclick="kasBatal('${esc(x.id)}')">Batalkan Catatan</button></div>` : ''}</div>`;
