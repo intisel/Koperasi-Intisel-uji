@@ -326,6 +326,13 @@ body.kartu-open{overflow:hidden}
     </div>
     <div id="pfBody"></div>
   </div>
+  <div class="card view" id="vProfilUbah" style="display:none">
+    <b style="font-size:16px">✏️ Ajukan Perubahan Data</b>
+    <p class="small" style="margin:4px 0 10px">Ubah data yang perlu diperbarui. Perubahan <b>baru berlaku setelah disetujui pengurus</b>. Foto profil tidak perlu persetujuan. NIK dan nama tidak dapat diubah di sini.</p>
+    <div class="warn" style="margin:0 0 10px">Mengubah <b>Bagian</b> atau <b>tanggal masuk kerja</b> memengaruhi hak pinjaman Anda; pengurus akan memeriksanya.</div>
+    <div id="pfUbahBody"></div>
+    <button class="btn" id="pfUbahBtn" onclick="ubahKirim()">📨 Kirim ke Pengurus</button>
+  </div>
   <div class="card view" id="vKontak" style="display:none">
     <b style="font-size:16px">📞 Kontak &amp; Bantuan</b>
     <p class="small" style="margin:4px 0 10px">Ada pertanyaan soal pengajuan, angsuran, atau pencairan? Hubungi pengurus langsung lewat WhatsApp.</p>
@@ -687,6 +694,7 @@ body.kartu-open{overflow:hidden}
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
           <button class="mtile" onclick="go('pengurus-perangkat')"><span class="ic">📱</span><b>Informasi Perangkat &amp; Lokasi</b><span class="sub">Siapa sudah pasang aplikasi &amp; lokasi</span></button>
+          <button class="mtile" onclick="go('pengurus-ubah')"><span class="ic">📝</span><b>Perubahan Data Anggota</b><span class="sub">Setujui perubahan dari anggota</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
         </div></div>
@@ -756,6 +764,11 @@ body.kartu-open{overflow:hidden}
         <div id="bnPesan" style="display:none;margin-bottom:8px"></div>
         <div id="bnDaftar"></div>
       </div>
+    </div>
+    <div class="pkv hidden" id="pkvUbah">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Kembali</span><b>📝 Perubahan Data Anggota</b></div>
+        <p class="small" style="margin:2px 0 8px">Anggota mengajukan perubahan data lewat halaman Profil. Setelah disetujui, data di sheet Anggota langsung diperbarui. NIK dan nama tidak dapat diubah lewat jalur ini.</p>
+        <div id="ubList"></div></div>
     </div>
     <div class="pkv hidden" id="pkvPL">
       <div class="pktabs"><button id="plTabBtnP" class="on" onclick="plTab('P')">📱 Perangkat</button><button id="plTabBtnL" onclick="plTab('L')">📍 Lokasi</button></div>
@@ -857,8 +870,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','anggota-profil','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'anggota-profil':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','anggota-profil','anggota-profil-ubah','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-ubah','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'anggota-profil':2,'anggota-profil-ubah':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-ubah':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -906,7 +919,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-info':'g4'};
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-ubah':'g4','pengurus-info':'g4'};
       if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }
@@ -1063,6 +1076,7 @@ function hitungAngsuran(){
 <script src="kbp.js"></script>
 <script src="perangkat.js"></script>
 <script src="profil.js"></script>
+<script src="ubahdata.js"></script>
 <script src="talangan.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>

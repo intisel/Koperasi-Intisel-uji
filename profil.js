@@ -9,7 +9,7 @@ function profilTglId(s){
   const B = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   return +m[3] + ' ' + B[+m[2] - 1] + ' ' + m[1];
 }
-function profilRender(){
+function profilRender(dariSegar){
   const a = anggotaAktif; if(!a) return;
   const p = a.profil || {}, mk = masaKerjaDetail(a.tglMasuk), t = tingkatDari(mk ? mk.tahun : (+a.masaKerja || 0));
   $('pfNama').textContent = a.nama; $('pfJab').textContent = a.jabatan || '';
@@ -17,7 +17,7 @@ function profilRender(){
   $('pfHead').dataset.t = t;
   const c = $('pfCrown'); c.innerHTML = mahkotaSvg(t);
   fotoTerapkan($('avProfil'), (typeof fotoCache !== 'undefined' && fotoCache.anggota) || '', a.nama);
-  $('pfBody').innerHTML =
+  $('pfBody').innerHTML = ubahKotakStatus() + `<button class="btn" style="margin:0 0 12px" onclick="go('anggota-profil-ubah')">✏️ Ajukan Perubahan Data</button>` +
     `<div class="pfcard"><div class="pfjudul">Data Anggota</div>` +
       profilBaris('🪪', 'NIK', a.nik) + profilBaris('👤', 'Nama', a.nama) + profilBaris('💼', 'Jabatan', a.jabatan) +
       profilBaris('🏢', 'Bagian', a.bagian) + profilBaris('📍', 'Base / Lokasi', a.base) +
