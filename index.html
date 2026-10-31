@@ -721,10 +721,15 @@ body.kartu-open{overflow:hidden}
     <div class="pkv hidden" id="pkvAnggota">
       <div class="pktabs"><button id="agTabBtnD" class="on" onclick="agTab('D')">👥 Database</button><button id="agTabBtnU" onclick="agTab('U')">📝 Perubahan Data <span id="agTabNU"></span></button></div>
       <div id="agTabD">
-      <div class="card"><b>👥 Database Anggota</b>
+      <div class="card hidden" id="agBaruCard"><b>➕ Tambah Anggota Baru</b>
+        <p class="small" style="margin:2px 0 8px">Diajukan oleh satu pengurus dan harus disetujui pengurus lain. Pimpinan diberi tahu lewat email (tanpa persetujuan). Anggota baru masuk pertama kali dengan kode OTP yang dikirim ke email di bawah.</p>
+        <div id="agBaruForm"></div>
+        <button class="btn" id="agBaruBtn" onclick="agTambahKirim()">📨 Ajukan Anggota Baru</button>
+      </div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>👥 Database Anggota</b><button class="btn hidden" id="agBaruTombol" style="width:auto;margin:0;padding:8px 12px;font-size:13px" onclick="agTambahToggle()">➕ Tambah Anggota</button></div>
         <input id="agCari" type="search" placeholder="Cari nama / NIK / jabatan..." oninput="agRender()" style="margin-top:8px" autocomplete="off">
         <select id="agFilter" onchange="agRender()">
-          <option value="">Semua anggota</option><option value="berjalan">Punya pinjaman berjalan</option><option value="terlambat">Angsuran terlambat</option>
+          <option value="">Semua anggota aktif</option><option value="nonaktif">Anggota nonaktif (berhenti)</option><option value="berjalan">Punya pinjaman berjalan</option><option value="terlambat">Angsuran terlambat</option>
           <option value="proses">Pengajuan sedang diproses</option><option value="Koperasi">Layanan Koperasi (≥ 2 th)</option><option value="Kasbon">Layanan Kasbon (&lt; 2 th)</option>
         </select>
         <p class="small" id="agInfo"></p><div id="agList"></div>
