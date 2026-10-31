@@ -56,11 +56,17 @@ async function ubahKirim(){
 }
 
 /* ---------- Pengurus: daftar & keputusan ---------- */
-async function ubMuat(){
+function agTab(t){ ['D', 'U'].forEach(k => { $('agTab' + k).classList.toggle('hidden', t !== k); $('agTabBtn' + k).classList.toggle('on', t === k); }); if(t === 'U') ubMuat(); }
+function ubBadge(n){ // angka merah: tab, tile Database Anggota, tile Informasi & Sistem
+  const t = $('agTabNU'); if(t) t.innerText = n ? '(' + n + ')' : ''; const b = $('agTabBtnU'); if(b) b.classList.toggle('notif', n > 0);
+  ['pbAnggota', 'pbG4'].forEach(id => { const e = $(id); if(e){ e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; } });
+}
+async function ubMuat(diam){
   const box = $('ubList'); box.innerHTML = '<p class="small">Memuat...</p>';
   try{
     const r = await pkApi({a:'ubah_daftar', token:pkToken}); if(r.expired){ pkExpired(); return; }
     if(!r.ok){ box.innerHTML = '<div class="err">' + esc(r.msg) + '</div>'; return; }
+    ubBadge(r.menunggu || 0);
     if(!r.list.length){ box.innerHTML = '<p class="small">Belum ada permintaan perubahan data.</p>'; return; }
     box.innerHTML = r.list.map(p => {
       const st = p.status === 'MENUNGGU' ? '<span class="badge" style="background:#dbeafe;color:#134e8a">MENUNGGU</span>' : p.status === 'DISETUJUI' ? '<span class="badge" style="background:#d4f5dd;color:#1b7a3a">DISETUJUI</span>' : '<span class="badge" style="background:#fde0e0;color:#c0392b">DITOLAK</span>';

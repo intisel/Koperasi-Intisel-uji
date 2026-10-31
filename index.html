@@ -605,7 +605,7 @@ body.kartu-open{overflow:hidden}
           <button class="mtile big" onclick="go('pengurus-g1')"><span class="pbadge" id="pbG1"></span><span class="ic">📋</span><b>Administrasi Pinjaman</b><span class="sub">Validasi, pencairan &amp; pembayaran angsuran</span></button>
           <button class="mtile big" onclick="go('pengurus-g2')"><span class="ic">🏦</span><b>Keuangan Koperasi</b><span class="sub">Kas, budget pinjaman &amp; SHU</span></button>
           <button class="mtile big" onclick="go('pengurus-g3')"><span class="ic">📊</span><b>Monitoring &amp; Laporan</b><span class="sub">Dasbor, grafik &amp; ekspor</span></button>
-          <button class="mtile big" onclick="go('pengurus-g4')"><span class="ic">⚙️</span><b>Informasi &amp; Sistem</b><span class="sub">Anggota, lokasi, pengumuman &amp; panduan</span></button>
+          <button class="mtile big" onclick="go('pengurus-g4')"><span class="pbadge" id="pbG4"></span><span class="ic">⚙️</span><b>Informasi &amp; Sistem</b><span class="sub">Anggota, lokasi, pengumuman &amp; panduan</span></button>
         </div>
       </div>
     </div>
@@ -692,9 +692,8 @@ body.kartu-open{overflow:hidden}
     <div class="pkv hidden" id="pkvG4">
       <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>⚙️ Informasi &amp; Sistem</b></div>
         <div class="mgrid">
-          <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
+          <button class="mtile" onclick="go('pengurus-anggota')"><span class="pbadge" id="pbAnggota"></span><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
           <button class="mtile" onclick="go('pengurus-perangkat')"><span class="ic">📱</span><b>Informasi Perangkat &amp; Lokasi</b><span class="sub">Siapa sudah pasang aplikasi &amp; lokasi</span></button>
-          <button class="mtile" onclick="go('pengurus-ubah')"><span class="ic">📝</span><b>Perubahan Data Anggota</b><span class="sub">Setujui perubahan dari anggota</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
         </div></div>
@@ -720,6 +719,8 @@ body.kartu-open{overflow:hidden}
       </div>
     </div>
     <div class="pkv hidden" id="pkvAnggota">
+      <div class="pktabs"><button id="agTabBtnD" class="on" onclick="agTab('D')">👥 Database</button><button id="agTabBtnU" onclick="agTab('U')">📝 Perubahan Data <span id="agTabNU"></span></button></div>
+      <div id="agTabD">
       <div class="card"><b>👥 Database Anggota</b>
         <input id="agCari" type="search" placeholder="Cari nama / NIK / jabatan..." oninput="agRender()" style="margin-top:8px" autocomplete="off">
         <select id="agFilter" onchange="agRender()">
@@ -727,6 +728,12 @@ body.kartu-open{overflow:hidden}
           <option value="proses">Pengajuan sedang diproses</option><option value="Koperasi">Layanan Koperasi (≥ 2 th)</option><option value="Kasbon">Layanan Kasbon (&lt; 2 th)</option>
         </select>
         <p class="small" id="agInfo"></p><div id="agList"></div>
+      </div>
+      </div>
+      <div id="agTabU" class="hidden">
+        <div class="card"><b>📝 Perubahan Data Anggota</b>
+          <p class="small" style="margin:2px 0 8px">Anggota mengajukan perubahan lewat halaman Profil. Cukup satu pengurus untuk menyetujui; setelah disetujui, sheet Anggota langsung diperbarui. NIK, nama, dan tanggal masuk kerja tidak dapat diubah lewat jalur ini. Perubahan data Anda sendiri harus diputuskan pengurus lain.</p>
+          <div id="ubList"></div></div>
       </div>
     </div>
     <div class="pkv hidden" id="pkvInfo">
@@ -764,11 +771,6 @@ body.kartu-open{overflow:hidden}
         <div id="bnPesan" style="display:none;margin-bottom:8px"></div>
         <div id="bnDaftar"></div>
       </div>
-    </div>
-    <div class="pkv hidden" id="pkvUbah">
-      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Kembali</span><b>📝 Perubahan Data Anggota</b></div>
-        <p class="small" style="margin:2px 0 8px">Anggota mengajukan perubahan data lewat halaman Profil. Setelah disetujui, data di sheet Anggota langsung diperbarui. NIK, nama, dan tanggal masuk kerja tidak dapat diubah lewat jalur ini.</p>
-        <div id="ubList"></div></div>
     </div>
     <div class="pkv hidden" id="pkvPL">
       <div class="pktabs"><button id="plTabBtnP" class="on" onclick="plTab('P')">📱 Perangkat</button><button id="plTabBtnL" onclick="plTab('L')">📍 Lokasi</button></div>
@@ -870,8 +872,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','anggota-profil','anggota-profil-ubah','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-ubah','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'anggota-profil':2,'anggota-profil-ubah':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-ubah':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','anggota-profil','anggota-profil-ubah','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'anggota-profil':2,'anggota-profil-ubah':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -919,7 +921,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-ubah':'g4','pengurus-info':'g4'};
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-info':'g4'};
       if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }

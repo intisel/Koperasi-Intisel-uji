@@ -24,17 +24,16 @@ function pengurusRender(name){
     const v = PK_VIEW[name] || 'pkvMenu';
     document.querySelectorAll('#pkDash .pkv').forEach(e => e.classList.toggle('hidden', e.id !== v));
     if(name === 'pengurus-g3'){ pkMuat(); lpTab('D'); }
-    else if(name === 'pengurus-anggota') agMuat();
+    else if(name === 'pengurus-anggota'){ agTab('D'); agMuat(); ubMuat(true); }
     else if(name === 'pengurus-info') infoMuat();
     else if(name === 'pengurus-perangkat') plMuat();
-    else if(name === 'pengurus-ubah') ubMuat();
     else if(name === 'pengurus-budget') bdMuat();
     else if(name === 'pengurus-kas') kasInit();
     else if(name === 'pengurus-kbp') kbpMuat();
     else pkMuat();
   }
 }
-const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-anggota':'pkvAnggota', 'pengurus-info':'pkvInfo', 'pengurus-perangkat':'pkvPL', 'pengurus-ubah':'pkvUbah', 'pengurus-budget':'pkvBudget', 'pengurus-kas':'pkvKas', 'pengurus-kbp':'pkvKbp', 'pengurus-g1':'pkvG1', 'pengurus-g2':'pkvG2', 'pengurus-g3':'pkvG3', 'pengurus-g4':'pkvG4'};
+const PK_VIEW = {'pengurus-dashboard':'pkvMenu', 'pengurus-validasi':'pkvValidasi', 'pengurus-cair':'pkvCair', 'pengurus-berjalan':'pkvBerjalan', 'pengurus-anggota':'pkvAnggota', 'pengurus-info':'pkvInfo', 'pengurus-perangkat':'pkvPL',  'pengurus-budget':'pkvBudget', 'pengurus-kas':'pkvKas', 'pengurus-kbp':'pkvKbp', 'pengurus-g1':'pkvG1', 'pengurus-g2':'pkvG2', 'pengurus-g3':'pkvG3', 'pengurus-g4':'pkvG4'};
 function pkTab(t){
   $('pkBoxKode').classList.toggle('hidden', t !== 'kode'); $('pkBoxPw').classList.toggle('hidden', t !== 'pw'); $('pkBoxAtur').classList.toggle('hidden', t !== 'atur');
   $('pkTabKode').classList.toggle('on', t === 'kode'); $('pkTabPw').classList.toggle('on', t === 'pw');
@@ -154,6 +153,7 @@ async function pkMuat(){
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
     $('pkMenungguPimpinan').innerHTML = pkMenungguPimpinan(r.menungguPimpinan);
     fotoMuatPelamar(r.menunggu);
+    ubBadge(r.ubahMenunggu || 0);
     pkBadge2('pbValidasi', r.menunggu.length); pkBadge2('pbCair', r.pencairan.length); pkLapBase = r.laporan.length + bj.terlambat; pkBadge2('pbBerjalan', pkLapBase);
     $('byTabNV').innerText = r.laporan.length ? '(' + r.laporan.length + ')' : ''; $('byTabNP').innerText = bj.terlambat ? '(⚠️' + bj.terlambat + ')' : ''; pkTabNotif('V', r.laporan.length); pkTabNotif('P', bj.terlambat);
     if(!pkBayarTabSet){ pkBayarTabSet = true; pkBayarTab(r.laporan.length ? 'V' : 'P'); }
