@@ -1,6 +1,6 @@
 /* ===== Perubahan data anggota: anggota mengajukan, pengurus menyetujui (foto profil tidak perlu persetujuan) ===== */
 const UBAH_FIELD = [ // [kunci, label, tipe, maks, inputmode, kelompok]
-  ['jabatan', 'Jabatan', 'text', 60, '', 'Data Anggota'], ['bagian', 'Bagian', 'text', 40, '', 'Data Anggota'], ['base', 'Base / Lokasi', 'text', 40, '', 'Data Anggota'], ['tglMasuk', 'Tanggal masuk kerja', 'date', 10, '', 'Data Anggota'],
+  ['jabatan', 'Jabatan', 'text', 60, '', 'Data Anggota'], ['bagian', 'Bagian', 'text', 40, '', 'Data Anggota'], ['base', 'Base / Lokasi', 'text', 40, '', 'Data Anggota'],
   ['hp', 'Nomor HP', 'tel', 16, 'numeric', 'Kontak'], ['email', 'Email', 'email', 80, 'email', 'Kontak'], ['alamat', 'Alamat', 'text', 200, '', 'Kontak'],
   ['rek', 'Nomor rekening BNI', 'tel', 24, 'numeric', 'Rekening'],
   ['namaDarurat', 'Nama', 'text', 60, '', 'Kontak Darurat'], ['hpDarurat', 'Nomor HP', 'tel', 16, 'numeric', 'Kontak Darurat'], ['hubungan', 'Hubungan (mis. istri, orang tua)', 'text', 60, '', 'Kontak Darurat']];
@@ -33,7 +33,7 @@ function profilUbahRender(){
   const a = anggotaAktif; if(!a) return;
   const nunggu = ubahSayaData[0] && ubahSayaData[0].status === 'MENUNGGU';
   let h = '', grup = '';
-  h += `<div class="pfcard"><div class="pfjudul">Tidak dapat diubah</div>${profilBaris('🪪', 'NIK', a.nik)}${profilBaris('👤', 'Nama', a.nama)}</div>`;
+  h += `<div class="pfcard"><div class="pfjudul">Tidak dapat diubah</div>${profilBaris('🪪', 'NIK', a.nik)}${profilBaris('👤', 'Nama', a.nama)}${profilBaris('📅', 'Tanggal masuk kerja', profilTglId(a.tglMasuk))}</div>`;
   UBAH_FIELD.forEach(f => {
     if(f[5] !== grup){ if(grup) h += '</div>'; grup = f[5]; h += `<div class="pfcard"><div class="pfjudul">${esc(grup)}</div>`; }
     const ph = f[0] === 'rek' ? (a.rekAkhir ? 'Tersimpan •••• ' + a.rekAkhir + ' (kosongkan bila tidak diubah)' : 'Isi bila ingin menambah / mengubah') : '';
