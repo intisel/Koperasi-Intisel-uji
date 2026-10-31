@@ -129,7 +129,12 @@ body.kartu-open{overflow:hidden}
 .pass-wrap input{padding-right:44px;margin-bottom:12px}
 .eye-btn{position:absolute;right:8px;top:50%;transform:translateY(-60%);background:none;border:none;font-size:20px;cursor:pointer;padding:6px;line-height:1}
 .kbpHit{display:block;width:100%;text-align:left;background:#fff;border:1px solid #b9d2f0;border-radius:10px;padding:9px 12px;margin-top:6px;font-size:15px;color:#0d3b6e;cursor:pointer}.kbpHit:active{background:#eef5ff}
-#avMember .avcam{display:none}#avProfil .avcam{display:flex}.pfhead{background:linear-gradient(160deg,#134e8a,#3b72c4);color:#fff;border-radius:16px;text-align:center;padding:18px 12px 16px;margin:0 0 12px}.pfhead .av{width:96px;height:96px;font-size:34px;margin:14px auto 8px;display:flex;border-width:3px}.pfhead .avcam{width:30px;height:30px;font-size:16px;right:-2px;bottom:-2px}.pfhead .crown{left:-20px;top:-26px;width:62px;height:48px}.pfhead b{font-size:20px;display:block}.pfhead .sub{font-size:14px;opacity:.9}.pfhead .tg{display:inline-block;margin-top:8px;background:rgba(255,255,255,.2);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700}.pfcard{background:#fff;border:1.5px solid #d6e6f8;border-radius:14px;padding:6px 14px 4px;margin:0 0 12px}.pfjudul{font-weight:800;font-size:14px;color:#134e8a;padding:8px 0 4px}.pfrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid #eef3fa}.pfjudul+.pfrow{border-top:0}.pfic{flex:none;width:26px;text-align:center;font-size:18px;line-height:1.3}.pfbd{flex:1;min-width:0}.pflb{font-size:12px;color:#6b86a8}.pfvl{font-size:16px;font-weight:700;color:#0d3b6e;word-break:break-word}.pfvl.pfkosong{color:#9aa9bd;font-weight:500;font-style:italic}</style>
+#avMember .avcam{display:none}#avProfil .avcam{display:flex}.pfhead{background:linear-gradient(160deg,#134e8a,#3b72c4);color:#fff;border-radius:16px;text-align:center;padding:18px 12px 16px;margin:0 0 12px}.pfhead .av{width:96px;height:96px;font-size:34px;margin:14px auto 8px;display:flex;border-width:3px}.pfhead .avcam{width:30px;height:30px;font-size:16px;right:-2px;bottom:-2px}.pfhead .crown{left:-20px;top:-26px;width:62px;height:48px}.pfhead b{font-size:20px;display:block}.pfhead .sub{font-size:14px;opacity:.9}.pfhead .tg{display:inline-block;margin-top:8px;background:rgba(255,255,255,.2);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700}.pfcard{background:#fff;border:1.5px solid #d6e6f8;border-radius:14px;padding:6px 14px 4px;margin:0 0 12px}.pfjudul{font-weight:800;font-size:14px;color:#134e8a;padding:8px 0 4px}.pfrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid #eef3fa}.pfjudul+.pfrow{border-top:0}.pfic{flex:none;width:26px;text-align:center;font-size:18px;line-height:1.3}.pfbd{flex:1;min-width:0}.pflb{font-size:12px;color:#6b86a8}.pfvl{font-size:16px;font-weight:700;color:#0d3b6e;word-break:break-word}.pfvl.pfkosong{color:#9aa9bd;font-weight:500;font-style:italic}.pfhead{--tx:#fff;--tg:rgba(255,255,255,.22);--bt:#ffd400;--btx:#4a3b00;color:var(--tx)}.pfhead .tg{background:var(--tg)}.pfhead .pfbtn{background:var(--bt);color:var(--btx)}
+.pfhead[data-t=Brown]{background:linear-gradient(160deg,#6b3a14,#c07a3a)}
+.pfhead[data-t=Silver]{background:linear-gradient(160deg,#7d8590,#dfe3e8);--tx:#1f2937;--tg:rgba(255,255,255,.55);--bt:#134e8a;--btx:#fff}
+.pfhead[data-t=Gold]{background:linear-gradient(160deg,#c98400,#ffe066);--tx:#3d2a00;--tg:rgba(255,255,255,.5);--bt:#3d2a00;--btx:#ffe066}
+.pfhead[data-t=Platinum]{background:linear-gradient(160deg,#8fa1b6,#f1f5f9);--tx:#1e2f45;--tg:rgba(255,255,255,.6);--bt:#1e2f45;--btx:#fff}
+.pfhead[data-t=Diamond]{background:linear-gradient(160deg,#000,#2a2a2a);--tx:#f3d36b;--tg:rgba(243,211,107,.18);--bt:#f3d36b;--btx:#1a1400;box-shadow:inset 0 0 0 1.5px #b88a10}</style>
 </head>
 <body>
 
@@ -314,10 +319,10 @@ body.kartu-open{overflow:hidden}
 
   <!-- KONTAK & BANTUAN -->
   <div class="card view" id="vProfil" style="display:none">
-    <div class="pfhead">
+    <div class="pfhead" id="pfHead" data-t="Brown">
       <span class="av" id="avProfil" onclick="fotoUbahAnggota()" role="button" aria-label="Ganti foto profil"><i class="avcam">📷</i><span class="crown" id="pfCrown"></span></span>
       <b id="pfNama"></b><div class="sub" id="pfJab"></div><span class="tg" id="pfTingkat"></span>
-      <div style="margin-top:12px"><button class="btn" style="width:auto;display:inline-block;padding:9px 18px;font-size:14px;background:#ffd400;color:#4a3b00" onclick="fotoUbahAnggota()">📷 Ganti Foto Profil</button></div>
+      <div style="margin-top:12px"><button class="btn pfbtn" style="width:auto;display:inline-block;padding:9px 18px;font-size:14px" onclick="fotoUbahAnggota()">📷 Ganti Foto Profil</button></div>
     </div>
     <div id="pfBody"></div>
   </div>

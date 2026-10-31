@@ -14,6 +14,7 @@ function profilRender(){
   const p = a.profil || {}, mk = masaKerjaDetail(a.tglMasuk), t = tingkatDari(mk ? mk.tahun : (+a.masaKerja || 0));
   $('pfNama').textContent = a.nama; $('pfJab').textContent = a.jabatan || '';
   $('pfTingkat').textContent = 'Tingkat ' + t + (mk ? ' • ' + mk.y + ' Th ' + mk.b + ' Bln' : '');
+  $('pfHead').dataset.t = t;
   const c = $('pfCrown'); c.innerHTML = mahkotaSvg(t);
   fotoTerapkan($('avProfil'), (typeof fotoCache !== 'undefined' && fotoCache.anggota) || '', a.nama);
   $('pfBody').innerHTML =
