@@ -692,3 +692,20 @@ async function pinGantiAng(){ // anggota yang sudah masuk: ganti PIN (butuh PIN 
   }catch(e){ alert('Gagal terhubung ke server.'); }
   btn.disabled = false;
 }
+
+/* ===== Catat akses (aplikasi terpasang / browser) — hanya waktu, mode, jenis HP; maks sekali per 30 menit per perangkat ===== */
+function aksesInfo(){
+  const mm = q => { try{ return !!(window.matchMedia && matchMedia(q).matches); }catch(e){ return false; } };
+  const pwa = mm('(display-mode: standalone)') || mm('(display-mode: fullscreen)') || mm('(display-mode: minimal-ui)') || navigator.standalone === true || (document.referrer || '').indexOf('android-app://') === 0;
+  const ua = navigator.userAgent || '', ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  return {mode: pwa ? 'PWA' : 'BROWSER', os: /android/i.test(ua) ? 'ANDROID' : ios ? 'IOS' : 'LAINNYA'};
+}
+function aksesLapor(){
+  try{
+    const a = anggotaAktif; if(!a) return;
+    const k = 'akses_t', t = parseInt(sessionStorage.getItem(k) || '0', 10) || 0, nik = sessionStorage.getItem('akses_n') || '';
+    if(nik === a.nik && Date.now() - t < 30 * 60000) return;
+    sessionStorage.setItem(k, String(Date.now())); sessionStorage.setItem('akses_n', a.nik);
+    apiPost(Object.assign({a:'akses_catat', nik:a.nik, atoken:a.atoken}, aksesInfo())).catch(() => {});
+  }catch(e){}
+}

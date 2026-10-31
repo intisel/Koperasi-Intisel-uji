@@ -140,18 +140,21 @@ async function agResetPin(nik, nama){
     alert(r.ok ? 'PIN sementara untuk ' + nama + ':\n\n' + r.pin + '\n\nSampaikan langsung ke anggota (jangan lewat grup). Ia wajib membuat PIN baru saat masuk.' : '❌ ' + r.msg);
   }catch(e){ alert('Gagal terhubung ke server.'); }
 }
+const agAksesSt = a => a.akses ? (a.akses.mode === 'PWA' ? 'PWA' : 'BROWSER') : (a.pin ? 'PERNAH' : 'BELUM');
+const AG_AKSES_LBL = {PWA:['📲 Terpasang', 'g'], BROWSER:['🌐 Browser', 'w'], PERNAH:['✅ Pernah masuk', ''], BELUM:['⚪ Belum masuk', 'r']};
 function agRender(){
   const q = $('agCari').value.trim().toLowerCase(), f = $('agFilter').value;
   const L = agData.filter(a => (!q || (a.nama + ' ' + a.nik + ' ' + a.jabatan + ' ' + a.base).toLowerCase().includes(q)) &&
-    (!f || (f === 'berjalan' ? a.berjalan : f === 'terlambat' ? a.berjalan && a.berjalan.terlambat > 0 : f === 'proses' ? a.proses : a.layanan === f)));
-  const MAX = 80;
+    (!f || (f.indexOf('a:') === 0 ? agAksesSt(a) === f.slice(2) : f === 'berjalan' ? a.berjalan : f === 'terlambat' ? a.berjalan && a.berjalan.terlambat > 0 : f === 'proses' ? a.proses : a.layanan === f)));
+  const MAX = 80, ct = {PWA:0, BROWSER:0, PERNAH:0, BELUM:0}; agData.forEach(a => { ct[agAksesSt(a)]++; });
+  $('agAkses').innerHTML = `📲 Terpasang <b>${ct.PWA}</b> • 🌐 Browser <b>${ct.BROWSER}</b> • ✅ Pernah masuk (mode belum tercatat) <b>${ct.PERNAH}</b> • ⚪ Belum masuk <b>${ct.BELUM}</b>`;
   $('agInfo').innerText = `${L.length} dari ${agData.length} anggota` + (L.length > MAX ? ` • menampilkan ${MAX} pertama, gunakan pencarian` : '');
   $('agList').innerHTML = L.slice(0, MAX).map(a => {
-    const tags = `<span class="tag">${a.layanan}</span>` + (a.berjalan ? `<span class="tag ${a.berjalan.terlambat ? 'r' : 'w'}">Berjalan • sisa ${pkRp(a.berjalan.sisa)}${a.berjalan.terlambat ? ' • terlambat' : ''}</span>` : '') +
+    const as = AG_AKSES_LBL[agAksesSt(a)], tags = `<span class="tag ${as[1]}">${as[0]}</span><span class="tag">${a.layanan}</span>` + (a.berjalan ? `<span class="tag ${a.berjalan.terlambat ? 'r' : 'w'}">Berjalan • sisa ${pkRp(a.berjalan.sisa)}${a.berjalan.terlambat ? ' • terlambat' : ''}</span>` : '') +
       (a.proses ? `<span class="tag">${esc(pkLabel[a.proses.status] || a.proses.status)}</span>` : '') + (a.lunas ? `<span class="tag g">${a.lunas}× lunas</span>` : '');
     const rw = a.riwayat.length ? a.riwayat.map(x => `<div class="small" style="margin-top:3px">${pkBadge(x.jenis)}${esc(x.id)} • ${pkTgl(x.waktu)} • ${pkRp(x.nominal)}${x.jenis === 'KASBON' ? '' : ' / ' + x.tenor + ' bln'} • <b>${esc(pkLabel[x.status] || x.status)}</b></div>`).join('') : '<div class="small" style="margin-top:3px">Belum pernah mengajukan.</div>';
     return `<details class="agr"><summary><b>${esc(a.nama)}</b> <span class="small">• NIK ${esc(a.nik)}</span><br><span class="small">${esc(a.jabatan)}${a.base ? ' • ' + esc(a.base) : ''}</span><div>${tags}</div></summary>
-      <div style="margin:6px 0 2px"><div class="small">Akun: PIN <b>${a.pin ? 'sudah dibuat' : 'belum dibuat'}</b> • Email <b>${a.email ? 'terdata' : 'BELUM terdata'}</b> <button class="btn" style="display:inline-block;width:auto;margin:0 0 0 6px;padding:5px 10px;font-size:12px;background:#6b7f99" onclick="agResetPin('${esc(a.nik)}', '${esc(a.nama).replace(/'/g, '')}')">🔑 Reset PIN</button></div><div class="small" style="margin-top:4px">Masuk kerja: <b>${pkTgl(a.tglMasuk)}</b> • masa kerja <b>${a.masaKerja} tahun</b> • total pengajuan <b>${a.jumlah}</b></div>${rw}</div></details>`;
+      <div style="margin:6px 0 2px"><div class="small">Akun: PIN <b>${a.pin ? 'sudah dibuat' : 'belum dibuat'}</b> • Email <b>${a.email ? 'terdata' : 'BELUM terdata'}</b> <button class="btn" style="display:inline-block;width:auto;margin:0 0 0 6px;padding:5px 10px;font-size:12px;background:#6b7f99" onclick="agResetPin('${esc(a.nik)}', '${esc(a.nama).replace(/'/g, '')}')">🔑 Reset PIN</button></div><div class="small" style="margin-top:4px">Akses: <b>${a.akses ? (a.akses.mode === 'PWA' ? 'aplikasi terpasang' : 'browser') + ' • ' + ({ANDROID:'Android', IOS:'iPhone', LAINNYA:'lainnya'}[a.akses.os] || '-') + ' • terakhir ' + esc(a.akses.terakhir.slice(0, 16)) + ' • ' + a.akses.sesi + ' sesi' : (a.pin ? 'pernah masuk (mode belum tercatat)' : 'belum pernah masuk')}</b></div><div class="small" style="margin-top:4px">Masuk kerja: <b>${pkTgl(a.tglMasuk)}</b> • masa kerja <b>${a.masaKerja} tahun</b> • total pengajuan <b>${a.jumlah}</b></div>${rw}</div></details>`;
   }).join('') || '<p class="small">Tidak ada anggota yang cocok.</p>';
 }
 

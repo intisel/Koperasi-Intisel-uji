@@ -704,7 +704,9 @@ body.kartu-open{overflow:hidden}
         <select id="agFilter" onchange="agRender()">
           <option value="">Semua anggota</option><option value="berjalan">Punya pinjaman berjalan</option><option value="terlambat">Angsuran terlambat</option>
           <option value="proses">Pengajuan sedang diproses</option><option value="Koperasi">Layanan Koperasi (≥ 2 th)</option><option value="Kasbon">Layanan Kasbon (&lt; 2 th)</option>
+          <option value="a:PWA">📲 Memakai aplikasi terpasang</option><option value="a:BROWSER">🌐 Hanya lewat browser</option><option value="a:PERNAH">✅ Pernah masuk (mode belum tercatat)</option><option value="a:BELUM">⚪ Belum pernah masuk</option>
         </select>
+        <div id="agAkses" class="small" style="margin-top:8px"></div>
         <p class="small" id="agInfo"></p><div id="agList"></div>
       </div>
     </div>
@@ -915,6 +917,7 @@ async function masukDenganToken(v,atoken){ // setelah PIN / OTP benar: ambil dat
    }
    anggotaAktif={nik:v,atoken:atoken,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun,pengelola:!!r.pengelola};
    sesiSimpan(v,atoken,r.nama); // sesi bertahan saat refresh + NIK diingat
+   if(typeof aksesLapor==='function') aksesLapor();
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
 
