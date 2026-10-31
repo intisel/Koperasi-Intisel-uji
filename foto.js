@@ -82,7 +82,7 @@ function fotoUbahAnggota(){
   const a = anggotaAktif; if(!a) return;
   fotoEditor({judul:'Foto Profil Anda', nama:a.nama, awal:fotoCache.anggota,
     simpan: f => fotoApi({a:'foto_a_simpan', nik:a.nik, atoken:a.atoken, foto:f}),
-    selesai: f => { fotoCache.anggota = f; fotoTerapkan($('avMember'), f, a.nama); try{ localStorage.setItem('fa_' + a.nik, f); }catch(e){} }});
+    selesai: f => { fotoCache.anggota = f; fotoTerapkan($('avMember'), f, a.nama); fotoTerapkan($('avProfil'), f, a.nama); try{ localStorage.setItem('fa_' + a.nik, f); }catch(e){} }});
 }
 
 /* ---------- Pengurus / pimpinan ---------- */

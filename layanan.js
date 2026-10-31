@@ -1,8 +1,8 @@
 // Layanan anggota: menu, kasbon, status approval, pinjaman berjalan, laporan pembayaran + foto bukti
 let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoData = '';
-const VIEW2ROUTE = {vKasbon:'anggota-kasbon', vTalangan:'anggota-talangan', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vKontak:'anggota-kontak'};
-const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-talangan':'vTalangan', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-kontak':'vKontak'};
-const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vTalangan', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vKontak'];
+const VIEW2ROUTE = {vKasbon:'anggota-kasbon', vTalangan:'anggota-talangan', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vKontak:'anggota-kontak', vProfil:'anggota-profil'};
+const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-talangan':'vTalangan', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-kontak':'vKontak', 'anggota-profil':'vProfil'};
+const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vTalangan', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vKontak', 'vProfil'];
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'💸 Disetujui - Menunggu Pencairan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v === 'Y' ? '✅' : v === 'N' ? '❌' : (selesai ? '➖' : '⏳');
@@ -38,6 +38,7 @@ function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
   if(v === 'vBayar') renderBayar();
   if(v === 'vKeringanan') renderKeringanan();
   if(v === 'vKontak') renderKontak();
+  if(v === 'vProfil') profilRender();
 }
 /* ===== KONTAK & BANTUAN ===== */
 const KONTAK = [
