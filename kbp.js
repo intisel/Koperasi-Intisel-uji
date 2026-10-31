@@ -19,6 +19,7 @@ async function kbpMuat(){
 }
 function kbpTab(j){
   kbpJenis = j; $('kbpTabK').classList.toggle('on', j === 'KELUAR'); $('kbpTabM').classList.toggle('on', j === 'MASUK');
+  $('kbpForm').classList.toggle('kas-k', j === 'KELUAR'); $('kbpForm').classList.toggle('kas-m', j === 'MASUK');
   $('kbpBtn').style.background = j === 'KELUAR' ? '#dc2626' : '#16a34a'; $('kbpBtn').innerText = j === 'KELUAR' ? 'Simpan Kasbon' : 'Simpan Pengembalian';
   kbpRegBatal(true); kbpPilihHapus(); kbpPengisian();
 }
