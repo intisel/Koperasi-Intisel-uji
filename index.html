@@ -673,7 +673,7 @@ body.kartu-open{overflow:hidden}
       <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Menu</span><b>⚙️ Informasi &amp; Sistem</b></div>
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-anggota')"><span class="ic">👥</span><b>Database Anggota</b><span class="sub">Cari anggota &amp; riwayat pinjaman</span></button>
-          <button class="mtile hidden" id="tileLokasi" onclick="go('pengurus-lokasi')"><span class="ic">📍</span><b>Lokasi</b><span class="sub">Lokasi saat pengajuan &amp; bukti bayar</span></button>
+          <button class="mtile" onclick="go('pengurus-perangkat')"><span class="ic">📱</span><b>Informasi Perangkat &amp; Lokasi</b><span class="sub">Siapa sudah pasang aplikasi &amp; lokasi</span></button>
           <button class="mtile" onclick="go('pengurus-info')"><span class="ic">📢</span><b>Pengumuman</b><span class="sub">Tulis running text untuk anggota</span></button>
           <button class="mtile" onclick="window.open('panduan-pengurus.html','_blank')"><span class="ic">📖</span><b>Panduan</b><span class="sub">Cara memakai setiap menu</span></button>
         </div></div>
@@ -704,9 +704,7 @@ body.kartu-open{overflow:hidden}
         <select id="agFilter" onchange="agRender()">
           <option value="">Semua anggota</option><option value="berjalan">Punya pinjaman berjalan</option><option value="terlambat">Angsuran terlambat</option>
           <option value="proses">Pengajuan sedang diproses</option><option value="Koperasi">Layanan Koperasi (≥ 2 th)</option><option value="Kasbon">Layanan Kasbon (&lt; 2 th)</option>
-          <option value="a:PWA">📲 Memakai aplikasi terpasang</option><option value="a:BROWSER">🌐 Hanya lewat browser</option><option value="a:PERNAH">✅ Pernah masuk (mode belum tercatat)</option><option value="a:BELUM">⚪ Belum pernah masuk</option>
         </select>
-        <div id="agAkses" class="small" style="margin-top:8px"></div>
         <p class="small" id="agInfo"></p><div id="agList"></div>
       </div>
     </div>
@@ -746,10 +744,27 @@ body.kartu-open{overflow:hidden}
         <div id="bnDaftar"></div>
       </div>
     </div>
-    <div class="pkv hidden" id="pkvLokasi">
-      <div class="card"><b>📍 Lokasi Pengajuan &amp; Bukti Bayar</b>
+    <div class="pkv hidden" id="pkvPL">
+      <div class="pktabs"><button id="plTabBtnP" class="on" onclick="plTab('P')">📱 Perangkat</button><button id="plTabBtnL" onclick="plTab('L')">📍 Lokasi</button></div>
+      <div id="plTabP">
+        <div class="card"><b>📱 Perangkat Anggota</b>
+          <p class="small" style="margin:2px 0 8px">Siapa yang sudah masuk ke aplikasi, lewat aplikasi terpasang atau browser, dan apakah notifikasi sudah aktif. Hanya waktu, mode, dan jenis HP yang dicatat (tanpa lokasi).</p>
+          <div id="plRingkas" class="small" style="line-height:1.7"></div>
+        </div>
+        <div class="card"><b>🔔 Pengurus &amp; Pimpinan</b><div id="plPengurus" style="margin-top:6px"></div></div>
+        <div class="card">
+          <input id="plCari" type="search" placeholder="Cari nama / NIK / jabatan..." oninput="plRender()" autocomplete="off">
+          <select id="plFilter" onchange="plRender()">
+            <option value="">Semua anggota</option><option value="PWA">📲 Memakai aplikasi terpasang</option><option value="BROWSER">🌐 Hanya lewat browser</option><option value="PERNAH">✅ Pernah masuk (mode belum tercatat)</option><option value="BELUM">⚪ Belum pernah masuk</option><option value="NOTIF">🔔 Notifikasi aktif</option><option value="NONOTIF">🔕 Notifikasi belum aktif</option>
+          </select>
+          <p class="small" id="plInfo"></p><div id="plList"></div>
+        </div>
+      </div>
+      <div id="plTabL" class="hidden">
+        <div class="card"><b>📍 Lokasi Pengajuan &amp; Bukti Bayar</b>
         <p class="small" style="margin:2px 0 8px">Halaman ini hanya dapat dilihat oleh pengurus. Lokasi tercatat atas persetujuan anggota saat mengirim; bisa juga kosong bila anggota memilih tanpa lokasi. Gunakan sebagai petunjuk, bukan bukti mutlak.</p>
         <div id="lokDaftar"></div></div>
+      </div>
     </div>
     <div class="pkv hidden" id="pkvBudget">
       <div class="card"><b>💰 Budget Pinjaman</b>
@@ -829,8 +844,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-lokasi','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-lokasi':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -878,7 +893,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-lokasi':'g4','pengurus-info':'g4'};
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-info':'g4'};
       if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }
@@ -1033,6 +1048,7 @@ function hitungAngsuran(){
 <script src="pinpad.js"></script>
 <script src="kas.js"></script>
 <script src="kbp.js"></script>
+<script src="perangkat.js"></script>
 <script src="talangan.js"></script>
 <script src="pengurus.js"></script>
 <script src="pengurus2.js"></script>
