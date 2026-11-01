@@ -132,6 +132,26 @@ async function agMuat(){
     agData = r.list; agRender();
   }catch(e){ $('agList').innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; }
 }
+let agKartuSibuk = false;
+async function agKartu(id){ // pengurus/pimpinan membuka Kartu Pinjaman milik anggota (hanya lihat)
+  if(agKartuSibuk) return; agKartuSibuk = true;
+  try{
+    const r = await pkApi({a:'kartu_pinjaman', token:pkToken, id});
+    if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ alert('❌ ' + r.msg); return; }
+    kartuBuka(id, r.p, r.nama);
+  }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+  finally{ agKartuSibuk = false; }
+}
+async function agLihatSebagai(nik, nama){ // Ketua (pengembang): melihat aplikasi seperti anggota ini, BACA-SAJA
+  if(!await dialogKonfirmasi('Lihat aplikasi sebagai ' + nama + '?\n\nTampilan BACA-SAJA: PIN anggota tidak berubah dan tidak ada data yang dapat dikirim. Berlaku 30 menit.')) return;
+  try{
+    const r = await pkApi({a:'lihat_buka', token:pkToken, nik});
+    if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ alert('❌ ' + r.msg); return; }
+    if(typeof anggotaPreviewMulai === 'function') anggotaPreviewMulai(nik, r.atoken, r.nama);
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+}
 async function agResetPin(nik, nama){
   if(!await dialogKonfirmasi('Reset PIN ' + nama + ' (NIK ' + nik + ')?\n\nSistem membuat PIN sementara yang HANYA tampil sekali di layar ini. Sampaikan langsung ke anggota; saat masuk ia wajib membuat PIN baru.')) return;
   try{
@@ -149,9 +169,9 @@ function agRender(){
   $('agList').innerHTML = L.slice(0, MAX).map(a => {
     const tags = (a.aktif === false ? '<span class="tag r">NONAKTIF</span>' : '') + `<span class="tag">${a.layanan}</span>` + (a.berjalan ? `<span class="tag ${a.berjalan.terlambat ? 'r' : 'w'}">Berjalan • sisa ${pkRp(a.berjalan.sisa)}${a.berjalan.terlambat ? ' • terlambat' : ''}</span>` : '') +
       (a.proses ? `<span class="tag">${esc(pkLabel[a.proses.status] || a.proses.status)}</span>` : '') + (a.lunas ? `<span class="tag g">${a.lunas}× lunas</span>` : '');
-    const rw = a.riwayat.length ? a.riwayat.map(x => `<div class="small" style="margin-top:3px">${pkBadge(x.jenis)}${esc(x.id)} • ${pkTgl(x.waktu)} • ${pkRp(x.nominal)}${x.jenis === 'KASBON' ? '' : ' / ' + x.tenor + ' bln'} • <b>${esc(pkLabel[x.status] || x.status)}</b></div>`).join('') : '<div class="small" style="margin-top:3px">Belum pernah mengajukan.</div>';
+    const rw = a.riwayat.length ? a.riwayat.map(x => `<div class="small" style="margin-top:3px">${pkBadge(x.jenis)}${esc(x.id)} • ${pkTgl(x.waktu)} • ${pkRp(x.nominal)}${x.jenis === 'KASBON' ? '' : ' / ' + x.tenor + ' bln'} • <b>${esc(pkLabel[x.status] || x.status)}</b>${x.status === 'DISETUJUI' || x.status === 'LUNAS' ? `<br><button class="btn" style="display:inline-block;width:auto;margin:5px 0 2px;padding:6px 12px;font-size:12px;background:#134e8a" onclick="agKartu('${esc(x.id)}')">📄 Lihat Kartu Pinjaman</button>` : ''}</div>`).join('') : '<div class="small" style="margin-top:3px">Belum pernah mengajukan.</div>';
     return `<details class="agr"><summary><b>${esc(a.nama)}</b> <span class="small">• NIK ${esc(a.nik)}</span><br><span class="small">${esc(a.jabatan)}${a.base ? ' • ' + esc(a.base) : ''}</span><div>${tags}</div></summary>
-      <div style="margin:6px 0 2px"><div class="small">Akun: PIN <b>${a.pin ? 'sudah dibuat' : 'belum dibuat'}</b> • Email <b>${a.email ? 'terdata' : 'BELUM terdata'}</b> <button class="btn" style="display:inline-block;width:auto;margin:0 0 0 6px;padding:5px 10px;font-size:12px;background:#6b7f99" onclick="agResetPin('${esc(a.nik)}', '${esc(a.nama).replace(/'/g, '')}')">🔑 Reset PIN</button></div>${agAksi(a)}<div class="small" style="margin-top:4px">Masuk kerja: <b>${pkTgl(a.tglMasuk)}</b> • masa kerja <b>${a.masaKerja} tahun</b> • total pengajuan <b>${a.jumlah}</b></div>${rw}</div></details>`;
+      <div style="margin:6px 0 2px"><div class="small">Akun: PIN <b>${a.pin ? 'sudah dibuat' : 'belum dibuat'}</b> • Email <b>${a.email ? 'terdata' : 'BELUM terdata'}</b> <button class="btn" style="display:inline-block;width:auto;margin:0 0 0 6px;padding:5px 10px;font-size:12px;background:#6b7f99" onclick="agResetPin('${esc(a.nik)}', '${esc(a.nama).replace(/'/g, '')}')">🔑 Reset PIN</button>${pkKetua ? ` <button class="btn" style="display:inline-block;width:auto;margin:0 0 0 6px;padding:5px 10px;font-size:12px;background:#374151" onclick="agLihatSebagai('${esc(a.nik)}', '${esc(a.nama).replace(/'/g, '')}')">👁️ Lihat sebagai anggota</button>` : ''}</div>${agInfoBerhenti(a)}<div class="small" style="margin-top:4px">Masuk kerja: <b>${pkTgl(a.tglMasuk)}</b> • masa kerja <b>${a.masaKerja} tahun</b> • total pengajuan <b>${a.jumlah}</b></div>${rw}</div></details>`;
   }).join('') || '<p class="small">Tidak ada anggota yang cocok.</p>';
 }
 

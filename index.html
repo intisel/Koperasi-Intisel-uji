@@ -74,7 +74,9 @@ input:focus,select:focus,textarea:focus{border-color:#134e8a;outline:none;box-sh
 .kartu-aksi{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 20px}.kartu-aksi .btn{padding:12px;font-size:14px;flex:1 1 30%}
 body.kartu-open{overflow:hidden}
 @media print{#kartuZoomBox{zoom:1!important}body.kartu-open>*:not(#kartuModal){display:none!important}.kartu-modal{position:static;background:#fff;padding:0;overflow:visible}.kartu-aksi{display:none}.kartu-box{border-radius:0;font-size:12px}.kartu-tbl{font-size:11.5px}}
-.pktabs{display:flex;background:#fff;border:1.5px solid #d6e6f8;border-radius:99px;padding:4px;margin:0 0 12px}.pktabs button{flex:1;border:0;background:transparent;border-radius:99px;padding:11px 4px;font-weight:700;font-size:13px;white-space:nowrap;color:#5a7aa0;cursor:pointer;font-family:inherit}.pktabs button.on{background:#ffd400;color:#4a3b00}#kasTabBtnM.on,#kbpTabM.on{background:#16a34a;color:#fff}#kasTabBtnK.on,#kbpTabK.on{background:#dc2626;color:#fff}#kasTabBtnM:not(.on),#kbpTabM:not(.on){color:#166534}#kasTabBtnK:not(.on),#kbpTabK:not(.on){color:#b91c1c}.kas-m{background:#ecfdf3!important;border:1.5px solid #86efac!important}.kas-k{background:#fef2f2!important;border:1.5px solid #fca5a5!important}.pktabs button.notif{background:#dc2626;color:#fff}.pktabs button.notif.on{background:#dc2626;color:#fff;box-shadow:inset 0 0 0 3px #ffd400}
+.pktabs{display:flex;background:#fff;border:1.5px solid #d6e6f8;border-radius:99px;padding:4px;margin:0 0 12px}.pktabs button{flex:1;border:0;background:transparent;border-radius:99px;padding:11px 4px;font-weight:700;font-size:13px;white-space:nowrap;color:#5a7aa0;cursor:pointer;font-family:inherit}.pktabs button.on{background:#ffd400;color:#4a3b00}#kasTabBtnM.on,#kbpTabM.on{background:#16a34a;color:#fff}#kasTabBtnK.on,#kbpTabK.on{background:#dc2626;color:#fff}#kasTabBtnT.on{background:#134e8a;color:#fff}#kasTabBtnT:not(.on){color:#134e8a}#kasTabBtnM:not(.on),#kbpTabM:not(.on){color:#166534}#kasTabBtnK:not(.on),#kbpTabK:not(.on){color:#b91c1c}.kas-m{background:#ecfdf3!important;border:1.5px solid #86efac!important}.kas-k{background:#fef2f2!important;border:1.5px solid #fca5a5!important}.pktabs button.notif{background:#dc2626;color:#fff}.pktabs button.notif.on{background:#dc2626;color:#fff;box-shadow:inset 0 0 0 3px #ffd400}
+#dsTabBtnM{color:#92400e!important}#dsTabBtnM.on{background:#fbbf24!important;color:#451a03!important}#dsTabBtnL{color:#1d4ed8!important}#dsTabBtnL.on{background:#2563eb!important;color:#fff!important}
+#pkvAnggota .pktabs button{flex:1 1 0;min-width:0;font-size:12px;padding:9px 3px;white-space:normal;line-height:1.2}
 .sesibar{display:flex;align-items:center;gap:10px;margin-top:6px}.sesiinfo{flex:1;min-width:0;line-height:1.3}.sesiinfo b{font-size:16px;overflow-wrap:anywhere}.sesiinfo .small{margin:1px 0 0}
 .sesibtn{flex:none;border:1.5px solid #b9d2f0;background:#eef5ff;color:#134e8a;border-radius:99px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;position:relative}.sesibtn.bell{width:42px;height:42px;font-size:20px;padding:0}.sesibtn.bell.big{width:54px;height:54px;font-size:27px}
 .pkaksi{display:flex;justify-content:space-between;gap:6px;margin-top:10px;align-items:center}.pkaksi .back-link{margin:0;padding:8px 9px;font-size:12.5px;white-space:nowrap}.sesibtn.out{padding:10px 12px}
@@ -106,6 +108,8 @@ body.kartu-open{overflow:hidden}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .mtile{border:1.5px solid #b9d2f0;background:#fff;border-radius:16px;padding:14px 10px;text-align:center;cursor:pointer;color:#134e8a;font-family:inherit}
 .mtile .ic{font-size:30px;display:block}.mtile b{display:block;font-size:14px;margin:4px 0 2px}.mtile span.sub{display:block;font-size:11px;color:#5a7aa0;line-height:1.3}
+.mtile:has(.pbadge[style*="block"]){background:#fff1f2;border-color:#f87171;box-shadow:0 0 0 2px rgba(220,38,38,.12)}.mtile:has(.pbadge[style*="block"]) b{color:#b91c1c}
+.mtile.gelap,.mtile.gelap:has(.pbadge[style*="block"]){background:#374151;border-color:#1f2937;box-shadow:none;color:#fff}.mtile.gelap b,.mtile.gelap:has(.pbadge[style*="block"]) b{color:#fff}.mtile.gelap span.sub{color:#d1d5db}
 .mtile{position:relative}.pbadge{position:absolute;top:8px;right:10px;background:#dc2626;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:800;display:none}
 .chip{border:1.5px solid #b9d2f0;background:#fff;color:#134e8a;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer}
 .stile{border:2px solid #b9d2f0;background:#fff;border-radius:16px;padding:14px 8px 10px;text-align:center;cursor:pointer;font-family:inherit;color:#134e8a}
@@ -156,7 +160,7 @@ body.kartu-open{overflow:hidden}
 </div>
 <div id="inboxModal" class="infomodal hidden" onclick="if(event.target===this)inboxTutup()">
   <div class="infobox"><b style="font-size:17px">🔔 Notifikasi</b><div id="inboxList"></div>
-    <button class="btn" style="margin-top:10px" onclick="inboxTutup()">Tutup</button></div>
+    <button class="btn hidden" id="inboxTutupBtn" style="margin-top:10px" onclick="inboxTutup()">Tutup</button></div>
 </div>
 <div id="infoModal" class="infomodal hidden" onclick="if(event.target===this)infoTutup()">
   <div class="infobox"><b style="font-size:17px">📢 Pengumuman</b><div id="infoModalList"></div>
@@ -297,12 +301,14 @@ body.kartu-open{overflow:hidden}
   <div class="card" id="menuCard" style="display:none">
     <div style="font-weight:800;margin:14px 0 0">Pilih Layanan</div>
     <div class="warn" id="mnStatus" style="display:none;margin-top:8px"></div>
+    <div id="mnDisiplin" style="display:none;margin-top:8px"></div>
     <div class="mgrid">
       <button class="mtile" id="tlKasbon" onclick="bukaMenu('vKasbon')"><span class="ic">💸</span><b>Pengajuan Kasbon</b><span class="sub" id="tlKasbonSub"></span></button>
       <button class="mtile" id="tlTalangan" style="display:none" onclick="bukaMenu('vTalangan')"><span class="ic">🤝</span><b>Dana Talangan Operasional</b><span class="sub">Kasbon pengelola</span></button>
       <button class="mtile" id="tlKoperasi" onclick="bukaMenu('formPinjam')"><span class="ic">🏦</span><b>Pengajuan Koperasi</b><span class="sub" id="tlKoperasiSub"></span></button>
       <button class="mtile" onclick="bukaMenu('vApproval')"><span class="ic">📋</span><b>Status Approval</b><span class="sub" id="tlApprovalSub">Koperasi / Kasbon</span></button>
       <button class="mtile" onclick="bukaMenu('vBerjalan')"><span class="ic">📊</span><b>Pinjaman Berjalan</b><span class="sub" id="tlBerjalanSub"></span></button>
+      <button class="mtile wide" id="tlDispensasi" style="display:none" onclick="bukaMenu('vDispensasi')"><span class="pbadge" id="pbDispAng"></span><span class="ic">🎟️</span><b id="tlDispensasiNama">Dispensasi Masa Tunggu</b><span class="sub" id="tlDispensasiSub"></span></button>
       <button class="mtile wide" onclick="bukaMenu('vBayar')"><span class="ic">🧾</span><b>Laporan Pembayaran Angsuran</b><span class="sub" id="tlBayarSub">Upload foto bukti transaksi</span></button>
       <button class="mtile" onclick="window.open('panduan-anggota.html','_blank')"><span class="ic">📖</span><b>Panduan Penggunaan</b><span class="sub">Cara memakai setiap menu</span></button>
       <button class="mtile" onclick="bukaMenu('vKontak')"><span class="ic">📞</span><b>Kontak &amp; Bantuan</b><span class="sub">Hubungi pengurus lewat WhatsApp</span></button>
@@ -427,6 +433,23 @@ body.kartu-open{overflow:hidden}
     <div id="byRiwayat" style="margin-top:6px"></div>
   </div>
 
+  <!-- DISPENSASI MASA TUNGGU (dibuka pengurus) -->
+  <div class="card view" id="vDispensasi" style="display:none">
+    <b style="font-size:16px" id="dsmJudul">🎟️ Dispensasi Masa Tunggu</b>
+    <div id="dsmInfo" class="small" style="margin:6px 0"></div>
+    <div id="dsmForm">
+      <label>Alasan</label>
+      <select id="dsmAlasan"><option value="musibah">Musibah / kedukaan keluarga</option><option value="sakit">Sakit / biaya pengobatan</option><option value="mendesak">Kebutuhan mendesak keluarga</option><option value="pendidikan">Biaya pendidikan / sekolah</option><option value="rumah">Perbaikan rumah</option><option value="lain">Alasan lain</option></select>
+      <label>Uraian (jelaskan keadaan Anda, minimal 30 huruf)</label>
+      <textarea id="dsmUraian" rows="5" maxlength="800" placeholder="Ceritakan kejadian dan mengapa Anda sangat membutuhkan pinjaman sekarang..."></textarea>
+      <label>Foto bukti pendukung (wajib)</label>
+      <div class="small" style="margin:0 0 6px">Contoh: foto kejadian/musibah, surat keterangan dokter atau rumah sakit, atau bukti lain yang relevan.</div>
+      <input type="file" accept="image/*" onchange="dsmPilihFoto(this)">
+      <div id="dsmPreviewWrap" style="display:none;margin-top:6px"><img id="dsmPreview" style="max-width:100%;border-radius:10px;border:1px solid #b9d2f0" alt="Bukti"><br><span class="back-link" onclick="dsmHapusFoto()">✖ Hapus foto</span></div>
+      <button class="btn" id="btnDsm" onclick="dsmKirim()" style="margin-top:10px">Kirim Permohonan</button>
+    </div>
+  </div>
+
   <!-- PERMOHONAN KERINGANAN -->
   <div class="card view" id="vKeringanan" style="display:none">
     <b style="font-size:16px">🤝 Permohonan Keringanan Angsuran</b>
@@ -469,6 +492,7 @@ body.kartu-open{overflow:hidden}
       <div><span>TENOR MAKS</span><b id="tenorMaxTxt">-</b></div>
     </div>
     <div id="limitInfo" class="warn"></div>
+    <div id="dispBox"></div>
 
     <label style="margin-top:12px">Nominal Pinjaman (boleh di bawah limit maks)</label>
     <input type="range" id="nomRange" min="500000" max="5000000" step="100000" value="3000000" oninput="updateNominal()">
@@ -508,6 +532,7 @@ body.kartu-open{overflow:hidden}
     <div class="ok" id="rcBox" style="margin-top:14px;background:#fffdf0;border-color:#e6c700;color:#4a3b00">
       <b>📅 Rencana Pencairan</b>
       <p class="small" style="margin:4px 0 8px">Pilih kapan Anda ingin dana dicairkan, boleh direncanakan sampai 6 bulan ke depan (mis. untuk biaya sekolah). Keputusan akhir tetap di pimpinan.</p>
+      <p class="small" id="rcDispNote" style="display:none;margin:0 0 8px;font-weight:700;color:#1d4ed8">🎟️ Dispensasi masa tunggu aktif: jadwal pencairan Anda tidak terkunci masa tunggu, dan limit pinjaman Anda sudah dipotong.</p>
       <label class="small" style="margin:0">Bulan pencairan</label>
       <select id="rcBulan" onchange="rcRender()"><option>Memuat...</option></select>
       <label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="radio" name="rcJenis" value="REGULER" checked onchange="rcUbahJenis()" style="width:auto;margin-top:3px"><span><b>Reguler</b> — dicairkan tanggal 6</span></label>
@@ -614,7 +639,9 @@ body.kartu-open{overflow:hidden}
         <div class="mgrid">
           <button class="mtile" onclick="go('pengurus-validasi')"><span class="pbadge" id="pbValidasi"></span><span class="ic">✅</span><b>Validasi Pinjaman</b><span class="sub">Tinjau, setujui, atau tolak pengajuan</span></button>
           <button class="mtile" onclick="go('pengurus-cair')"><span class="pbadge" id="pbCair"></span><span class="ic">💸</span><b>Pencairan Dana</b><span class="sub">Pinjaman disetujui, siap dicairkan</span></button>
-          <button class="mtile wide" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">🧾</span><b>Pembayaran Angsuran</b><span class="sub">Pembayaran • Pinjaman • Keringanan</span></button>
+          <button class="mtile" onclick="go('pengurus-berjalan')"><span class="pbadge" id="pbBerjalan"></span><span class="ic">🧾</span><b>Pembayaran Angsuran</b><span class="sub">Pembayaran • Pinjaman • Keringanan</span></button>
+          <button class="mtile" onclick="go('pengurus-dispensasi')"><span class="pbadge" id="pbDispensasi"></span><span class="ic">⏳</span><b>Dispensasi Pinjaman</b><span class="sub">Masa tunggu • Limit pinjaman</span></button>
+          <button class="mtile wide gelap" onclick="go('pengurus-selesai')"><span class="pbadge" id="pbSelesai"></span><span class="ic">🕊️</span><b>Penyelesaian Khusus</b><span class="sub">Anggota keluar / meninggal dunia</span></button>
         </div></div>
     </div>
     <div class="pkv hidden" id="pkvG2">
@@ -706,6 +733,29 @@ body.kartu-open{overflow:hidden}
     <div class="pkv hidden" id="pkvCair">
       <div class="card"><b>💸 Pencairan Dana</b><p class="small" style="margin:2px 0 8px">Pinjaman yang sudah disetujui pimpinan. Setelah transfer, tandai sudah dicairkan.</p><div id="pkPencairan"></div></div>
     </div>
+    <div class="pkv hidden" id="pkvDispensasi">
+      <div class="pktabs"><button id="dsTabBtnM" class="on" onclick="dsTab('MASA_TUNGGU')">⏳ Masa Tunggu <span id="dsTabNM"></span></button><button id="dsTabBtnL" onclick="dsTab('LIMIT')">📈 Limit Pinjaman <span id="dsTabNL"></span></button></div>
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Administrasi</span><b id="dsJudul">⏳ Dispensasi Masa Tunggu</b></div>
+        <p class="small" id="dsIntro" style="margin:2px 0 8px"></p>
+        <div id="dsDaftar"><p class="small">Memuat...</p></div></div>
+      <div class="card hidden" id="dsFormBox" style="background:#e5e7eb;border-color:#cbd5e1"><b id="dsFormJudul">🔓 Buka Menu Dispensasi untuk Anggota</b>
+        <p class="small" id="dsFormTeks" style="margin:2px 0 6px"></p>
+        <label>Anggota (ketik nama)</label><input type="search" id="dsCari" placeholder="🔍 Ketik nama anggota..." autocomplete="off" oninput="dsCariIsi()"><div id="dsSaran"></div><div id="dsInfo" class="ok" style="display:none;margin:6px 0"></div>
+        <button class="btn" id="dsKirim" onclick="dsBuka()">Buka Akses untuk Anggota</button></div>
+    </div>
+    <div class="pkv hidden" id="pkvSelesai">
+      <div class="card"><div class="grupHead"><span class="back-link" onclick="history.back()">← Administrasi</span><b>🕊️ Penyelesaian Khusus</b></div>
+        <p class="small" style="margin:2px 0 8px">Untuk anggota yang keluar dari perusahaan atau meninggal dunia dan masih punya sisa pinjaman. Usulan wajib disetujui Penasehat, Ketua, dan Bendahara. Bila sisa tagihan <b>di atas Rp 1.000.000</b>, Pimpinan juga wajib menyetujui. Satu penolakan berarti ditolak. Setelah disetujui, pinjaman ditutup dan sisa yang tidak terbayar dicatat sebagai dihapuskan.</p>
+        <div id="skDaftar"><p class="small">Memuat...</p></div></div>
+      <div class="card hidden" id="skFormBox" style="background:#e5e7eb;border-color:#cbd5e1"><b>➕ Usulkan Penyelesaian</b>
+        <label>Pinjaman (ketik nama peminjam)</label><input type="search" id="skCari" placeholder="🔍 Ketik nama peminjam..." autocomplete="off" oninput="skCariIsi()"><input type="hidden" id="skPinjaman"><div id="skSaran"></div><div id="skInfo" class="ok" style="display:none;margin:6px 0"></div>
+        <label>Jenis</label><select id="skJenis"><option value="KELUAR">Anggota keluar / berhenti dari perusahaan</option><option value="MENINGGAL">Anggota meninggal dunia</option><option value="LAIN">Alasan khusus lain</option></select>
+        <label>Tanggal kejadian</label><input type="date" id="skTgl">
+        <label>Jumlah yang diterima koperasi (Rp, isi 0 bila tidak ada)</label><input type="text" inputmode="numeric" id="skDibayar" placeholder="0" oninput="this.value=fmtMoney(onlyDigits(this.value))">
+        <label>Uraian &amp; dasar keputusan (min. 30 huruf)</label><textarea id="skUraian" rows="3" placeholder="Contoh: hasil musyawarah pengurus, kondisi keluarga, penyelesaian dengan ahli waris..."></textarea>
+        <label>Dokumen pendukung (surat kematian / pengunduran diri)</label><input type="file" accept="image/*" onchange="skPilihFoto(this)"><p class="small" id="skFotoInfo" style="margin:2px 0"></p>
+        <button class="btn" id="skKirim" onclick="skAjukan()">Kirim Usulan</button></div>
+    </div>
     <div class="pkv hidden" id="pkvBerjalan">
       <div class="pktabs"><button id="byTabBtnV" class="on" onclick="pkBayarTab('V')">🧾 Pembayaran <span id="byTabNV"></span></button><button id="byTabBtnP" onclick="pkBayarTab('P')">📊 Pinjaman <span id="byTabNP"></span></button><button id="byTabBtnK" onclick="pkBayarTab('K')">🤝 Keringanan <span id="byTabNK"></span></button></div>
       <div id="byTabV">
@@ -719,14 +769,9 @@ body.kartu-open{overflow:hidden}
       </div>
     </div>
     <div class="pkv hidden" id="pkvAnggota">
-      <div class="pktabs"><button id="agTabBtnD" class="on" onclick="agTab('D')">👥 Database</button><button id="agTabBtnU" onclick="agTab('U')">📝 Perubahan Data <span id="agTabNU"></span></button></div>
+      <div class="pktabs"><button id="agTabBtnD" class="on" onclick="agTab('D')">👥 Database</button><button id="agTabBtnU" onclick="agTab('U')">📝 Perubahan Data <span id="agTabNU"></span></button><button id="agTabBtnT" class="hidden" onclick="agTab('T')">➕ Tambah Anggota</button></div>
       <div id="agTabD">
-      <div class="card hidden" id="agBaruCard"><b>➕ Tambah Anggota Baru</b>
-        <p class="small" style="margin:2px 0 8px">Diajukan oleh satu pengurus dan harus disetujui pengurus lain. Pimpinan diberi tahu lewat email (tanpa persetujuan). Anggota baru masuk pertama kali dengan kode OTP yang dikirim ke email di bawah.</p>
-        <div id="agBaruForm"></div>
-        <button class="btn" id="agBaruBtn" onclick="agTambahKirim()">📨 Ajukan Anggota Baru</button>
-      </div>
-      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>👥 Database Anggota</b><button class="btn hidden" id="agBaruTombol" style="width:auto;margin:0;padding:8px 12px;font-size:13px" onclick="agTambahToggle()">➕ Tambah Anggota</button></div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>👥 Database Anggota</b></div>
         <input id="agCari" type="search" placeholder="Cari nama / NIK / jabatan..." oninput="agRender()" style="margin-top:8px" autocomplete="off">
         <select id="agFilter" onchange="agRender()">
           <option value="">Semua anggota aktif</option><option value="nonaktif">Anggota nonaktif (berhenti)</option><option value="berjalan">Punya pinjaman berjalan</option><option value="terlambat">Angsuran terlambat</option>
@@ -739,6 +784,18 @@ body.kartu-open{overflow:hidden}
         <div class="card"><b>📝 Perubahan Data Anggota</b>
           <p class="small" style="margin:2px 0 8px">Anggota mengajukan perubahan lewat halaman Profil. Cukup satu pengurus untuk menyetujui; setelah disetujui, sheet Anggota langsung diperbarui. NIK, nama, dan tanggal masuk kerja tidak dapat diubah lewat jalur ini. Perubahan data Anda sendiri harus diputuskan pengurus lain.</p>
           <div id="ubList"></div></div>
+      </div>
+      <div id="agTabT" class="hidden">
+        <div class="card"><b>➕ Tambah Anggota Baru</b>
+          <p class="small" style="margin:2px 0 8px">Diajukan oleh satu pengurus dan harus disetujui pengurus lain. Pimpinan diberi tahu lewat email (tanpa persetujuan). Anggota baru masuk pertama kali dengan kode OTP yang dikirim ke email di bawah.</p>
+          <div id="agBaruForm"></div>
+          <button class="btn" id="agBaruBtn" onclick="agTambahKirim()">📨 Ajukan Anggota Baru</button>
+        </div>
+        <div class="card"><b>⛔ Nonaktifkan / Aktifkan Anggota</b>
+          <p class="small" style="margin:2px 0 8px">Untuk anggota yang berhenti kerja (resign, pensiun, PHK) atau kembali bekerja. Cari anggotanya, lalu pilih tindakan. Diajukan oleh satu pengurus dan harus disetujui pengurus lain.</p>
+          <input id="agKelolaCari" type="search" placeholder="Ketik nama atau NIK anggota..." oninput="agKelolaRender()" autocomplete="off">
+          <p class="small" id="agKelolaInfo"></p><div id="agKelolaList"></div>
+        </div>
       </div>
     </div>
     <div class="pkv hidden" id="pkvInfo">
@@ -810,7 +867,7 @@ body.kartu-open{overflow:hidden}
         <div class="stt" style="margin:8px 0 0"><div><b id="kasMasukBln" style="color:#166534">Rp 0</b><span class="small">Kas masuk bulan dipilih</span></div><div><b id="kasKeluarBln" style="color:#b91c1c">Rp 0</b><span class="small">Kas keluar bulan dipilih</span></div></div>
         <div id="kasBanner"></div><label style="margin-top:6px">Bulan</label><input type="month" id="kasBulan" onchange="kasMuat()">
       </div>
-      <div class="pktabs"><button id="kasTabBtnM" class="on" onclick="kasTab('MASUK')">⬇ Kas Masuk</button><button id="kasTabBtnK" onclick="kasTab('KELUAR')">⬆ Kas Keluar</button></div>
+      <div class="pktabs"><button id="kasTabBtnT" class="on" onclick="kasTab('MUTASI')">🧾 Mutasi</button><button id="kasTabBtnM" onclick="kasTab('MASUK')">⬇ Kas Masuk</button><button id="kasTabBtnK" onclick="kasTab('KELUAR')">⬆ Kas Keluar</button></div>
       <div class="card hidden kas-m" id="kasForm">
         <b id="kasFormJudul" style="display:block">Catat Kas Masuk</b>
         <label>Kategori</label><select id="kasKat" onchange="kasKatUbah()"></select>
@@ -823,7 +880,16 @@ body.kartu-open{overflow:hidden}
         <button class="btn" id="kasBtn" onclick="kasSimpan()" style="margin-top:10px">Simpan</button>
         <div id="kasPesan" style="margin-top:8px"></div>
       </div>
-      <div class="card hidden" id="kasKorBox"><details><summary><b>🛠 Koreksi biaya &amp; bunga bank</b></summary>
+      <div class="card kas-m hidden" id="kasDaftarCard"><b id="kasDaftarJudul">Daftar Kas Masuk</b><p class="small" id="kasCatatan" style="margin:2px 0 6px"></p><div id="kasDaftar"><p class="small">Memuat...</p></div></div>
+      <div class="card" id="kasMutCard" style="border:1.5px solid #b9d2f0"><b>🧾 Mutasi Kas</b>
+        <select id="mutPeriode" onchange="mutPilih(this.value)" style="margin:8px 0"><option value="T10">10 transaksi terakhir</option><option value="HARI">Hari ini</option><option value="MINGGU">Minggu ini</option><option value="BULAN">Bulan ini</option><option value="TGL">📅 Pilih tanggal...</option></select>
+        <div id="mutTglBox" class="hidden" style="margin-bottom:8px"><label>Dari tanggal</label><input type="date" id="mutDari"><label>Sampai tanggal</label><input type="date" id="mutSampai"><button class="btn" style="margin-top:8px;padding:10px;font-size:14px" onclick="mutMuat()">Tampilkan</button></div>
+        <div id="mutInfo" class="small" style="margin:4px 0 6px"></div>
+        <div id="mutList"><p class="small">Memuat...</p></div>
+      </div>
+      <div class="card hidden" id="kasKorBox">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn" id="bankTabKor" onclick="bankPanel('KOR')" style="padding:11px 6px;font-size:13px">🛠 Koreksi bunga bank</button><button class="btn" id="bankTabTarif" onclick="bankPanel('TARIF')" style="padding:11px 6px;font-size:13px">⚙️ Atur potongan bank</button></div>
+        <div id="bankPanelKor" class="hidden" style="margin-top:10px">
         <p class="small" style="margin:6px 0">Biaya admin, bunga, dan pajak bank dihitung otomatis tiap akhir bulan (perkiraan). Bila berbeda dengan mutasi rekening, koreksi di sini sesuai angka dari bank.</p>
         <label>Bulan</label><select id="korBulan" onchange="korUbah()"></select>
         <label>Komponen</label><select id="korKomp" onchange="korUbah()"><option value="ADMIN">Biaya admin bank (rekening + kartu)</option><option value="BUNGA">Bunga bank</option><option value="PAJAK">Pajak bunga</option></select>
@@ -832,8 +898,18 @@ body.kartu-open{overflow:hidden}
         <label>Alasan koreksi</label><input id="korAlasan" maxlength="200" placeholder="Contoh: sesuai mutasi rekening tgl 30">
         <label>Foto bukti mutasi bank <span class="small" style="font-weight:400">(wajib)</span></label><input type="file" accept="image/*" onchange="korFotoPilih(this)">
         <div id="korFotoPrev" style="display:none;margin:6px 0;text-align:center"><img id="korFotoImg" alt="Pratinjau" style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid #b9d2f0"><br><a href="#" class="small" style="color:#c0392b" onclick="korFotoHapus();return false">Hapus foto</a></div>
-        <button class="btn" id="korBtn" onclick="korSimpan()" style="margin-top:8px">Simpan Koreksi</button></details></div>
-      <div class="card kas-m" id="kasDaftarCard"><b id="kasDaftarJudul">Daftar Kas Masuk</b><p class="small" id="kasCatatan" style="margin:2px 0 6px"></p><div id="kasDaftar"><p class="small">Memuat...</p></div></div>
+        <button class="btn" id="korBtn" onclick="korSimpan()" style="margin-top:8px">Simpan Koreksi</button></div>
+        <div id="bankPanelTarif" class="hidden" style="margin-top:10px">
+          <p class="small" style="margin:0 0 6px">Potongan admin bank dihitung otomatis tiap akhir bulan. Bila bank mengubah biayanya, atur di sini supaya potongan otomatis sama dengan mutasi rekening.</p>
+          <div id="tarifSekarang" style="background:#f1f6fd;border-radius:10px;padding:8px 10px;margin-bottom:8px"></div>
+          <label>Biaya admin rekening per bulan (Rp)</label><input id="tarifRek" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 15.000">
+          <label>Biaya kartu per bulan (Rp)</label><input id="tarifKartu" type="text" inputmode="numeric" data-fmt="money" placeholder="Contoh: 5.000">
+          <label>Berlaku mulai bulan</label><input type="month" id="tarifMulai">
+          <p class="small" style="margin:4px 0">Bulan sebelumnya tidak berubah. Bulan yang dipilih dan sesudahnya memakai angka baru.</p>
+          <button class="btn" id="tarifBtn" onclick="tarifSimpan()" style="margin-top:6px">Simpan Potongan</button>
+          <div id="tarifRiwayat" style="margin-top:10px"></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="hero hero-small">
@@ -877,8 +953,8 @@ let currentPage='landing';
 // ROUTER RIWAYAT PERAMBAN: setiap layar = 1 entri riwayat, tombol back HP mundur 1 langkah
 // landing > anggota (Cek NIK) > anggota-menu > anggota-{kasbon|koperasi|approval|berjalan|bayar}
 // landing > pengurus (Login) > pengurus-dashboard
-const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-kontak','anggota-profil','anggota-profil-ubah','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
-const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-kontak':2,'anggota-profil':2,'anggota-profil-ubah':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
+const ROUTES=['landing','anggota','anggota-menu','anggota-kasbon','anggota-talangan','anggota-koperasi','anggota-approval','anggota-berjalan','anggota-bayar','anggota-keringanan','anggota-dispensasi','anggota-kontak','anggota-profil','anggota-profil-ubah','pengurus','pengurus-dashboard','pengurus-validasi','pengurus-cair','pengurus-berjalan','pengurus-anggota','pengurus-info','pengurus-perangkat','pengurus-budget','pengurus-kas','pengurus-kbp','pengurus-selesai','pengurus-dispensasi','pengurus-g1','pengurus-g2','pengurus-g3','pengurus-g4'];
+const ROUTE_LEVEL={'anggota':0,'anggota-menu':1,'anggota-kasbon':2,'anggota-talangan':2,'anggota-koperasi':2,'anggota-approval':2,'anggota-berjalan':2,'anggota-bayar':2,'anggota-keringanan':2,'anggota-dispensasi':2,'anggota-kontak':2,'anggota-profil':2,'anggota-profil-ubah':2,'pengurus':0,'pengurus-dashboard':1,'pengurus-validasi':3,'pengurus-cair':3,'pengurus-berjalan':3,'pengurus-anggota':3,'pengurus-budget':3,'pengurus-kas':3,'pengurus-kbp':3,'pengurus-selesai':3,'pengurus-dispensasi':3,'pengurus-info':3,'pengurus-perangkat':3,'pengurus-g1':2,'pengurus-g2':2,'pengurus-g3':2,'pengurus-g4':2};
 let currentRoute='landing';
 function renderRoute(name,fromPop){
   if(ROUTES.indexOf(name)<0) name='landing';
@@ -926,7 +1002,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(typeof pkToken!=='undefined' && pkToken){ // sisipkan Menu di bawah layar yang dibuka (di atas halaman depan), tanpa menghapus sesi
       anggotaSesiHapus();
       go('pengurus-dashboard');
-      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-info':'g4'};
+      const GR={'pengurus-validasi':'g1','pengurus-cair':'g1','pengurus-berjalan':'g1','pengurus-selesai':'g1','pengurus-dispensasi':'g1','pengurus-kas':'g2','pengurus-kbp':'g2','pengurus-budget':'g2','pengurus-anggota':'g4','pengurus-perangkat':'g4','pengurus-info':'g4'};
       if(start!=='pengurus-dashboard' && ROUTES.indexOf(start)>=0){ if(GR[start]) go('pengurus-'+GR[start]); go(start); } // sisipkan Menu dan submenu di bawah layar yang dibuka
     } else go('pengurus');
   }
@@ -963,8 +1039,8 @@ async function masukDenganToken(v,atoken){ // setelah PIN / OTP benar: ambil dat
      hasil.innerHTML='<div class="err">❌ '+esc(r.msg||'Silakan masuk lagi')+'</div>';
      return;
    }
-   anggotaAktif={nik:v,atoken:atoken,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun,pengelola:!!r.pengelola,base:r.base||'',bagian:r.bagian||'',rekAkhir:r.rekAkhir||''};
-   sesiSimpan(v,atoken,r.nama); // sesi bertahan saat refresh + NIK diingat
+   anggotaAktif={nik:v,atoken:atoken,nama:r.nama,jabatan:r.jabatan,tglMasuk:r.tglMasuk,masaKerja:r.masaKerja,masaKerjaTahun:r.masaKerjaTahun,pengelola:!!r.pengelola,base:r.base||'',bagian:r.bagian||'',rekAkhir:r.rekAkhir||'',dispensasi:r.dispensasi||null};
+   if(String(atoken).indexOf('PV-')!==0) sesiSimpan(v,atoken,r.nama); // (lihat-saja Ketua tidak disimpan) sesi bertahan saat refresh + NIK diingat
    if(typeof aksesLapor==='function') aksesLapor();
    let mk=r.masaKerja, mkBulat=r.masaKerjaTahun;
    limitAktif = r.limit || {maxNominal:0,maxTenor:0,bracket:'BELUM CUKUP',notEligible:true};
@@ -983,6 +1059,7 @@ async function masukDenganToken(v,atoken){ // setelah PIN / OTP benar: ambil dat
      masukMenu();
      return;
    }
+   if(r.dispensasi){ setTimeout(()=>{ const li=document.getElementById('limitInfo'); if(!li) return; const ds=r.dispensasi, brl=ds.berlaku.split('-').reverse().join('/'); li.innerHTML += ds.jenis==='LIMIT' ? `<br>🎟️ <b>Dispensasi limit pinjaman aktif</b>: limit Anda naik satu tingkat menjadi Rp ${Number(ds.maxNominal).toLocaleString('id-ID')} (tenor maks ${ds.maxTenor} bulan). Berlaku sampai ${brl}.` : `<br>🎟️ <b>Dispensasi masa tunggu aktif</b>: limit dipotong Rp ${Number(ds.potongan).toLocaleString('id-ID')} (${ds.bulan} bulan). Berlaku sampai ${brl}.`; },0); }
    document.getElementById('btnKirim').disabled=false;
    document.getElementById('btnKirim').innerText='Kirim Pengajuan';
    document.getElementById('limitInfo').innerHTML=`Masa kerja <b>${mk.toFixed(1)} tahun</b> (bracket <b>${limitAktif.bracket}</b>) → <b>Limit Maks ${rp(limitAktif.maxNominal)} tenor maks ${limitAktif.maxTenor} bulan</b>. Kamu boleh pinjam di bawah itu dan tenor lebih cepat. Contoh: kerja 5 tahun → limit 3,5jt/7 bln, boleh ambil 3jt/6 bln.`;
@@ -1076,6 +1153,8 @@ function hitungAngsuran(){
 <script src="ttd.js"></script>
 <script src="layanan.js"></script>
 <script src="keringanan.js"></script>
+<script src="selesai.js"></script>
+<script src="dispensasi.js"></script>
 <script src="budget.js"></script>
 <script src="rencana.js"></script>
 <script src="pinpad.js"></script>

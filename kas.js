@@ -1,15 +1,23 @@
 /* ===== KAS KOPERASI (menu Keuangan Koperasi) + LAPORAN KAS ===== */
-let kasJenis = 'MASUK', kasData = null, kasFotoData = '';
+let kasJenis = 'MASUK', kasData = null, kasFotoData = '', kasFormBuka = false, kasSemua = false, kasMut = true, mutMode = 'T10', mutBanyak = 50, mutBaris = [];
 const kasBlnIni = () => (pkHariIni || isoLokal(new Date())).slice(0, 7);
 function kasRentang(ym){ const [y, m] = ym.split('-').map(Number); return {dari: ym + '-01', sampai: ym + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0')}; }
-function kasInit(){ if(!$('kasBulan').value) $('kasBulan').value = kasBlnIni(); kasMuat(); }
+function kasInit(){ if(!$('kasBulan').value) $('kasBulan').value = kasBlnIni(); mutMode = 'T10'; kasMuat(); kasTab('MUTASI'); } // tab Mutasi = tampilan awal
 function kasTab(j){
-  kasJenis = j; $('kasTabBtnM').classList.toggle('on', j === 'MASUK'); $('kasTabBtnK').classList.toggle('on', j === 'KELUAR');
+  if(j === 'MUTASI'){ // tab Mutasi: daftar gabungan masuk+keluar ala mutasi rekening bank
+    kasMut = true;
+    $('kasTabBtnM').classList.remove('on'); $('kasTabBtnK').classList.remove('on'); $('kasTabBtnT').classList.add('on');
+    $('kasForm').classList.add('hidden'); $('kasDaftarCard').classList.add('hidden'); $('kasMutCard').classList.remove('hidden');
+    mutPilih(mutMode); return;
+  }
+  kasMut = false; $('kasTabBtnT').classList.remove('on'); $('kasMutCard').classList.add('hidden'); $('kasDaftarCard').classList.remove('hidden');
+  kasJenis = j; kasSemua = false; $('kasTabBtnM').classList.toggle('on', j === 'MASUK'); $('kasTabBtnK').classList.toggle('on', j === 'KELUAR');
   ['kasForm', 'kasDaftarCard'].forEach(i => { $(i).classList.toggle('kas-m', j === 'MASUK'); $(i).classList.toggle('kas-k', j === 'KELUAR'); });
   $('kasBtn').style.background = j === 'MASUK' ? '#16a34a' : '#dc2626';
   kasPengisian(); kasRender();
 }
 async function kasMuat(){
+  kasSemua = false;
   const ym = $('kasBulan').value || kasBlnIni(), rg = kasRentang(ym);
   try{
     const r = await pkApi({a:'kas_daftar', token:pkToken, dari:rg.dari, sampai:rg.sampai});
@@ -21,7 +29,7 @@ async function kasMuat(){
 function kasPengisian(){ // form input (hanya Ketua & Bendahara)
   const r = kasData; if(!r) return;
   $('kasBanner').innerHTML = r.saldoAwalAda ? '' : `<div class="err" style="margin-top:8px">⚠️ <b>Saldo awal belum dicatat.</b> Sebelum itu saldo kas belum akurat dan transaksi otomatis (infaq, angsuran, pencairan) belum dihitung.${r.bisaInput ? ' Catat lewat <b>Kas Masuk → kategori Saldo awal</b> sesuai saldo rekening koperasi.' : ' Mohon Ketua/Bendahara mencatatnya.'}</div>`;
-  $('kasForm').classList.toggle('hidden', !r.bisaInput);
+  $('kasForm').classList.toggle('hidden', !(r.bisaInput && !kasMut));
   const m = kasJenis === 'MASUK', kat = m ? r.katMasuk : r.katKeluar, lama = $('kasKat').value;
   $('kasFormJudul').innerText = m ? '⬇ Catat Kas Masuk' : '⬆ Catat Kas Keluar';
   $('kasKat').innerHTML = kat.filter(x => !(m && x === 'Saldo awal' && r.saldoAwalAda)).map(k => `<option>${esc(k)}</option>`).join(''); if(kat.indexOf(lama) >= 0) $('kasKat').value = lama;
@@ -34,7 +42,9 @@ function kasPengisian(){ // form input (hanya Ketua & Bendahara)
 let korFotoData = '';
 function kasKorSiap(){
   const r = kasData, box = $('kasKorBox'), bb = r.bankBulan || [];
-  box.classList.toggle('hidden', !r.bisaInput || !bb.length);
+  box.classList.toggle('hidden', !r.bisaInput);
+  tarifSiap();
+  const kb = $('korBulan'); if(kb) kb.disabled = !bb.length;
   const lama = $('korBulan').value;
   $('korBulan').innerHTML = bb.map(b => `<option value="${esc(b.ym)}">${esc(b.label)}</option>`).join(''); if(bb.some(b => b.ym === lama)) $('korBulan').value = lama;
   korUbah();
@@ -43,7 +53,7 @@ function korUbah(){
   const r = kasData; if(!r) return; const b = (r.bankBulan || []).find(x => x.ym === $('korBulan').value), k = $('korKomp').value;
   $('korInfo').innerHTML = b ? 'Perkiraan otomatis ' + esc(b.label) + ': <b>' + pkRp(b[k]) + '</b>' : '';
 }
-function korIsi(ym, komp){ $('kasKorBox').querySelector('details').open = true; if(Array.from($('korBulan').options).some(o => o.value === ym)) $('korBulan').value = ym; $('korKomp').value = komp; korUbah(); $('kasKorBox').scrollIntoView({behavior:'smooth', block:'center'}); $('korJml').focus(); }
+function korIsi(ym, komp){ bankPanel('KOR', true); if(Array.from($('korBulan').options).some(o => o.value === ym)) $('korBulan').value = ym; $('korKomp').value = komp; korUbah(); $('kasKorBox').scrollIntoView({behavior:'smooth', block:'center'}); $('korJml').focus(); }
 function korFotoPilih(inp){ const f = inp.files && inp.files[0]; if(!f) return; pkKompres(f).then(d => { korFotoData = d; $('korFotoImg').src = d; $('korFotoPrev').style.display = 'block'; }).catch(e => alert(e.message)); inp.value = ''; }
 function korFotoHapus(){ korFotoData = ''; $('korFotoPrev').style.display = 'none'; $('korFotoImg').removeAttribute('src'); }
 async function korSimpan(){
@@ -59,7 +69,7 @@ async function korSimpan(){
     const r = await pkApi({a:'kas_koreksi', token:pkToken, bulan, komp, jumlah:jml, alasan, foto:korFotoData});
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ alert(r.msg); }
-    else { alert('✅ ' + r.msg); $('korJml').value = ''; $('korAlasan').value = ''; korFotoHapus(); $('kasKorBox').querySelector('details').open = false; $('kasBulan').value = bulan; await kasMuat(); }
+    else { alert('✅ ' + r.msg); $('korJml').value = ''; $('korAlasan').value = ''; korFotoHapus(); bankPanel('', true); $('kasBulan').value = bulan; await kasMuat(); }
   }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
   finally{ bt.disabled = false; bt.innerText = 'Simpan Koreksi'; }
 }
@@ -71,10 +81,10 @@ function kasRender(){
   const r = kasData; if(!r) return;
   $('kasSaldo').innerText = pkRp(r.saldo); $('kasSaldo').style.color = r.saldo < 0 ? '#b91c1c' : '#134e8a';
   $('kasMasukBln').innerText = pkRp(r.masuk); $('kasKeluarBln').innerText = pkRp(r.keluar);
-  const m = kasJenis === 'MASUK', daftar = r.baris.filter(x => x.jenis === kasJenis), tot = daftar.reduce((t, x) => t + x.jumlah, 0), ym = $('kasBulan').value;
+  const m = kasJenis === 'MASUK', semuaD = r.baris.map((x, i) => [x, i]).filter(q => q[0].jenis === kasJenis).sort((p, q) => String(q[0].tgl).localeCompare(String(p[0].tgl)) || q[1] - p[1]).map(q => q[0]), tot = semuaD.reduce((t, x) => t + x.jumlah, 0), daftar = kasSemua ? semuaD : semuaD.slice(0, 10), ym = $('kasBulan').value;
   $('kasDaftarJudul').innerText = (m ? 'Daftar Kas Masuk' : 'Daftar Kas Keluar') + ' • ' + ym.split('-').reverse().join('/');
-  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima, serta bunga bank (bila saldo di atas Rp 50 juta; dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan, serta biaya admin &amp; pajak bank tiap akhir bulan (dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): sumbangan, biaya bank lainnya, operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>';
-  const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.koreksi ? ' <span class="badge" style="background:#fef3c7;color:#92400e">dikoreksi</span>' : x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ''}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
+  $('kasCatatan').innerHTML = (m ? '<b>Otomatis:</b> infaq dan angsuran yang diterima, serta bunga bank (bila saldo di atas Rp 50 juta; dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): tambahan dana, asuransi mobil, titipan, dan lainnya. ' : '<b>Otomatis:</b> pencairan pinjaman dan kasbon anggota yang ditandai sudah dicairkan, serta biaya admin &amp; pajak bank tiap akhir bulan (dapat dikoreksi). <b>Manual</b> (Ketua/Bendahara): sumbangan, biaya bank lainnya, operasional, dan lainnya. ') + 'Total bulan ini: <b>' + pkRp(tot) + '</b>' + (semuaD.length > 10 ? ' • ' + (kasSemua ? 'menampilkan semua ' : 'menampilkan 10 terbaru dari ') + semuaD.length + ' catatan' : '');
+  const kartu = x => `<div style="border-bottom:1px solid #d6e6f8;padding:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.koreksi ? ' <span class="badge" style="background:#fef3c7;color:#92400e">dikoreksi</span>' : x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ' <span class="badge" style="background:#dbeafe;color:#1e40af">manual</span>'}</b><b style="color:${m ? '#166534' : '#b91c1c'}">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
     <div class="small">${pkTgl(x.tgl)}${x.ket ? ' • ' + esc(x.ket) : ''}${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
     ${r.bisaInput && x.otomatis && x.komp && !x.koreksi ? `<span class="back-link" style="margin:4px 8px 0 0;display:inline-block" onclick="korIsi('${esc(x.bulan)}','${esc(x.komp)}')">✏️ Koreksi sesuai mutasi bank</span>` : ''}
     ${x.foto ? `<span class="back-link" style="margin:4px 8px 0 0;display:inline-block" onclick="kasLihatFoto('${esc(x.id)}')">📷 Lihat foto bukti</span><div id="kf_${esc(x.id)}"></div>` : ''}
@@ -82,6 +92,7 @@ function kasRender(){
     ${x.bisaBatal ? `<span class="back-link" style="margin:4px 0 0" onclick="kasBatalBuka('${esc(x.id)}')">${x.koreksi ? '↩ Batalkan koreksi' : '✖ Batalkan'}</span><div id="kb_${esc(x.id)}" class="hidden" style="margin-top:6px"><input id="kba_${esc(x.id)}" maxlength="200" placeholder="Alasan pembatalan (wajib)"><button class="btn" style="margin-top:6px;padding:10px;font-size:14px;background:#b91c1c" onclick="kasBatal('${esc(x.id)}')">${x.koreksi ? 'Batalkan Koreksi' : 'Batalkan Catatan'}</button></div>` : ''}</div>`;
   const bt = r.dibatalkan.filter(x => x.jenis === kasJenis);
   $('kasDaftar').innerHTML = (daftar.length ? daftar.map(kartu).join('') : '<p class="small">Belum ada catatan pada bulan ini.</p>') +
+    (semuaD.length > 10 ? `<button class="btn" style="margin-top:10px;padding:10px;font-size:14px;background:#64748b" onclick="kasSemua=!kasSemua;kasRender()">${kasSemua ? 'Tampilkan 10 terbaru saja' : 'Tampilkan semua (' + semuaD.length + ')'}</button>` : '') +
     (bt.length ? `<details style="margin-top:10px"><summary class="small"><b>${bt.length} catatan dibatalkan</b></summary>${bt.map(x => `<div class="small" style="padding:6px 0;border-bottom:1px dashed #d6e6f8;color:#6b7f99"><s>${esc(x.kategori)} ${pkRp(x.jumlah)} • ${pkTgl(x.tgl)}</s><br>Dibatalkan oleh ${esc(x.batalOleh)}: “${esc(x.batalAlasan)}”</div>`).join('')}</details>` : '');
 }
 async function kasSimpan(){
@@ -173,4 +184,92 @@ async function lkCetak(){
   document.body.classList.add('cetak');
   const bersih = () => { document.body.classList.remove('cetak'); $('cetakArea').innerHTML = ''; window.removeEventListener('afterprint', bersih); };
   window.addEventListener('afterprint', bersih); setTimeout(() => window.print(), 50);
+}
+
+/* ----- Tab Mutasi kas (seperti mutasi rekening): default 10 transaksi terakhir, bisa hari ini / minggu ini / bulan ini / tanggal tertentu ----- */
+function mutTglIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function mutRentang(m){
+  const hi = (kasData && kasData.hariIni) || pkHariIni || isoLokal(new Date()), [y, mo, d] = hi.split('-').map(Number), t = new Date(y, mo - 1, d);
+  if(m === 'HARI') return {dari: hi, sampai: hi};
+  if(m === 'MINGGU'){ const s = new Date(y, mo - 1, d - ((t.getDay() + 6) % 7)); return {dari: mutTglIso(s), sampai: hi}; } // minggu mulai Senin
+  if(m === 'BULAN') return {dari: hi.slice(0, 7) + '-01', sampai: hi};
+  if(m === 'TGL') return {dari: $('mutDari').value, sampai: $('mutSampai').value};
+  return {dari: '', sampai: ''};
+}
+function mutPilih(m){
+  mutMode = m; mutBanyak = 50;
+  $('mutPeriode').value = m;
+  $('mutTglBox').classList.toggle('hidden', m !== 'TGL');
+  if(m === 'TGL'){ const hi = (kasData && kasData.hariIni) || pkHariIni || isoLokal(new Date()); if(!$('mutDari').value) $('mutDari').value = hi.slice(0, 7) + '-01'; if(!$('mutSampai').value) $('mutSampai').value = hi; $('mutSampai').max = hi; }
+  mutMuat();
+}
+async function mutMuat(){
+  const rg = mutRentang(mutMode);
+  if(mutMode === 'TGL' && (!rg.dari || !rg.sampai || rg.dari > rg.sampai)){ $('mutList').innerHTML = '<div class="err">Isi tanggal dengan benar (dari tidak boleh setelah sampai).</div>'; $('mutInfo').innerText = ''; return; }
+  $('mutList').innerHTML = '<p class="small" style="text-align:center;font-weight:700;color:#134e8a">⏳ Sedang membaca data mutasi... mohon tunggu</p>'; $('mutInfo').innerText = '';
+  try{
+    const r = await pkApi({a:'kas_daftar', token:pkToken, dari:rg.dari, sampai:rg.sampai});
+    if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ $('mutList').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
+    // saldo akhir tiap baris = saldo akhir periode dikurangi mutasi yang lebih baru (daftar urut terbaru -> terlama)
+    let b = r.saldoAkhir; mutBaris = r.baris.map(x => { const o = Object.assign({}, x, {saldoSetelah: b}); b -= (x.jenis === 'MASUK' ? x.jumlah : -x.jumlah); return o; });
+    if(mutMode === 'T10') mutBaris = mutBaris.slice(0, 10);
+    mutKet = {saldoAwal: r.saldoAwal, saldoAkhir: r.saldoAkhir, masuk: r.masuk, keluar: r.keluar, saldo: r.saldo, dari: rg.dari, sampai: rg.sampai, n: r.baris.length, bisaInput: r.bisaInput};
+    mutRender();
+  }catch(e){ console.log('mut err', e); $('mutList').innerHTML = '<div class="err">Gagal terhubung ke server. Coba lagi.</div>'; }
+}
+let mutKet = null;
+function mutKetFmt(t){ // keterangan mutasi: buang nomor pengajuan "(KP0143)" / "(KOP-...)" dan tebalkan nama karyawan (bagian setelah " • ")
+  let s = String(t).replace(/\s*\((?:KP|KOP|KB|KS)[-\w]*\)/g, '');
+  const i = s.lastIndexOf(' • ');
+  return i >= 0 ? esc(s.slice(0, i)) + ' • <b>' + esc(s.slice(i + 3)) + '</b>' : esc(s);
+}
+function mutRender(){
+  const k = mutKet; if(!k) return;
+  const judul = {T10: '10 transaksi terakhir', HARI: 'Hari ini • ' + pkTgl(k.dari), MINGGU: 'Minggu ini • ' + pkTgl(k.dari) + ' – ' + pkTgl(k.sampai), BULAN: 'Bulan ini • ' + pkTgl(k.dari) + ' – ' + pkTgl(k.sampai), TGL: pkTgl(k.dari) + ' – ' + pkTgl(k.sampai)}[mutMode];
+  $('mutInfo').innerHTML = `<b>${judul}</b>` + (mutMode === 'T10' ? `<br>Saldo kas saat ini: <b>${pkRp(k.saldo)}</b>` : `<br>Saldo awal <b>${pkRp(k.saldoAwal)}</b> • Masuk <b style="color:#166534">${pkRp(k.masuk)}</b> • Keluar <b style="color:#b91c1c">${pkRp(k.keluar)}</b><br>Saldo akhir <b>${pkRp(k.saldoAkhir)}</b> • ${k.n} transaksi`);
+  const tampil = mutBaris.slice(0, mutBanyak);
+  $('mutList').innerHTML = (tampil.length ? tampil.map(x => { const m = x.jenis === 'MASUK';
+    return `<div style="background:${m ? '#ecfdf3' : '#fef2f2'};border:1px solid ${m ? '#bbf7d0' : '#fecaca'};border-left:5px solid ${m ? '#16a34a' : '#dc2626'};border-radius:12px;padding:9px 10px;margin:0 0 8px"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.kategori)}${x.nama ? ' • ' + esc(x.nama) : ''}${x.koreksi ? ' <span class="badge" style="background:#fef3c7;color:#92400e">dikoreksi</span>' : x.otomatis ? ' <span class="badge" style="background:#dcfce7;color:#166534">otomatis</span>' : ' <span class="badge" style="background:#dbeafe;color:#1e40af">manual</span>'}</b><b style="color:${m ? '#15a34a' : '#dc2626'};white-space:nowrap">${m ? '+' : '−'}${pkRp(x.jumlah)}</b></div>
+      <div class="small">${x.ket ? mutKetFmt(x.ket) + '<br>' : ''}${pkTgl(x.tgl)} • <b style="color:${m ? '#166534' : '#b91c1c'}">${m ? 'Masuk' : 'Keluar'}</b>${x.otomatis ? '' : ' • oleh ' + esc(x.oleh)}</div>
+      <div style="text-align:left"><span class="small">Saldo akhir:</span> <b style="color:#000">${pkRp(x.saldoSetelah)}</b></div>
+      ${x.foto ? `<span class="back-link" style="margin:2px 0 0;display:inline-block" onclick="kasLihatFoto('${esc(x.id)}')">📷 Lihat foto bukti</span><div id="kf_${esc(x.id)}"></div>` : ''}</div>`; }).join('') : '<p class="small">Tidak ada transaksi pada periode ini.</p>') +
+    (mutBaris.length > mutBanyak ? `<button class="btn" style="margin-top:10px;padding:10px;font-size:14px;background:#64748b" onclick="mutBanyak+=50;mutRender()">Tampilkan lebih banyak (${mutBaris.length - mutBanyak} lagi)</button>` : '');
+}
+
+/* ----- Kotak bawah menu Kas: Koreksi bunga bank (kiri) | Atur potongan bank (kanan) ----- */
+let bankPanelAktif = '';
+function bankPanel(p, paksa){ // ketuk tombol = buka formulir; ketuk lagi = tutup (paksa: selalu buka)
+  if(!paksa && bankPanelAktif === p) p = '';
+  bankPanelAktif = p;
+  $('bankPanelKor').classList.toggle('hidden', p !== 'KOR'); $('bankPanelTarif').classList.toggle('hidden', p !== 'TARIF');
+  $('bankTabKor').style.background = p === 'KOR' ? '#134e8a' : '#5a7aa0'; $('bankTabTarif').style.background = p === 'TARIF' ? '#134e8a' : '#5a7aa0';
+}
+function tarifSiap(){
+  const t = kasData && kasData.tarifBank; if(!t) return;
+  const s = t.sekarang; $('tarifSekarang').innerHTML = `Potongan saat ini: admin rekening <b>${pkRp(s.rek)}</b> + kartu <b>${pkRp(s.kartu)}</b> = <b>${pkRp(s.rek + s.kartu)}</b> per bulan`;
+  if(!$('tarifMulai').value) $('tarifMulai').value = ((kasData.hariIni || '').slice(0, 7));
+  if(!$('tarifRek').value && !$('tarifKartu').value){ $('tarifRek').value = fmtMoney(s.rek); $('tarifKartu').value = fmtMoney(s.kartu); }
+  $('tarifRiwayat').innerHTML = t.daftar.length ? '<b class="small">Pengaturan yang pernah dibuat</b>' + t.daftar.slice().reverse().map(x => `<div class="small" style="border-bottom:1px solid #d6e6f8;padding:6px 0;display:flex;justify-content:space-between;gap:8px"><span>Mulai <b>${esc(x.mulai.split('-').reverse().join('/'))}</b>: ${pkRp(x.rek)} + ${pkRp(x.kartu)} = <b>${pkRp(x.rek + x.kartu)}</b><br>oleh ${esc(x.oleh || '-')}</span><a href="#" style="color:#c0392b;white-space:nowrap" onclick="tarifHapus('${esc(x.mulai)}');return false">Hapus</a></div>`).join('') : '';
+}
+async function tarifSimpan(){
+  const rek = moneyVal('tarifRek'), kartu = moneyVal('tarifKartu'), mulai = $('tarifMulai').value;
+  if(!mulai){ alert('Pilih bulan mulai berlaku.'); return; }
+  if(!($('tarifRek').value.trim() !== '' && $('tarifKartu').value.trim() !== '' && rek >= 0 && kartu >= 0)){ alert('Isi biaya admin rekening dan biaya kartu (boleh 0).'); return; }
+  if(!await dialogKonfirmasi('Atur potongan bank mulai ' + mulai.split('-').reverse().join('/') + ':\nadmin rekening ' + pkRp(rek) + ' + kartu ' + pkRp(kartu) + ' = ' + pkRp(rek + kartu) + ' per bulan?\n\nSaldo kas bulan itu dan sesudahnya akan disesuaikan.')) return;
+  const b = $('tarifBtn'); b.disabled = true; b.innerText = 'Menyimpan...';
+  try{
+    const r = await pkApi({a:'kas_tarif', token:pkToken, rek, kartu, mulai});
+    if(r.expired){ pkExpired(); return; }
+    alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ $('tarifRek').value = ''; $('tarifKartu').value = ''; bankPanel('', true); await kasMuat(); if(kasMut) mutMuat(); }
+  }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+  finally{ b.disabled = false; b.innerText = 'Simpan Potongan'; }
+}
+async function tarifHapus(mulai){
+  if(!await dialogKonfirmasi('Hapus pengaturan potongan yang berlaku mulai ' + mulai.split('-').reverse().join('/') + '?')) return;
+  try{
+    const r = await pkApi({a:'kas_tarif', token:pkToken, hapus:true, mulai});
+    if(r.expired){ pkExpired(); return; }
+    alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ $('tarifRek').value = ''; $('tarifKartu').value = ''; await kasMuat(); if(kasMut) mutMuat(); }
+  }catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
 }

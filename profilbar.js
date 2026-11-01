@@ -50,12 +50,15 @@ function inboxBadge(){
 async function inboxMuat(){
   const pk = inboxPk(), a = anggotaAktif; if(!pk && !a) return;
   const kunci = inboxKunci();
-  try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, atoken: a.atoken}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); } }catch(e){}
+  try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, atoken: a.atoken}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); return true; } }catch(e){}
+  return false;
 }
 async function inboxBuka(){
   $('inboxModal').classList.remove('hidden'); modalPush(inboxTutupUI);
-  const box = $('inboxList'); box.textContent = inboxData.length ? '' : 'Memuat...';
-  await inboxMuat(); const seen = inboxSeen(); box.textContent = '';
+  const box = $('inboxList'), tb = $('inboxTutupBtn'); tb.classList.add('hidden'); // tombol Tutup baru muncul setelah data selesai dibaca
+  box.textContent = ''; const ld = document.createElement('p'); ld.style.cssText = 'text-align:center;margin:18px 0;font-weight:700;color:#134e8a'; ld.textContent = '⏳ Sedang membaca data notifikasi... mohon tunggu sebentar'; box.appendChild(ld);
+  const ok = await inboxMuat(); const seen = inboxSeen(); box.textContent = ''; tb.classList.remove('hidden');
+  if(!ok && !inboxData.length){ const p = document.createElement('p'); p.className = 'small'; p.style.color = '#b91c1c'; p.textContent = 'Gagal memuat notifikasi. Periksa koneksi internet lalu buka lagi.'; box.appendChild(p); return; }
   if(!inboxData.length){ const p = document.createElement('p'); p.className = 'small'; p.textContent = 'Belum ada notifikasi dari pengurus.'; box.appendChild(p); }
   inboxData.forEach(x => {
     const k = document.createElement('div'); k.className = 'inbox' + (x.id > seen ? ' baru' : '');

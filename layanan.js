@@ -1,8 +1,8 @@
 // Layanan anggota: menu, kasbon, status approval, pinjaman berjalan, laporan pembayaran + foto bukti
-let dataSaya = {list: [], laporan: [], bolehKoperasi: '', loaded: false}, fotoData = '';
-const VIEW2ROUTE = {vKasbon:'anggota-kasbon', vTalangan:'anggota-talangan', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vKontak:'anggota-kontak', vProfil:'anggota-profil', vProfilUbah:'anggota-profil-ubah'};
-const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-talangan':'vTalangan', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-kontak':'vKontak', 'anggota-profil':'vProfil', 'anggota-profil-ubah':'vProfilUbah'};
-const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vTalangan', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vKontak', 'vProfil', 'vProfilUbah'];
+let dataSaya = {list: [], laporan: [], bolehKoperasi: '', dispensasi: null, dsAkses: null, disiplin: null, loaded: false}, fotoData = '';
+const VIEW2ROUTE = {vKasbon:'anggota-kasbon', vTalangan:'anggota-talangan', formPinjam:'anggota-koperasi', vApproval:'anggota-approval', vBerjalan:'anggota-berjalan', vBayar:'anggota-bayar', vKeringanan:'anggota-keringanan', vDispensasi:'anggota-dispensasi', vKontak:'anggota-kontak', vProfil:'anggota-profil', vProfilUbah:'anggota-profil-ubah'};
+const ROUTE2VIEW = {'anggota-menu':'menuCard', 'anggota-kasbon':'vKasbon', 'anggota-talangan':'vTalangan', 'anggota-koperasi':'formPinjam', 'anggota-approval':'vApproval', 'anggota-berjalan':'vBerjalan', 'anggota-bayar':'vBayar', 'anggota-keringanan':'vKeringanan', 'anggota-dispensasi':'vDispensasi', 'anggota-kontak':'vKontak', 'anggota-profil':'vProfil', 'anggota-profil-ubah':'vProfilUbah'};
+const VIEWS = ['menuCard', 'formPinjam', 'vKasbon', 'vTalangan', 'vApproval', 'vBerjalan', 'vBayar', 'vKeringanan', 'vDispensasi', 'vKontak', 'vProfil', 'vProfilUbah'];
 const LABEL = {REVIEW_PENGURUS:'⏳ Direview Pengurus', MENUNGGU_PIMPINAN:'⏳ Menunggu Pimpinan', MENUNGGU_PENCAIRAN:'💸 Disetujui - Menunggu Pencairan', DISETUJUI:'✅ Disetujui (berjalan)', LUNAS:'🎉 Lunas', DITOLAK:'❌ Ditolak'};
 const LAPLABEL = {MENUNGGU:'⏳ Menunggu verifikasi', DIVERIFIKASI:'✅ Terverifikasi', DITOLAK:'❌ Ditolak'};
 const ICON = (v, selesai) => v === 'Y' ? '✅' : v === 'N' ? '❌' : (selesai ? '➖' : '⏳');
@@ -10,7 +10,23 @@ const KOMEN = a => a ? `<div style="margin:2px 0 6px 22px;color:#334"><i>“${es
 const rpf = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const tglf = s => s ? String(s).split('-').reverse().join('/') : '-';
 const hariIniStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const PV_BACA = ['cek', 'status', 'kuota_info', 'kuota_bulan', 'tln_saya', 'ubah_saya', 'foto_a_ambil', 'foto_kontak', 'keluar_a'];
+const adaPreview = () => typeof anggotaAktif !== 'undefined' && anggotaAktif && String(anggotaAktif.atoken || '').indexOf('PV-') === 0;
+function pvSpanduk(nama){
+  let e = document.getElementById('pvSpanduk');
+  if(!nama){ if(e) e.remove(); return; }
+  if(!e){ e = document.createElement('div'); e.id = 'pvSpanduk'; e.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:260;background:#374151;color:#fff;padding:9px 14px;font-size:13px;font-weight:700;text-align:center;display:flex;gap:10px;align-items:center;justify-content:center'; document.body.appendChild(e); }
+  e.innerHTML = '<span>👁️ LIHAT SAJA — ' + esc(nama) + ' (tidak ada data yang dikirim)</span><button onclick="keluarAnggota()" style="border:0;border-radius:8px;padding:6px 12px;font-weight:800;background:#fff;color:#374151">Keluar</button>';
+}
+async function anggotaPreviewMulai(nik, atoken, nama){ // Ketua: buka tampilan anggota baca-saja
+  if(anggotaAktif) resetAnggota();
+  $('nikInput').value = nik;
+  renderRoute('anggota');
+  await masukDenganToken(nik, atoken);
+  if(adaPreview()) pvSpanduk(nama);
+}
 const apiPost = async body => { // sesi anggota yang ditolak server (habis / tidak sah) -> otomatis ke layar login
+  if(String(body.atoken || '').indexOf('PV-') === 0 && PV_BACA.indexOf(body.a) < 0){ alert('Mode lihat saja: tidak dapat mengirim atau mengubah data.'); return {ok:false, msg:'Mode lihat saja: tidak dapat mengirim atau mengubah data.'}; }
   const r = await (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
   if(r && r.expired && body.atoken && typeof anggotaAktif !== 'undefined' && anggotaAktif) sesiServerHabis();
   return r;
@@ -37,6 +53,7 @@ function tampilView(v){ // hanya menampilkan layar, tidak mengubah riwayat
   if(v === 'vTalangan') tlnMuat();
   if(v === 'vBayar') renderBayar();
   if(v === 'vKeringanan') renderKeringanan();
+  if(v === 'vDispensasi' && typeof renderDispensasiAng === 'function') renderDispensasiAng();
   if(v === 'vKontak') renderKontak();
   if(v === 'vProfil'){ profilRender(); profilSegarkan(); }
   if(v === 'vProfilUbah') profilUbahRender();
@@ -202,6 +219,7 @@ function masukMenu(){
 }
 async function keluarKonfirmasi(){ if(await dialogKonfirmasi('Apakah Anda yakin ingin keluar?')) keluarAnggota(); }
 function keluarAnggota(){ // tombol Keluar: cabut sesi di server, hapus sesi tersimpan, lalu kembali ke halaman depan
+  pvSpanduk('');
   try{ const t = anggotaAktif && anggotaAktif.atoken; if(t) fetch(API_URL, {method:'POST', body:JSON.stringify({a:'keluar_a', atoken:t})}).catch(() => {}); }catch(e){}
   sesiHapus(); anggotaAktif = null; sesiLoginT = 0; sesiSpanduk(''); // keluar = sesi di memori ikut dihapus (tanpa ini, membuka Anggota lagi memunculkan 'Sesi berakhir')
   const lv = (typeof ROUTE_LEVEL !== 'undefined' && ROUTE_LEVEL[currentRoute]) || 0;
@@ -235,9 +253,9 @@ async function muatData(){
   try{
     const r = await apiPost({a:'status', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken});
     if(!r.ok){ $('apBox').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    dataSaya = {list: r.list || [], laporan: r.laporan || [], keringanan: r.keringanan || [], krTerpakai: r.krTerpakai || {}, krMaks: r.krMaks || 3, bolehKoperasi: r.bolehKoperasi || '', loaded: true};
+    dataSaya = {list: r.list || [], laporan: r.laporan || [], keringanan: r.keringanan || [], krTerpakai: r.krTerpakai || {}, krMaks: r.krMaks || 3, bolehKoperasi: r.bolehKoperasi || '', dispensasi: r.dispensasi || null, dsAkses: r.dsAkses || null, disiplin: r.disiplin || null, loaded: true};
   }catch(e){ $('apBox').innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; return; }
-  renderApproval(); renderBerjalan(); renderBayar(); renderKeringanan(); renderSub(); terapkanBlokir();
+  renderApproval(); renderBerjalan(); renderBayar(); renderKeringanan(); renderSub(); terapkanBlokir(); if(typeof renderDisiplinAnggota === 'function') renderDisiplinAnggota();
 }
 function renderSub(){
   const proses = dataSaya.list.filter(p => p.status === 'REVIEW_PENGURUS' || p.status === 'MENUNGGU_PIMPINAN').length;
@@ -403,8 +421,8 @@ function renderBayar(){
       $('byForm').style.display = 'block';
       $('byList').innerHTML = opsi.map(j => `<label class="byck"><input type="checkbox" value="${j.ke}" onchange="byToggle(this)"><span><b>Angsuran ke-${j.ke}</b> • ${rpf(j.jumlah)}${j.status === 'SEBAGIAN' ? ' <i>(kurang)</i>' : ''}<br><span class="small">jatuh tempo ${tglf(j.due)}</span></span></label>`).join('');
       document.querySelectorAll('#byList input').forEach((c, i) => { c.checked = ada ? sebelum.indexOf(c.value) >= 0 : (i === 0 && opsi.length > 0); }); // angsuran terdekat tercentang bawaan
-      $('byInfaqWrap').style.display = ik.sisa ? 'block' : 'none';
-      $('byInfaqLbl').innerText = ik.sisa ? 'Infaq (sisa ' + rpf(ik.sisa) + ' dari ' + rpf(ik.target) + ') — boleh dicicil atau lebih; wajib lunas bersama angsuran terakhir' : '';
+      $('byInfaqWrap').style.display = ik.target ? 'block' : 'none';
+      $('byInfaqLbl').innerText = ik.sisa ? 'Infaq (sisa ' + rpf(ik.sisa) + ' dari ' + rpf(ik.target) + ') — boleh dicicil atau lebih; wajib lunas bersama angsuran terakhir' : (ik.target ? 'Infaq / sedekah tambahan (opsional) — infaq perjanjian sudah lunas; isi bila transfer Anda lebih dari angsuran' : '');
       if(!$('byTgl').value) $('byTgl').value = hariIniStr(); $('byTgl').max = hariIniStr();
       if(!$('byJumlah').value) byIsiJumlah(); else { document.querySelectorAll('#byList .byck').forEach(l => l.classList.toggle('on', l.querySelector('input').checked)); byCekSebagian(); }
     }
@@ -443,7 +461,7 @@ function hapusFoto(){ fotoData = ''; $('byPreviewWrap').style.display = 'none'; 
 async function kirimLaporan(){
   const p = byPinjaman(); if(!p){ alert('Tidak ada pinjaman berjalan.'); return; }
   const kesP = byKes(), infaqP = $('byInfaqWrap').style.display === 'none' ? 0 : (moneyVal('byInfaq') || 0), ikP = p.angsuran.infaq || {sisa:0};
-  if(!kesP.length && !infaqP){ alert(ikP.sisa ? 'Centang angsuran yang dibayar, atau isi jumlah infaq bila hanya membayar infaq.' : 'Centang angsuran yang dibayar.'); return; }
+  if(!kesP.length && !infaqP){ alert(ikP.target ? 'Centang angsuran yang dibayar, atau isi jumlah infaq bila hanya membayar infaq.' : 'Centang angsuran yang dibayar.'); return; }
   const belumP = p.angsuran.jadwal.filter(j => j.status !== 'LUNAS'), jP = belumP.filter(j => kesP.indexOf(j.ke) >= 0), sisaP = jP.reduce((t, j) => t + j.jumlah, 0), uangP = moneyVal('byJumlah') - infaqP;
   if(kesP.length){
     if(!(uangP > 0)){ alert('Jumlah untuk angsuran harus lebih dari Rp 0 (jumlah dibayar dikurangi infaq).'); return; }
@@ -475,8 +493,8 @@ const kDua = (lg, sm) => `<span class="lg">${lg}</span><span class="sm">${sm}</s
 function kTglPanjang(d){ return HARI_K[d.getDay()] + ', ' + ('0' + d.getDate()).slice(-2) + ' ' + BLN_KP[d.getMonth()] + ' ' + d.getFullYear(); }
 function kSelisih(a, b){ const x = Date.parse(a + 'T00:00:00Z'), y = Date.parse(b + 'T00:00:00Z'); return isNaN(x) || isNaN(y) ? 0 : Math.round((x - y) / 864e5); }
 const kAngka = n => Number(n || 0).toLocaleString('id-ID');
-function kartuBuka(id){
-  const p = (dataSaya.list || []).find(x => x.id === id && x.angsuran);
+function kartuBuka(id, pLuar, namaLuar){ // pLuar/namaLuar: dipakai pengurus untuk membuka kartu anggota lain; anggota memakai datanya sendiri
+  const p = pLuar || (dataSaya.list || []).find(x => x.id === id && x.angsuran);
   if(!p){ alert('Data kartu belum tersedia. Muat ulang halaman lalu coba lagi.'); return; }
   const a = p.angsuran, k = p.kartu || {}, kas = p.jenis === 'KASBON', jad = a.jadwal || [], ik = a.infaq || {target: +k.infaq || 0, terbayar: 0, sisa: +k.infaq || 0, riwayat: []}, infaq = ik.target;
   const infaqTxt = infaq ? kAngka(infaq) + (ik.sisa ? ' (Terbayar ' + kAngka(ik.terbayar) + ', sisa ' + kAngka(ik.sisa) + ')' : ' (Lunas' + (ik.terbayar > infaq ? ', terbayar ' + kAngka(ik.terbayar) : '') + ')') : '-';
@@ -489,7 +507,7 @@ function kartuBuka(id){
     return `<tr><td class="c">${j.ke}</td><td>${kas ? 'Kasbon' : kDua('Angsuran Ke ' + j.ke, 'Ke ' + j.ke)}</td><td class="c">${kDua(esc(kTgl(j.due)), kTglS(j.due))}</td><td class="c">${bayar ? kDua(esc(kTgl(j.tglBayar)), kTglS(j.tglBayar)) : ''}</td>` +
       `<td class="r">${bayar ? kAngka(j.jumlah) : ''}</td><td class="c"${!bayar && telat ? ' style="color:#c0392b;font-weight:700"' : ''}>${telat === null ? '' : telat + ' Hari'}</td><td class="c">${bayar ? 'Lunas' : ''}</td></tr>`;
   }).join('') + infaqBaris.map(x => `<tr><td class="c">-</td><td>Infaq</td><td class="c"></td><td class="c">${kDua(esc(kTgl(x.tgl)), kTglS(x.tgl))}</td><td class="r">${kAngka(x.jumlah)}</td><td class="c"></td><td class="c">Infaq</td></tr>`).join('');
-  const nm = anggotaAktif ? anggotaAktif.nama : '';
+  const nm = namaLuar !== undefined ? namaLuar : (anggotaAktif ? anggotaAktif.nama : '');
   window.KARTU_CUR = { id: p.id, kas, judul: 'BUKTI PEMBAYARAN ' + (kas ? 'KASBON' : 'PINJAMAN KOPERASI'), info: [
     ['No Registrasi', p.id, 1], ['Nama', nm, 1], ['Jumlah Pinjaman', kAngka(p.nominal)], ['Alamat', k.alamat || '-'],
     ['Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan'], ['No.HP', k.hp || '-'], ['Angsuran', jad.length ? kAngka((jad.find(j => j.asli > 0) || jad[0]).asli) : '-'], ['Email', k.email || '-'],
@@ -502,13 +520,14 @@ function kartuBuka(id){
   const html = `<div class="kartu-box" id="kartuBox">
     <div class="kartu-judul">BUKTI PEMBAYARAN ${kas ? 'KASBON' : 'PINJAMAN KOPERASI'}</div>
     <div class="kartu-info">
-      ${info('No Registrasi', esc(p.id), 1)}${info('Nama', esc(anggotaAktif ? anggotaAktif.nama : ''), 1)}
+      ${info('No Registrasi', esc(p.id), 1)}${info('Nama', esc(nm), 1)}
       ${info('Jumlah Pinjaman', kAngka(p.nominal))}${info('Alamat', esc(k.alamat || '-'))}
       ${info('Lama Pinjaman', kas ? '30 Hari' : p.tenor + ' Bulan')}${info('No.HP', esc(k.hp || '-'))}
       ${info('Angsuran', jad.length ? kAngka((jad.find(j => j.asli > 0) || jad[0]).asli) : '-')}${info('Email', esc(k.email || '-'))}
       ${info('Tanggal Pencairan', esc(kTgl(k.tglCair) || '-'))}${info('Sisa Pinjaman', 'Rp ' + kAngka(a.sisa), 1)}
       ${info('Infaq', infaqTxt, 1)}
     </div>
+    ${k.penyelesaian ? `<div style="margin:6px 0;padding:6px 8px;border:1px solid #999;font-size:12px"><b>PENYELESAIAN KHUSUS</b> — ${esc(k.penyelesaian.jenisTeks)} (${esc(kTgl(k.penyelesaian.tgl))}). Sisa tagihan Rp ${kAngka(k.penyelesaian.sisaTagihan)}, diterima Rp ${kAngka(k.penyelesaian.dibayar)}, dihapuskan Rp ${kAngka(k.penyelesaian.dihapus)}. Disetujui: ${esc(k.penyelesaian.disetujui)}.</div>` : ''}
     <div style="overflow-x:auto"><table class="kartu-tbl"><thead><tr><th>NO</th><th>${kDua('Keterangan', 'Ket.')}</th><th>${kDua('Jatuh Tempo', 'Jatuh Tempo')}</th><th>${kDua('Tanggal Pembayaran', 'Tgl Bayar')}</th><th>${kDua('Jumlah Pembayaran', 'Jumlah')}</th><th>${kDua('Keterlambatan', 'Telat')}</th><th>${kDua('Keterangan', 'Status')}</th></tr></thead><tbody>${baris}</tbody></table></div>
     <div class="kartu-ttd">${esc(kTglPanjang(new Date()))}<img src="logo-intisel.png" alt="Koperasi Intisel"><div style="height:34px"></div>Pengurus Koperasi</div>
   </div>`;

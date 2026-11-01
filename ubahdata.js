@@ -56,7 +56,7 @@ async function ubahKirim(){
 }
 
 /* ---------- Pengurus: daftar & keputusan ---------- */
-function agTab(t){ ['D', 'U'].forEach(k => { $('agTab' + k).classList.toggle('hidden', t !== k); $('agTabBtn' + k).classList.toggle('on', t === k); }); if(t === 'U') ubMuat(); }
+function agTab(t){ ['D', 'U', 'T'].forEach(k => { const e = $('agTab' + k); if(e) e.classList.toggle('hidden', t !== k); const b = $('agTabBtn' + k); if(b) b.classList.toggle('on', t === k); }); if(t === 'U') ubMuat(); if(t === 'T') agTambahTampil(); }
 function ubBadge(n){ // angka merah: tab, tile Database Anggota, tile Informasi & Sistem
   const t = $('agTabNU'); if(t) t.innerText = n ? '(' + n + ')' : ''; const b = $('agTabBtnU'); if(b) b.classList.toggle('notif', n > 0);
   ['pbAnggota', 'pbG4'].forEach(id => { const e = $(id); if(e){ e.innerText = n; e.style.display = n > 0 ? 'block' : 'none'; } });
@@ -87,19 +87,29 @@ async function ubPutus(id, kep){
 
 /* ---------- Database Anggota: tambah / nonaktifkan / aktifkan / hapus ---------- */
 const AG_BARU = [['nik', 'NIK (4-12 angka)', 'tel'], ['nama', 'Nama lengkap', 'text'], ['base', 'Base / Lokasi', 'text'], ['tglMasuk', 'Tanggal masuk kerja', 'date'], ['jabatan', 'Jabatan', 'text'], ['bagian', 'Bagian (isi MANAGERIAL bila pengelola)', 'text'], ['hp', 'Nomor HP', 'tel'], ['email', 'Email (untuk kode masuk pertama)', 'email'], ['rek', 'Rekening BNI (boleh kosong)', 'tel']];
-function agTambahToggle(){
-  const c = $('agBaruCard'); const buka = c.classList.contains('hidden');
-  if(buka) $('agBaruForm').innerHTML = AG_BARU.map(f => `<label class="small" style="display:block;margin:8px 0 2px">${esc(f[1])}</label><input id="agb_${f[0]}" type="${f[2]}" ${f[2] === 'tel' ? 'inputmode="numeric"' : ''} autocomplete="off" style="margin-bottom:4px">`).join('');
-  c.classList.toggle('hidden', !buka);
+function agTambahTampil(){ // tab Tambah Anggota: isi formulir (sekali) dan siapkan pencarian nonaktifkan/aktifkan
+  const f = $('agBaruForm'); if(f && !f.innerHTML) f.innerHTML = AG_BARU.map(f => `<label class="small" style="display:block;margin:8px 0 2px">${esc(f[1])}</label><input id="agb_${f[0]}" type="${f[2]}" ${f[2] === 'tel' ? 'inputmode="numeric"' : ''} autocomplete="off" style="margin-bottom:4px">`).join('');
+  if(!agData.length) agMuat().then(agKelolaRender); else agKelolaRender();
 }
 async function agTambahKirim(){
   const v = k => ($('agb_' + k) || {value: ''}).value.trim(), data = {};
   AG_BARU.forEach(f => { if(f[0] !== 'nik') data[f[0] === 'tglMasuk' ? 'tglMasuk' : f[0]] = v(f[0]); });
   if(!await dialogKonfirmasi('Ajukan anggota baru ' + (v('nama') || '(tanpa nama)') + ' (NIK ' + v('nik') + ') ke pengurus lain?')) return;
   const b = $('agBaruBtn'); b.disabled = true;
-  try{ const r = await pkApi({a:'kelola_ajukan', token:pkToken, jenis:'TAMBAH', nik:v('nik'), data}); if(r.expired){ pkExpired(); return; } alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ $('agBaruCard').classList.add('hidden'); ubMuat(true); } }
+  try{ const r = await pkApi({a:'kelola_ajukan', token:pkToken, jenis:'TAMBAH', nik:v('nik'), data}); if(r.expired){ pkExpired(); return; } alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ $('agBaruForm').innerHTML = ''; agTab('U'); } }
   catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
   b.disabled = false;
+}
+function agInfoBerhenti(a){ // tab Database: hanya informasi (tindakan nonaktifkan/aktifkan ada di tab Tambah Anggota)
+  return a.aktif === false ? `<div class="small" style="margin-top:4px">Berhenti <b>${esc(pkTgl(a.tglBerhenti))}</b>. Alasan: ${esc(a.alasanBerhenti || '-')}</div>` : '';
+}
+function agKelolaRender(){ // tab Tambah Anggota: cari anggota lalu pilih tindakan
+  const cari = $('agKelolaCari'), info = $('agKelolaInfo'), box = $('agKelolaList'); if(!cari || !box) return;
+  const q = cari.value.trim().toLowerCase();
+  if(q.length < 2){ info.innerText = 'Ketik minimal 2 huruf nama atau angka NIK untuk mencari anggota.'; box.innerHTML = ''; return; }
+  const L = agData.filter(a => (a.nama + ' ' + a.nik).toLowerCase().includes(q)), MAX = 8;
+  info.innerText = L.length ? `${L.length} anggota ditemukan` + (L.length > MAX ? ` • menampilkan ${MAX} pertama, persempit pencarian` : '') : 'Tidak ada anggota yang cocok.';
+  box.innerHTML = L.slice(0, MAX).map(a => `<div style="border-top:1px solid #d6e6f8;padding:10px 0"><b>${esc(a.nama)}</b> <span class="small">• NIK ${esc(a.nik)}</span>${a.aktif === false ? ' <span class="tag r">NONAKTIF</span>' : ''}<div class="small">${esc(a.jabatan)}${a.base ? ' • ' + esc(a.base) : ''}</div>${agAksi(a)}</div>`).join('');
 }
 function agAksi(a){
   if(typeof pkBisaCatat === 'undefined' || !pkBisaCatat) return a.aktif === false && a.tglBerhenti ? `<div class="small" style="margin-top:4px">Berhenti ${esc(pkTgl(a.tglBerhenti))}. Alasan: ${esc(a.alasanBerhenti || '-')}</div>` : '';
@@ -122,6 +132,6 @@ async function agKelolaKirim(nik, jenis){
 }
 async function agHapus(nik, nama){
   if(!await dialogKonfirmasi('HAPUS PERMANEN ' + nama + ' (NIK ' + nik + ')? Hanya untuk salah input; data tidak bisa dikembalikan. Pimpinan diberi tahu lewat email.')) return;
-  try{ const r = await pkApi({a:'kelola_hapus', token:pkToken, nik}); if(r.expired){ pkExpired(); return; } alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok) await agMuat(); }
+  try{ const r = await pkApi({a:'kelola_hapus', token:pkToken, nik}); if(r.expired){ pkExpired(); return; } alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ await agMuat(); agKelolaRender(); } }
   catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
 }

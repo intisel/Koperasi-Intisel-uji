@@ -5,6 +5,8 @@ function rcTunda(){ clearTimeout(rcTimer); rcTimer = setTimeout(rcMuat, 500); } 
 function rcJenis(){ const r = document.querySelector('input[name="rcJenis"]:checked'); return r ? r.value : 'REGULER'; }
 function rcUbahJenis(){ $('rcUrgenBox').style.display = rcJenis() === 'URGEN' ? 'block' : 'none'; rcRender(); }
 async function rcMuat(){
+  { const n = document.getElementById('rcDispNote'), dsA = (typeof anggotaAktif !== 'undefined' && anggotaAktif) ? anggotaAktif.dispensasi : null;
+    if(n){ n.style.display = dsA ? 'block' : 'none'; if(dsA) n.innerText = dsA.jenis === 'LIMIT' ? '🎟️ Dispensasi limit aktif: limit dan tenor maksimal Anda naik satu tingkat. Jadwal pencairan tetap mengikuti aturan masa tunggu.' : '🎟️ Dispensasi masa tunggu aktif: jadwal pencairan Anda tidak terkunci masa tunggu, dan limit pinjaman Anda sudah dipotong.'; } }
   const box = $('rcBox'); if(!box || !anggotaAktif) return;
   try{
     const nom = parseInt($('nomRange').value, 10) || 0, ya = $('pernahPinjam') && $('pernahPinjam').value === 'Ya';
