@@ -135,3 +135,39 @@ async function agHapus(nik, nama){
   try{ const r = await pkApi({a:'kelola_hapus', token:pkToken, nik}); if(r.expired){ pkExpired(); return; } alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ await agMuat(); agKelolaRender(); } }
   catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
 }
+
+/* ---------- Pengurus: edit data anggota yang sudah ada (disetujui pengurus lain) ---------- */
+function ubEdRender(){
+  const cari = $('ubEdCari'), info = $('ubEdInfo'), box = $('ubEdList'); if(!cari || !box) return;
+  const q = cari.value.trim().toLowerCase();
+  if(q.length < 2){ info.innerText = 'Ketik minimal 2 huruf nama atau angka NIK.'; box.innerHTML = ''; return; }
+  if(!agData.length){ info.innerText = 'Memuat daftar anggota...'; agMuat().then(ubEdRender); return; }
+  const L = agData.filter(a => (a.nama + ' ' + a.nik).toLowerCase().includes(q)), MAX = 6;
+  info.innerText = L.length ? `${L.length} anggota ditemukan` + (L.length > MAX ? ` • menampilkan ${MAX} pertama, persempit pencarian` : '') : 'Tidak ada anggota yang cocok.';
+  box.innerHTML = L.slice(0, MAX).map(a => `<div style="border-top:1px solid #d6e6f8;padding:10px 0"><b>${esc(a.nama)}</b> <span class="small">• NIK ${esc(a.nik)}</span>${a.aktif === false ? ' <span class="tag r">NONAKTIF</span>' : ''}<div class="small">${esc(a.jabatan)}${a.base ? ' • ' + esc(a.base) : ''}</div><button class="btn" style="display:inline-block;width:auto;margin:6px 0 0;padding:7px 12px;font-size:13px" onclick="ubEdBuka('${esc(a.nik)}')">✏️ Edit data</button><div id="ubEd_${esc(a.nik)}"></div></div>`).join('');
+}
+async function ubEdBuka(nik){
+  const box = $('ubEd_' + nik); if(!box) return;
+  if(box.innerHTML){ box.innerHTML = ''; return; }
+  box.innerHTML = '<p class="small">Memuat...</p>';
+  try{
+    const r = await pkApi({a:'ubah_pk_data', token:pkToken, nik}); if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ box.innerHTML = '<div class="err">' + esc(r.msg) + '</div>'; return; }
+    let h = '<div class="ok" style="background:#fff;margin-top:8px"><div class="small">NIK, nama, dan tanggal masuk kerja tidak dapat diubah.</div>', grup = '';
+    UBAH_FIELD.forEach(f => {
+      if(f[5] !== grup){ grup = f[5]; h += `<div class="small" style="margin:10px 0 0;font-weight:700">${esc(grup)}</div>`; }
+      const v = f[0] === 'rek' ? '' : (r.data[f[0]] || ''), ph = f[0] === 'rek' ? (r.rekAkhir ? 'Tersimpan •••• ' + r.rekAkhir + ' (kosongkan bila tidak diubah)' : 'Masih kosong, isi bila ingin menambah') : (v ? '' : '(masih kosong)');
+      h += `<label class="small" style="display:block;margin:6px 0 2px">${esc(f[1])}</label><input id="ubEdF_${nik}_${f[0]}" data-asal="${esc(v)}" type="${f[2]}" maxlength="${f[3]}" ${f[4] ? 'inputmode="' + f[4] + '"' : ''} value="${esc(v)}" placeholder="${esc(ph)}" autocomplete="off" style="margin-bottom:4px">`;
+    });
+    box.innerHTML = h + `<button class="btn" style="margin-top:10px;padding:10px;font-size:14px" onclick="ubEdKirim('${nik}')">📨 Ajukan ke pengurus lain</button></div>`;
+  }catch(e){ box.innerHTML = '<div class="err">Gagal terhubung ke server.</div>'; }
+}
+async function ubEdKirim(nik){
+  const data = {};
+  UBAH_FIELD.forEach(f => { const e = $('ubEdF_' + nik + '_' + f[0]); if(!e) return; const v = e.value.trim(); if(v !== '' && v !== e.dataset.asal) data[f[0]] = v; });
+  if(!Object.keys(data).length){ alert('Belum ada data yang diubah atau ditambah.'); return; }
+  const rinci = Object.keys(data).map(k => '• ' + UBAH_FIELD.find(f => f[0] === k)[1] + (k === 'rek' ? '' : ': ' + data[k])).join('\n');
+  if(!await dialogKonfirmasi('Ajukan perubahan data anggota NIK ' + nik + '?\n\n' + rinci + '\n\nHarus disetujui pengurus lain.')) return;
+  try{ const r = await pkApi({a:'ubah_pk_ajukan', token:pkToken, nik, data}); if(r.expired){ pkExpired(); return; } alert((r.ok ? '✅ ' : '') + r.msg); if(r.ok){ $('ubEd_' + nik).innerHTML = ''; await ubMuat(); } }
+  catch(e){ alert('Gagal terhubung ke server. Coba lagi.'); }
+}

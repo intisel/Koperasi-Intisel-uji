@@ -794,6 +794,11 @@ body.kartu-open{overflow:hidden}
       </div>
       </div>
       <div id="agTabU" class="hidden">
+        <div class="card"><b>✏️ Edit Data Anggota</b>
+          <p class="small" style="margin:2px 0 8px">Untuk melengkapi data anggota yang masih kosong (misalnya nomor HP) atau memperbaikinya. Cari anggota, ubah, lalu ajukan. Perubahan harus disetujui pengurus lain.</p>
+          <input id="ubEdCari" type="search" placeholder="Ketik nama atau NIK anggota..." oninput="ubEdRender()" autocomplete="off">
+          <p class="small" id="ubEdInfo"></p><div id="ubEdList"></div>
+        </div>
         <div class="card"><b>📝 Perubahan Data Anggota</b>
           <p class="small" style="margin:2px 0 8px">Anggota mengajukan perubahan lewat halaman Profil. Cukup satu pengurus untuk menyetujui; setelah disetujui, sheet Anggota langsung diperbarui. NIK, nama, dan tanggal masuk kerja tidak dapat diubah lewat jalur ini. Perubahan data Anda sendiri harus diputuskan pengurus lain.</p>
           <div id="ubList"></div></div>
