@@ -135,13 +135,14 @@ async function pkGantiSimpan(){
   }catch(e){ pkPesan('Gagal terhubung ke server.', true, 'pkGantiPesan'); }
 }
 async function pkKeluar(){
+  if(typeof pkAsliToken !== 'undefined' && pkAsliToken){ pkLihatKeluar(); return; }
   if(!await dialogKonfirmasi('Apakah Anda yakin ingin keluar?')) return;
   try{ await pkApi({a:'keluar', token:pkToken}); }catch(e){}
   pkToken = ''; sessionStorage.removeItem('pk_token');
   const lv = ROUTE_LEVEL[currentRoute] || 0;
   if(lv > 0) history.go(-lv); else goReplace('pengurus');
 }
-function pkExpired(){ pkToken = ''; sessionStorage.removeItem('pk_token'); goReplace('pengurus'); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
+function pkExpired(){ if(typeof pkAsliToken !== 'undefined' && pkAsliToken){ pkLihatKeluar(true); return; } pkToken = ''; sessionStorage.removeItem('pk_token'); goReplace('pengurus'); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
 
 /* --- dasbor --- */
 async function pkMuat(){
@@ -149,7 +150,7 @@ async function pkMuat(){
   try{
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    pkBisaCatat = r.bisaCatat; pkKetua = !!r.ketua; if($('agTabBtnT')) $('agTabBtnT').classList.toggle('hidden', !r.bisaCatat); pkBisaVerif = !!r.bisaVerif; pkHariIni = r.hariIni; plLokasiBoleh = !!(r.lokasi !== undefined ? r.lokasi : r.ketua); $('plTabBtnL').classList.toggle('hidden', !plLokasiBoleh);
+    pkBisaCatat = r.bisaCatat; pkKetua = !!r.ketua; if($('pkLihatBtn')) $('pkLihatBtn').classList.toggle('hidden', !pkKetua || !!pkAsliToken); if($('agTabBtnT')) $('agTabBtnT').classList.toggle('hidden', !r.bisaCatat); pkBisaVerif = !!r.bisaVerif; pkHariIni = r.hariIni; plLokasiBoleh = !!(r.lokasi !== undefined ? r.lokasi : r.ketua); $('plTabBtnL').classList.toggle('hidden', !plLokasiBoleh);
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     r.menunggu.sort((x, y) => ((y.disiplin && y.disiplin.tingkat === 'A+') ? 1 : 0) - ((x.disiplin && x.disiplin.tingkat === 'A+') ? 1 : 0)); // anggota teladan (A+) didahulukan, urutan lain tetap

@@ -288,3 +288,42 @@ function xlsxBuat(sheets){
   ].concat(sheets.map((s, i) => ({nama:`xl/worksheets/sheet${i + 1}.xml`, data:u(sheetXml(s))})));
   return zipBuat(files);
 }
+
+/* ---------- Ketua: lihat aplikasi sebagai Penasehat / Bendahara / Pimpinan (BACA-SAJA, 30 menit, tercatat) ---------- */
+let pkAsliToken = '', pkAsliPeta = null;
+async function pkLihatPilih(){
+  try{
+    const r = await pkApi({a:'lihat_pengurus', token:pkToken}); if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ alert('❌ ' + r.msg); return; }
+    const o = document.createElement('div'); o.id = 'pkLihatDlg'; o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px';
+    o.innerHTML = '<div style="background:#fff;border-radius:16px;padding:16px;max-width:360px;width:100%"><b style="font-size:16px">👁️ Lihat aplikasi sebagai...</b><p class="small" style="margin:6px 0 10px">Tampilan BACA-SAJA: tidak ada data yang dapat dikirim atau diubah. Berlaku ' + r.menit + ' menit dan tercatat.</p>' +
+      r.pilihan.map(x => `<button class="btn" style="margin:0 0 8px;padding:11px;font-size:14px" onclick="pkLihatMulai('${esc(x.id)}')">${esc(x.nama)} <span style="font-weight:400">• ${esc(x.jabatan)}</span></button>`).join('') +
+      '<button class="btn" style="margin:0;padding:10px;font-size:14px;background:#6b7f99" onclick="document.getElementById(\'pkLihatDlg\').remove()">Batal</button></div>';
+    document.body.appendChild(o);
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+}
+async function pkLihatMulai(id){
+  const dlg = document.getElementById('pkLihatDlg'); if(dlg) dlg.remove();
+  try{
+    const r = await pkApi({a:'lihat_pengurus', token:pkToken, target:id}); if(r.expired){ pkExpired(); return; }
+    if(!r.ok){ alert('❌ ' + r.msg); return; }
+    pkAsliToken = pkToken; pkToken = r.token; // token asli tetap di sessionStorage; hanya variabel yang diganti
+    pkLihatSpanduk(r.nama + ' (' + r.jabatan + ')');
+    if(typeof pkMuat === 'function') await pkMuat();
+    if(typeof go === 'function') go('pengurus-dashboard');
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+}
+function pkLihatSpanduk(teks){
+  let e = document.getElementById('pkLihatSpanduk');
+  if(!teks){ if(e) e.remove(); return; }
+  if(!e){ e = document.createElement('div'); e.id = 'pkLihatSpanduk'; e.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:260;background:#374151;color:#fff;padding:9px 14px;font-size:13px;font-weight:700;text-align:center;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap'; document.body.appendChild(e); }
+  e.innerHTML = '<span>👁️ LIHAT SAJA — ' + esc(teks) + ' (tidak ada data yang dikirim)</span><button onclick="pkLihatKeluar()" style="border:0;border-radius:8px;padding:6px 12px;font-weight:800;background:#fff;color:#374151">Kembali ke akun saya</button>';
+}
+function pkLihatKeluar(habis){
+  if(!pkAsliToken) return;
+  const t = pkToken; pkToken = pkAsliToken; pkAsliToken = ''; pkLihatSpanduk('');
+  try{ pkApi({a:'keluar', token:t}); }catch(e){}
+  if(habis) alert('Waktu mode lihat saja habis. Kembali ke akun Anda.');
+  if(typeof pkMuat === 'function') pkMuat();
+  if(typeof go === 'function') go('pengurus-dashboard');
+}
