@@ -367,10 +367,11 @@ async function kirimKasbon(){
   d.nominal = await kuotaPastikan('KASBON', d.nominal, (sisa, terapkan) => { const n = Math.floor(sisa / 50000) * 50000; if(n < 50000) return 0; if(terapkan){ $('kbNominal').value = n; kbUpdate(); } return n; });
   if(!d.nominal) return;
   d.bulanBudget = kuotaBulanPilih.KASBON || '';
+  const lok = await lokasiMinta(); // lokasi WAJIB untuk pengajuan
+  if(!lok || lok.err){ alert('Lokasi wajib dibagikan untuk mengirim pengajuan.\n\n' + (lok && lok.err === 'ditolak' ? 'Izin lokasi ditolak. Buka pengaturan browser/HP, izinkan lokasi untuk situs ini, lalu coba lagi.' : 'Lokasi tidak dapat dibaca. Aktifkan GPS / layanan lokasi di HP, lalu coba lagi.')); return; }
   const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KASBON', nominal:d.nominal, tenor:1, infaq:0});
   if(!png) return; // dibatalkan
-  d.ttd = png; d.setuju = true;
-  d.lok = await lokasiMinta();
+  d.ttd = png; d.setuju = true; d.lok = lok;
   const btn = $('btnKb'); btn.disabled = true; btn.innerText = 'Mengirim...';
   let sukses = false, pesan = '';
   try{
@@ -475,11 +476,10 @@ async function kirimLaporan(){
   if(!$('byTgl').value){ alert('Isi tanggal pembayaran.'); return; }
   if(!validasiForm($('byForm'))) return;
   if(!fotoData){ alert('Lampirkan foto bukti transaksi (ambil foto atau pilih dari galeri).'); return; }
-  const lok = await lokasiMinta();
   const btn = $('btnBayar'); btn.disabled = true; btn.innerText = 'Mengunggah...';
   try{
     const r = await apiPost({a:'lapor', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id:p.id, kes:kesP, ke:kesP[0] || 0, infaq:infaqP,
-      tgl:$('byTgl').value, jumlah:moneyVal('byJumlah'), catatan:$('byCatatan').value.trim(), foto:fotoData, lok});
+      tgl:$('byTgl').value, jumlah:moneyVal('byJumlah'), catatan:$('byCatatan').value.trim(), foto:fotoData});
     if(r.ok){ alert('✅ Laporan terkirim. Menunggu verifikasi pengurus.'); hapusFoto(); $('byCatatan').value = ''; $('byJumlah').value = ''; $('byInfaq').value = ''; await muatData(); }
     else alert('❌ ' + r.msg);
   }catch(e){ alert('Gagal mengunggah. Periksa koneksi lalu coba lagi.'); }

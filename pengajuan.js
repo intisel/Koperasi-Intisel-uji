@@ -80,10 +80,11 @@ async function kirimPengajuan(){
   const nomKuota = await kuotaPastikan('KOPERASI', parseInt(d.nominal, 10), (sisa, terapkan) => { let n = Math.floor(sisa / 100000) * 100000; if(n < 500000) return 0; if(terapkan){ $('nomRange').value = n; updateNominal(); } return n; });
   if(!nomKuota) return;
   d.nominal = String(nomKuota); Object.assign(d, rc); d.bulanBudget = kuotaBulanPilih.KOPERASI || rc.bulanBudget;
+  const lok = await lokasiMinta(); // lokasi WAJIB untuk pengajuan
+  if(!lok || lok.err){ alert('Lokasi wajib dibagikan untuk mengirim pengajuan.\n\n' + (lok && lok.err === 'ditolak' ? 'Izin lokasi ditolak. Buka pengaturan browser/HP, izinkan lokasi untuk situs ini, lalu coba lagi.' : 'Lokasi tidak dapat dibaca. Aktifkan GPS / layanan lokasi di HP, lalu coba lagi.')); return; }
   const png = await ttdMinta({nama:anggotaAktif.nama, jenis:'KOPERASI', nominal:parseInt(d.nominal, 10), tenor:parseInt(d.tenor, 10), infaq:d.infaq});
   if(!png) return; // dibatalkan
-  d.ttd = png; d.setuju = true;
-  d.lok = await lokasiMinta();
+  d.ttd = png; d.setuju = true; d.lok = lok;
   const btn = $('btnKirim'); btn.disabled = true; btn.innerText = 'Mengirim...';
   let sukses = false, pesan = '';
   try{
