@@ -151,7 +151,7 @@ async function pkMuat(){
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     pkBisaCatat = r.bisaCatat; pkKetua = !!r.ketua; if($('pkLihatBtn')) $('pkLihatBtn').classList.toggle('hidden', !pkKetua || !!pkAsliToken); if($('agTabBtnT')) $('agTabBtnT').classList.toggle('hidden', !r.bisaCatat); pkBisaVerif = !!r.bisaVerif; pkHariIni = r.hariIni; plLokasiBoleh = !!(r.lokasi !== undefined ? r.lokasi : r.ketua); $('plTabBtnL').classList.toggle('hidden', !plLokasiBoleh);
-    $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
+    $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; jbHeader(r); profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     r.menunggu.sort((x, y) => ((y.disiplin && y.disiplin.tingkat === 'A+') ? 1 : 0) - ((x.disiplin && x.disiplin.tingkat === 'A+') ? 1 : 0)); // anggota teladan (A+) didahulukan, urutan lain tetap
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
@@ -176,7 +176,7 @@ function pkBadgeGrup(){ // angka merah di tile Administrasi Pinjaman = jumlah an
   const t = ['pbValidasi', 'pbCair', 'pbBerjalan', 'pbSelesai', 'pbDispensasi'].reduce((s, i) => s + (parseInt($(i).innerText, 10) || 0), 0), g = $('pbG1'); g.innerText = t; g.style.display = t > 0 ? 'block' : 'none';
 }
 function pkVotes(p){
-  const k = x => `<div>${pkIc(x.v)} ${esc(x.nama)}${x.jabatan ? ' <span class="small">(' + esc(x.jabatan) + ')</span>' : ''}</div>` + (x.a ? `<div style="margin:0 0 4px 22px"><i>“${esc(x.a)}”</i></div>` : '');
+  const k = x => `<div>${pkIc(x.v)} ${jbNama(x.nama, x.jabatan)}${x.jabatan ? ' ' + jbBadge(x.jabatan) : ''}</div>` + (x.a ? `<div style="margin:0 0 4px 22px"><i>“${esc(x.a)}”</i></div>` : '');
   return p.pengurus.map(k).join('') + (p.status !== 'REVIEW_PENGURUS' ? k(p.pimpinan) : '');
 }
 const pkNm = {}; const pkNama = id => pkNm[id] || id; // nama karyawan per id (untuk teks konfirmasi)

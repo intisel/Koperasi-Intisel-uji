@@ -283,7 +283,7 @@ function renderApproval(){
       <b>${LABEL[p.status] || esc(p.status)}</b>
       ${p.pencairan ? `<div class="small" style="margin-top:4px;color:#134e8a">💸 ${esc(p.pencairan.label)}${p.pencairan.tglCair ? '<br>✅ Dicairkan ' + tglf(p.pencairan.tglCair) : ''}${p.pencairan.adaBukti ? '<br><span class="chip" onclick="buktiCairLihat(\'' + esc(p.id) + '\')">🧾 Lihat bukti transfer</span><div id="bcA-' + esc(p.id) + '"></div>' : ''}</div>` : ''}
       <div class="small" style="margin-top:6px">
-        ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${esc(x.nama)}${x.jabatan ? ' <span class="small">(' + esc(x.jabatan) + ')</span>' : ''}</div>${KOMEN(x.a)}`).join('')}
+        ${p.pengurus.map(x => `<div>${ICON(x.v, selesai)} ${jbNama(x.nama, x.jabatan)}${x.jabatan ? ' ' + jbBadge(x.jabatan) : ''}</div>${KOMEN(x.a)}`).join('')}
         ${p.status === 'REVIEW_PENGURUS' ? '<div>Review pengurus: ' + done + '/3</div>' : ''}
         ${p.status !== 'REVIEW_PENGURUS' ? `<div>${ICON(p.pimpinan, selesai)} ${esc(p.pimpinanNama || 'Pimpinan')} <span class="small">(${esc(p.pimpinanJabatan || 'Pimpinan')})</span></div>${KOMEN(p.pimpinanA)}` : ''}
       </div></div>`;
