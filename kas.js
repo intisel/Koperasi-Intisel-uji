@@ -191,7 +191,7 @@ function mutTglIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).p
 function mutRentang(m){
   const hi = (kasData && kasData.hariIni) || pkHariIni || isoLokal(new Date()), [y, mo, d] = hi.split('-').map(Number), t = new Date(y, mo - 1, d);
   if(m === 'HARI') return {dari: hi, sampai: hi};
-  if(m === 'MINGGU'){ const s = new Date(y, mo - 1, d - ((t.getDay() + 6) % 7)); return {dari: mutTglIso(s), sampai: hi}; } // minggu mulai Senin
+  if(m === 'MINGGU'){ const s = new Date(y, mo - 1, d - 7); return {dari: mutTglIso(s), sampai: hi}; } // 7 hari ke belakang dari hari ini (bukan mulai Senin)
   if(m === 'BULAN') return {dari: hi.slice(0, 7) + '-01', sampai: hi};
   if(m === 'TGL') return {dari: $('mutDari').value, sampai: $('mutSampai').value};
   return {dari: '', sampai: ''};
@@ -226,7 +226,7 @@ function mutKetFmt(t){ // keterangan mutasi: buang nomor pengajuan "(KP0143)" / 
 }
 function mutRender(){
   const k = mutKet; if(!k) return;
-  const judul = {T10: '10 transaksi terakhir', HARI: 'Hari ini • ' + pkTgl(k.dari), MINGGU: 'Minggu ini • ' + pkTgl(k.dari) + ' – ' + pkTgl(k.sampai), BULAN: 'Bulan ini • ' + pkTgl(k.dari) + ' – ' + pkTgl(k.sampai), TGL: pkTgl(k.dari) + ' – ' + pkTgl(k.sampai)}[mutMode];
+  const judul = {T10: '10 transaksi terakhir', HARI: 'Hari ini • ' + pkTgl(k.dari), MINGGU: '7 hari terakhir • ' + pkTgl(k.dari) + ' – ' + pkTgl(k.sampai), BULAN: 'Bulan ini • ' + pkTgl(k.dari) + ' – ' + pkTgl(k.sampai), TGL: pkTgl(k.dari) + ' – ' + pkTgl(k.sampai)}[mutMode];
   $('mutInfo').innerHTML = `<b>${judul}</b>` + (mutMode === 'T10' ? `<br>Saldo kas saat ini: <b>${pkRp(k.saldo)}</b>` : `<br>Saldo awal <b>${pkRp(k.saldoAwal)}</b> • Masuk <b style="color:#166534">${pkRp(k.masuk)}</b> • Keluar <b style="color:#b91c1c">${pkRp(k.keluar)}</b><br>Saldo akhir <b>${pkRp(k.saldoAkhir)}</b> • ${k.n} transaksi`);
   const tampil = mutBaris.slice(0, mutBanyak);
   $('mutList').innerHTML = (tampil.length ? tampil.map(x => { const m = x.jenis === 'MASUK';

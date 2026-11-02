@@ -895,7 +895,7 @@ body.kartu-open{overflow:hidden}
       </div>
       <div class="card kas-m hidden" id="kasDaftarCard"><b id="kasDaftarJudul">Daftar Kas Masuk</b><p class="small" id="kasCatatan" style="margin:2px 0 6px"></p><div id="kasDaftar"><p class="small">Memuat...</p></div></div>
       <div class="card" id="kasMutCard" style="border:1.5px solid #b9d2f0"><b>🧾 Mutasi Kas</b>
-        <select id="mutPeriode" onchange="mutPilih(this.value)" style="margin:8px 0"><option value="T10">10 transaksi terakhir</option><option value="HARI">Hari ini</option><option value="MINGGU">Minggu ini</option><option value="BULAN">Bulan ini</option><option value="TGL">📅 Pilih tanggal...</option></select>
+        <select id="mutPeriode" onchange="mutPilih(this.value)" style="margin:8px 0"><option value="T10">10 transaksi terakhir</option><option value="HARI">Hari ini</option><option value="MINGGU">7 hari terakhir</option><option value="BULAN">Bulan ini</option><option value="TGL">📅 Pilih tanggal...</option></select>
         <div id="mutTglBox" class="hidden" style="margin-bottom:8px"><label>Dari tanggal</label><input type="date" id="mutDari"><label>Sampai tanggal</label><input type="date" id="mutSampai"><button class="btn" style="margin-top:8px;padding:10px;font-size:14px" onclick="mutMuat()">Tampilkan</button></div>
         <div id="mutInfo" class="small" style="margin:4px 0 6px"></div>
         <div id="mutList"><p class="small">Memuat...</p></div>
