@@ -242,6 +242,7 @@ body.kartu-open{overflow:hidden}
     </div>
     <div id="loginForm">
     <div style="font-weight:800;font-size:17px;margin:2px 0 6px">Masuk Anggota</div>
+    <button type="button" class="btn" id="bioLoginBtn" style="display:none;margin:4px 0 10px;background:linear-gradient(135deg,#134e8a,#2563eb);font-size:16px" onclick="bioMasuk()">👆 Masuk dengan sidik jari<span id="bioLoginNama"></span></button>
     <div id="sesiLanjutWrap" class="ok" style="display:none;margin-bottom:10px">Anda masih masuk sebagai <b id="sesiLanjutNama"></b>.<button class="btn" style="margin-top:8px;padding:12px;font-size:14px" onclick="sesiLanjut()">▶ Lanjutkan ke Menu</button></div>
     <input id="nikInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="NIK, contoh: 91207191" autocomplete="off" oninput="resetNik()" onkeydown="if(event.key==='Enter')$('pinInput').focus()">
     <div id="nikLupaWrap" class="small" style="display:none;margin-top:4px">NIK diingat di perangkat ini. <span style="text-decoration:underline;cursor:pointer;color:#134e8a" onclick="nikLupakan()">Bukan Anda? Hapus</span></div>
@@ -317,6 +318,14 @@ body.kartu-open{overflow:hidden}
       <button class="mtile" onclick="window.open('panduan-anggota.html','_blank')"><span class="ic">📖</span><b>Panduan Penggunaan</b><span class="sub">Cara memakai setiap menu</span></button>
       <button class="mtile" onclick="bukaMenu('vKontak')"><span class="ic">📞</span><b>Kontak &amp; Bantuan</b><span class="sub">Hubungi pengurus lewat WhatsApp</span></button>
     </div>
+    <details id="bioKartu" style="margin-top:14px;display:none" ontoggle="if(this.open)bioSegarkan()"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">👆 Login Sidik Jari</summary>
+      <div style="margin-top:8px"><p class="small" id="bioStatus" style="margin:0 0 8px"></p>
+        <button class="btn" id="bioBtnOn" onclick="bioAktifkan()" style="padding:12px;font-size:14px">Aktifkan di HP ini</button>
+        <button class="btn" id="bioBtnOff" onclick="bioMatikan(false)" style="padding:12px;font-size:14px;background:#6b7280;display:none">Matikan di HP ini</button>
+        <p class="small" style="margin:8px 0 0"><span style="text-decoration:underline;cursor:pointer;color:#134e8a" onclick="bioMatikan(true)">Matikan di semua perangkat saya</span></p>
+        <p class="small" style="margin:8px 0 0;color:#64748b">Sidik jari tidak dikirim ke server. Yang dipakai adalah sidik jari / kunci layar yang sudah terdaftar di HP ini, jadi pastikan hanya Anda yang terdaftar di HP. Mengganti atau mereset PIN mematikan fitur ini di semua perangkat.</p>
+      </div>
+    </details>
     <details style="margin-top:14px" ontoggle="if(this.open)$('pinLama').focus()"><summary class="small" style="cursor:pointer;color:#134e8a;font-weight:700">🔑 Ganti PIN</summary>
       <div style="margin-top:8px">
         <input id="pinLama" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="PIN lama" style="letter-spacing:6px;text-align:center" oninput="this.value=this.value.replace(/\D/g,'')">
@@ -1171,6 +1180,7 @@ function hitungAngsuran(){
 <script src="keringanan.js"></script>
 <script src="selesai.js"></script>
 <script src="dispensasi.js"></script>
+<script src="bio.js"></script>
 <script src="budget.js"></script>
 <script src="rencana.js"></script>
 <script src="pinpad.js"></script>

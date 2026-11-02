@@ -160,6 +160,7 @@ function resetAnggota(){ // layar Cek NIK: data layar anggota dibersihkan (sesi 
   $('nikInput').value = nikIngat(); $('nikLupaWrap').style.display = nikIngat() ? 'block' : 'none'; lgReset(); pinPadKosong();
   $('hasilCek').innerHTML = ''; $('sesiBar').style.display = 'none'; $('loginForm').style.display = 'block';
   VIEWS.forEach(id => $(id).style.display = 'none');
+  if(typeof bioSegarkan === 'function') bioSegarkan();
 }
 /* ===== KUOTA / BUDGET PINJAMAN BULANAN ===== */
 let kuotaBulanPilih = {KOPERASI:'', KASBON:''}; // bulan budget yang dipilih anggota (kosong = bulan alami)
@@ -215,6 +216,7 @@ function masukMenu(){
   $('tlKoperasiSub').innerText = koperasiOk ? 'Maks ' + rpf(limitAktif.maxNominal) + ' • ' + limitAktif.maxTenor + ' bln' : 'Khusus masa kerja ≥ 2 tahun';
   $('tlKasbonSub').innerText = koperasiOk ? 'Khusus masa kerja < 2 tahun' : 'Maks Rp 500.000 • 30 hari';
   profilBarIsi(a); inboxMuat();
+  if(typeof bioTawarkan === 'function') setTimeout(bioTawarkan, 800);
   goReplace('anggota-menu'); // ganti layar login di riwayat: tombol back dari menu langsung ke halaman depan
 }
 async function keluarKonfirmasi(){ if(await dialogKonfirmasi('Apakah Anda yakin ingin keluar?')) keluarAnggota(); }
