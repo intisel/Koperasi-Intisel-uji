@@ -483,11 +483,21 @@ function pkKoreksiBlok(l){ // koreksi jumlah sesuai foto bukti (opsional) sebelu
   return `<div style="margin:0 0 8px"><a href="#" class="small" style="color:#134e8a;font-weight:700" onclick="pkKorBuka('${s}');return false">✏️ Koreksi jumlah sesuai bukti transfer</a>
     <div id="pkKR-${s}" style="display:none;margin-top:6px;padding:8px;border:1px dashed #b9d2f0;border-radius:10px;background:#f8fbff">
       <div class="small">Bila angka di foto bukti berbeda dari laporan anggota, ubah di sini lalu tekan Verifikasi. Alasan wajib diisi di kolom komentar.</div>
-      <label class="small" style="margin:6px 0 0">${ada ? 'Total uang yang ditransfer (Rp)' : 'Jumlah infaq yang ditransfer (Rp)'}</label><input type="text" inputmode="numeric" id="pkKJ-${s}" value="${fmtMoney(String(l.jumlah || 0))}" oninput="this.value=fmtMoney(this.value)" data-awal="${+l.jumlah || 0}">
-      ${ada ? `<label class="small" style="margin:6px 0 0">Bagian infaq di dalamnya (Rp, boleh 0)</label><input type="text" inputmode="numeric" id="pkKI-${s}" value="${fmtMoney(String(l.infaq || 0))}" oninput="this.value=fmtMoney(this.value)" data-awal="${+l.infaq || 0}">` : ''}
+      <label class="small" style="margin:6px 0 0">${ada ? 'Total uang yang ditransfer = angsuran + infaq (Rp)' : 'Jumlah infaq yang ditransfer (Rp)'}</label><input type="text" inputmode="numeric" id="pkKJ-${s}" value="${fmtMoney(String(l.jumlah || 0))}" oninput="this.value=fmtMoney(this.value);pkKorHitung('${s}')" data-awal="${+l.jumlah || 0}">
+      ${ada ? `<label class="small" style="margin:6px 0 0">Bagian infaq di dalamnya (Rp, boleh 0) — sudah termasuk dalam total di atas</label><input type="text" inputmode="numeric" id="pkKI-${s}" value="${fmtMoney(String(l.infaq || 0))}" oninput="this.value=fmtMoney(this.value);pkKorHitung('${s}')" data-awal="${+l.infaq || 0}">
+      <div class="small" id="pkKS-${s}" style="margin-top:6px"></div>` : ''}
     </div></div>`;
 }
-function pkKorBuka(lid){ const e = $('pkKR-' + lid); if(e) e.style.display = e.style.display === 'none' ? 'block' : 'none'; }
+function pkKorBuka(lid){ const e = $('pkKR-' + lid); if(e) e.style.display = e.style.display === 'none' ? 'block' : 'none'; pkKorHitung(lid); }
+function pkKorUang(lid){ // -> {j, i, uang, awalUang} bagian ANGSURAN = total - infaq; awalUang = angka laporan anggota
+  const kj = $('pkKJ-' + lid), ki = $('pkKI-' + lid); if(!kj || !ki) return null;
+  const j = parseInt(onlyDigits(kj.value) || '0', 10), i = parseInt(onlyDigits(ki.value) || '0', 10);
+  return {j, i, uang: j - i, awalUang: (+kj.dataset.awal || 0) - (+ki.dataset.awal || 0)};
+}
+function pkKorHitung(lid){ // ringkasan langsung: angsuran + infaq = total, dan peringatan bila angsuran yang masuk lebih kecil dari laporan
+  const e = $('pkKS-' + lid), x = pkKorUang(lid); if(!e || !x) return;
+  e.innerHTML = `Angsuran yang masuk: <b>${pkRp(Math.max(0, x.uang))}</b> + infaq <b>${pkRp(x.i)}</b> = total <b>${pkRp(x.j)}</b>` + (x.uang < x.awalUang ? `<div style="margin-top:4px;padding:6px 8px;border-radius:8px;background:#fff1f0;color:#b42318;font-weight:700">⚠️ Angsuran yang masuk ${pkRp(Math.max(0, x.uang))}, KURANG ${pkRp(x.awalUang - x.uang)} dari laporan anggota (${pkRp(x.awalUang)}). Bila total transfer di foto lebih besar, naikkan kolom TOTAL (total = angsuran + infaq), jangan hanya mengisi infaq.</div>` : '');
+}
 async function pkBukti(lid){
   const box = $('bk-' + lid); box.innerHTML = '<span class="small">Memuat foto...</span>';
   try{
@@ -510,6 +520,7 @@ async function pkVerif(lid, v){
     if(i > j){ alert('Infaq tidak boleh lebih besar dari total transfer.'); return; }
     if(j !== +kj.dataset.awal || (ki && i !== +ki.dataset.awal)){
       if(k.length < 3){ alert('Isi alasan koreksi di kolom komentar (misalnya: "sesuai bukti transfer").'); $('pkLA-' + lid).focus(); return; }
+      const kx = pkKorUang(lid); if(kx && kx.uang < kx.awalUang && !await dialogKonfirmasi('⚠️ PERHATIAN: angsuran yang masuk hanya ' + pkRp(Math.max(0, kx.uang)) + ', kurang ' + pkRp(kx.awalUang - kx.uang) + ' dari laporan anggota (' + pkRp(kx.awalUang) + '). Angsuran akan tercatat SEBAGIAN.\n\nBila total transfer di foto ' + pkRp(kx.awalUang + kx.i) + ' (angsuran + infaq), batalkan lalu naikkan kolom TOTAL.\n\nTetap lanjutkan?')) return;
       kor = {jumlah: j, infaq: i}; ketKor = '\n\nJUMLAH DIKOREKSI: total ' + pkRp(j) + (ki ? ' (infaq ' + pkRp(i) + ')' : '') + ' (laporan anggota: ' + pkRp(+kj.dataset.awal) + ').';
     }
   }
