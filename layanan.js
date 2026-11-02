@@ -470,7 +470,8 @@ async function kirimLaporan(){
     if(uangP > sisaP){ alert('Jumlah melebihi angsuran yang harus dibayar (' + rpf(sisaP) + (infaqP ? ' + infaq ' + rpf(infaqP) : '') + '). Periksa kembali.'); return; }
     if(uangP < sisaP && !$('byCatatan').value.trim()){ alert('Pembayaran kurang dari angsuran (kurang ' + rpf(sisaP - uangP) + '). Isi catatan alasan pembayaran sebagian.'); $('byCatatan').focus(); return; }
   }
-  if(kesP.length && kesP.length === belumP.length && ikP.sisa > infaqP && !(uangP < sisaP)){ alert('Ini angsuran terakhir, infaq harus lunas bersamanya. Isi infaq minimal ' + rpf(ikP.sisa) + ' (boleh lebih).'); return; }
+  const infaqTunggu = (dataSaya.laporan || []).filter(l => l.id === p.id && l.status === 'MENUNGGU').reduce((t, l) => t + (+l.infaq || 0), 0); // infaq yang sudah dilaporkan & menunggu verifikasi ikut dihitung
+  if(kesP.length && kesP.length === belumP.length && ikP.sisa > infaqP + infaqTunggu && !(uangP < sisaP)){ alert('Ini angsuran terakhir, infaq harus lunas bersamanya. Isi infaq minimal ' + rpf(ikP.sisa - infaqTunggu) + ' (boleh lebih).'); return; }
   if(!$('byTgl').value){ alert('Isi tanggal pembayaran.'); return; }
   if(!validasiForm($('byForm'))) return;
   if(!fotoData){ alert('Lampirkan foto bukti transaksi (ambil foto atau pilih dari galeri).'); return; }
