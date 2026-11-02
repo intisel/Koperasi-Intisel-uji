@@ -12,7 +12,7 @@ function disiplinHtml(dp, anggota){
     ${anggota ? '<div class="small" style="margin-top:4px;color:#134e8a">Bayar angsuran tepat waktu agar koperasi tetap lancar dan anggota lain yang membutuhkan juga bisa terbantu. 🙏</div>' : ''}
   </div>`;
 }
-let dsKandidat = [], dsTidak = [], dsPilihNik = '', dsTabAktif = 'MASA_TUNGGU', dsData = null;
+let dsBadgeN = 0, dsKandidat = [], dsTidak = [], dsPilihNik = '', dsTabAktif = 'MASA_TUNGGU', dsData = null;
 const DS_TEKS = {
   MASA_TUNGGU: {judul:'⏳ Dispensasi Masa Tunggu', ph:'🔍 Ketik nama anggota yang sedang masa tunggu...',
     intro:'Untuk anggota yang baru lunas tetapi sangat mendesak membutuhkan pinjaman (misalnya musibah). <b>Alur:</b> anggota meminta ke pengurus → salah satu pengurus membuka menu ini untuk anggota → anggota mengisi formulirnya sendiri di aplikasi → wajib disetujui <b>Penasehat, Ketua, dan Bendahara</b>; satu penolakan berarti ditolak. Pimpinan diberi tahu setelah disetujui. Limit dipotong Rp 500.000 untuk setiap bulan masa tunggu yang dilewati. Berlaku 14 hari, sekali pakai.',
@@ -23,6 +23,8 @@ const DS_TEKS = {
 };
 const dsNamaTab = () => dsTabAktif === 'LIMIT' ? 'Dispensasi Limit Pinjaman' : 'Dispensasi Masa Tunggu';
 function dsTab(j){
+  if(j === 'AMPUN'){ ampunTampil(); return; }
+  ampunSembunyi();
   dsTabAktif = j; dsPilihNik = ''; if($('dsCari')) $('dsCari').value = ''; if($('dsSaran')) $('dsSaran').innerHTML = ''; if($('dsInfo')) $('dsInfo').style.display = 'none';
   dsRender(); dsMuatKandidat();
 }
@@ -32,12 +34,13 @@ async function dsMuat(){
     const r = await pkApi({a:'ds_daftar', token:pkToken});
     if(r.expired){ pkExpired(); return; }
     if(!r.ok){ box.innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    dsData = r; pkBadge2('pbDispensasi', r.menunggu.filter(k => k.bisaPutus).length);
+    dsData = r; dsBadgeN = r.menunggu.filter(k => k.bisaPutus).length; pkBadge2('pbDispensasi', dsBadgeN + (typeof ampunBadgeN !== 'undefined' ? ampunBadgeN : 0)); if(typeof ampunMuat === 'function') ampunMuat();
     $('dsFormBox').classList.toggle('hidden', !r.bisaAjukan);
     dsRender(); if(r.bisaAjukan){ dsKandidat = []; dsMuatKandidat(); }
   }catch(e){ box.innerHTML = '<div class="err">Gagal memuat data.</div>'; }
 }
 function dsRender(){
+  if(typeof ampunAktif !== 'undefined' && ampunAktif) return;
   const box = $('dsDaftar'), r = dsData, t = DS_TEKS[dsTabAktif]; if(!box) return;
   $('dsTabBtnM').classList.toggle('on', dsTabAktif === 'MASA_TUNGGU'); $('dsTabBtnL').classList.toggle('on', dsTabAktif === 'LIMIT');
   $('dsJudul').innerText = t.judul; $('dsIntro').innerHTML = t.intro; $('dsFormTeks').innerHTML = t.form; $('dsCari').placeholder = t.ph;
