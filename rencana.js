@@ -29,7 +29,7 @@ function rcRender(){
   let info = '';
   if(!ok.length) info = '⚠️ Belum ada bulan yang tersedia dalam 6 bulan ke depan (kuota penuh atau masih masa tunggu). Silakan hubungi pengurus.';
   else if(b) info = urgen ? `Pencairan urgen: paling lambat 2 hari kerja setelah disetujui pimpinan, dan tidak sebelum ${tglf(b.tglUrgen)}.` : `Pencairan reguler: tanggal ${tglf(b.tglReguler)}.`;
-  if(rcData.tunggu) info += `<br>⏳ Masa tunggu 3 bulan setelah pelunasan berakhir <b>${tglf(rcData.tunggu)}</b>; pencairan harus pada atau sesudah tanggal itu.`;
+  if(rcData.tunggu) info += `<br>⏳ Masa tunggu setelah pelunasan (menyesuaikan tingkat disiplin) berakhir <b>${tglf(rcData.tunggu)}</b>; pencairan harus pada atau sesudah tanggal itu.`;
   $('rcInfo').innerHTML = info;
 }
 async function rcPilihFoto(input){

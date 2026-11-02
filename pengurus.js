@@ -152,6 +152,7 @@ async function pkMuat(){
     pkBisaCatat = r.bisaCatat; pkKetua = !!r.ketua; if($('agTabBtnT')) $('agTabBtnT').classList.toggle('hidden', !r.bisaCatat); pkBisaVerif = !!r.bisaVerif; pkHariIni = r.hariIni; plLokasiBoleh = !!(r.lokasi !== undefined ? r.lokasi : r.ketua); $('plTabBtnL').classList.toggle('hidden', !plLokasiBoleh);
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
+    r.menunggu.sort((x, y) => ((y.disiplin && y.disiplin.tingkat === 'A+') ? 1 : 0) - ((x.disiplin && x.disiplin.tingkat === 'A+') ? 1 : 0)); // anggota teladan (A+) didahulukan, urutan lain tetap
     $('pkMenunggu').innerHTML = r.menunggu.length ? r.menunggu.map(pkKartu).join('') : '<p class="small">Tidak ada pengajuan yang menunggu keputusan Anda. ✅</p>';
     $('pkMenungguPimpinan').innerHTML = pkMenungguPimpinan(r.menungguPimpinan);
     fotoMuatPelamar(r.menunggu);

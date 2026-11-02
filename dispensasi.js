@@ -1,12 +1,14 @@
 /* Dispensasi Pinjaman: tab Masa Tunggu + tab Limit (pengurus) + keterangan Disiplin Pembayaran (pengurus, pimpinan, dan anggota). */
 const DS_LABEL = {MENUNGGU:'⏳ Menunggu keputusan', DISETUJUI:'✅ Disetujui', DITOLAK:'❌ Ditolak', DIBATALKAN:'🚫 Akses ditutup', DIBUKA:'⌛ Akses kedaluwarsa (tidak diisi)'};
-const DISIPLIN_UI = {BAIK:['#16a34a','✅ Disiplin baik'], CUKUP:['#d97706','⚠️ Cukup, perlu ditingkatkan'], KURANG:['#dc2626','❗ Perlu perhatian'], BELUM_DINILAI:['#6b7280','Belum ada angsuran yang dinilai'], BELUM_ADA:['#6b7280','Belum ada riwayat pinjaman']};
+const DISIPLIN_UI = {'A+':['#b7791f','🌟 A+ • Sangat disiplin'], 'A':['#16a34a','✅ A • Disiplin baik'], 'B':['#65a30d','👍 B • Cukup baik'], 'C':['#d97706','⚠️ C • Perlu ditingkatkan'], 'D':['#dc2626','❗ D • Perlu perhatian'], 'E':['#991b1b','🔴 E • Perlu pembinaan'], BELUM_DINILAI:['#6b7280','Belum ada angsuran yang dinilai'], BELUM_ADA:['#6b7280','Belum ada riwayat pinjaman']};
+const DISIPLIN_AKIBAT = {'A+':'⭐ Anggota Teladan: masa tunggu dipotong 1 bulan, pengajuan didahulukan di antrean review, dan otomatis dapat dispensasi limit.', 'A':'🎁 Masa tunggu setelah lunas dipotong 1 bulan.', 'D':'Masa tunggu setelah lunas ditambah setengah total hari keterlambatan pinjaman terakhir (maks 90 hari).', 'E':'Masa tunggu setelah lunas ditambah total hari keterlambatan pinjaman terakhir (maks 180 hari) dan tidak dapat dispensasi.'};
 function disiplinHtml(dp, anggota){
   if(!dp) return '';
   const u = DISIPLIN_UI[dp.label] || DISIPLIN_UI.BELUM_ADA;
   return `<div style="border-left:4px solid ${u[0]};background:#f8fafc;border-radius:8px;padding:8px 10px;margin:8px 0">
     <div style="font-weight:800;color:${u[0]}">${u[1]}${dp.persenTepat !== null && dp.persenTepat !== undefined ? ' • ' + dp.persenTepat + '% tepat waktu' : ''}</div>
     <div class="small" style="margin-top:2px">${esc(dp.teks)}</div>
+    ${DISIPLIN_AKIBAT[dp.label] ? `<div class="small" style="margin-top:4px;font-weight:700;color:${u[0]}">${DISIPLIN_AKIBAT[dp.label]}</div>` : ''}
     ${anggota ? '<div class="small" style="margin-top:4px;color:#134e8a">Bayar angsuran tepat waktu agar koperasi tetap lancar dan anggota lain yang membutuhkan juga bisa terbantu. 🙏</div>' : ''}
   </div>`;
 }
