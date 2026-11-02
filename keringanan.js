@@ -106,9 +106,12 @@ async function krKirim(){
   if(u.length < 30){ alert('Tuliskan uraian alasan dengan jelas (minimal 30 huruf).'); return; }
   if(!krFotoData){ alert('Lampirkan foto bukti pendukung (ambil foto atau pilih dari galeri).'); return; }
   if(!await dialogKonfirmasi('Kirim permohonan keringanan angsuran ke-' + krKeAktif + '?\nSanggup dibayar: ' + rpf(sg) + '\nDigeser ke bulan depan: ' + rpf(krSisaAktif - sg) + '\nPermohonan harus disetujui ketiga pengurus.\n\nKeterangan yang Anda isi harus benar.')) return;
-  const btn = $('btnKr'); btn.disabled = true; btn.innerText = 'Mengirim...';
+  const btn = $('btnKr'); btn.disabled = true; btn.innerText = 'Mengambil lokasi...';
+  const lok = await lokasiMinta(); // lokasi WAJIB untuk permohonan keringanan
+  if(!lok || lok.err){ alert('Lokasi wajib dibagikan untuk mengirim permohonan keringanan.\n\n' + (lok && lok.err === 'ditolak' ? 'Izin lokasi ditolak. Buka pengaturan browser/HP, izinkan lokasi untuk situs ini, lalu coba lagi.' : 'Lokasi tidak dapat dibaca. Aktifkan GPS / layanan lokasi di HP, lalu coba lagi.')); btn.disabled = false; btn.innerText = 'Kirim Permohonan'; return; }
+  btn.innerText = 'Mengirim...';
   try{
-    const r = await apiPost({a:'kr_ajukan', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id:p.id, ke:krKeAktif, sanggup:sg, alasan:$('krAlasan').value, uraian:u, foto:krFotoData});
+    const r = await apiPost({a:'kr_ajukan', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken, id:p.id, ke:krKeAktif, sanggup:sg, alasan:$('krAlasan').value, uraian:u, foto:krFotoData, lok});
     if(r.ok){ alert('✅ ' + r.msg); krHapusFoto(); $('krUraian').value = ''; krLaluTpl = null; $('krSanggup').value = ''; await muatData(); }
     else alert('❌ ' + r.msg);
   }catch(e){ alert('Gagal mengirim. Periksa koneksi lalu coba lagi.'); }

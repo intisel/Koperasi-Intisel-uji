@@ -15,10 +15,10 @@ function lokasiMinta(){
   });
 }
 // Catatan terbuka di dekat tombol kirim
-['btnKb', 'btnKirim', 'btnBayar'].forEach(id => {
+['btnKb', 'btnKirim', 'btnBayar', 'btnKr'].forEach(id => {
   const b = document.getElementById(id); if(!b || !b.parentNode) return;
   const n = document.createElement('p'); n.className = 'small'; n.style.cssText = 'margin:8px 0 6px;text-align:center';
-  n.textContent = 'Saat Anda menekan kirim, data Anda akan tercatat untuk diverifikasi oleh pengurus koperasi.';
+  n.textContent = id === 'btnKr' ? 'Permohonan keringanan WAJIB disertai lokasi Anda. Izinkan akses lokasi saat diminta; data Anda akan tercatat untuk diverifikasi pengurus.' : 'Saat Anda menekan kirim, data Anda akan tercatat untuk diverifikasi oleh pengurus koperasi.';
   b.parentNode.insertBefore(n, b);
 });
 
