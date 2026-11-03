@@ -255,7 +255,7 @@ async function muatData(){
   try{
     const r = await apiPost({a:'status', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken});
     if(!r.ok){ $('apBox').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
-    dataSaya = {list: r.list || [], laporan: r.laporan || [], keringanan: r.keringanan || [], krTerpakai: r.krTerpakai || {}, krMaks: r.krMaks || 3, bolehKoperasi: r.bolehKoperasi || '', dispensasi: r.dispensasi || null, dsAkses: r.dsAkses || null, disiplin: r.disiplin || null, loaded: true};
+    dataSaya = {list: r.list || [], laporan: r.laporan || [], keringanan: r.keringanan || [], krTerpakai: r.krTerpakai || {}, krMaks: r.krMaks || 3, bolehKoperasi: r.bolehKoperasi || '', dispensasi: r.dispensasi || null, dsAkses: r.dsAkses || null, krAkses: r.krAkses || null, disiplin: r.disiplin || null, loaded: true};
   }catch(e){ $('apBox').innerHTML = '<div class="err">Gagal memuat data. Periksa koneksi internet.</div>'; return; }
   renderApproval(); renderBerjalan(); renderBayar(); renderKeringanan(); renderSub(); terapkanBlokir(); if(typeof renderDisiplinAnggota === 'function') renderDisiplinAnggota();
 }
@@ -338,7 +338,7 @@ function renderBerjalan(){
       <div style="background:#d6e6f8;border-radius:8px;height:10px;margin:8px 0 4px;overflow:hidden"><div style="width:${persen}%;height:100%;background:#16a34a"></div></div>
       <div class="small"><b>${a.lunas}/${a.total} lunas</b> • sisa ${rpf(a.sisa)}${a.infaq && a.infaq.target ? '<br>Infaq: ' + rpf(a.infaq.terbayar) + ' / ' + rpf(a.infaq.target) + (a.infaq.sisa ? ' • <b style="color:#b45309">sisa ' + rpf(a.infaq.sisa) + '</b>' : ' ✅ lunas') : ''}${a.berikut ? '<br>Berikutnya: ke-' + a.berikut.ke + ', jatuh tempo <b>' + tglf(a.berikut.due) + '</b> (' + rpf(a.berikut.jumlah) + ')' : ''}</div>
       <button class="btn" style="margin-top:10px;padding:12px;font-size:14px" onclick="goReplace('anggota-bayar')">🧾 Lapor Pembayaran</button>
-      ${p.jenis !== 'KASBON' && a.total - a.lunas >= 1 ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#7c3aed" onclick="goReplace('anggota-keringanan')">🤝 Ajukan Keringanan Angsuran</button>` : ''}
+      ${p.jenis !== 'KASBON' && a.total - a.lunas >= 1 ? `<button class="btn" ${dataSaya.krAkses ? `style="margin-top:8px;padding:12px;font-size:14px;background:#7c3aed" onclick="goReplace('anggota-keringanan')">🤝 Ajukan Keringanan Angsuran</button>` : `disabled style="margin-top:8px;padding:12px;font-size:14px;background:#b8c2d0;cursor:not-allowed">🔒 Ajukan Keringanan Angsuran</button><div class="small" style="margin-top:4px">Tombol nonaktif. Hubungi pengurus untuk meminta pengaktifan.</div>`}` : ''}
       <button class="btn btn-yellow" style="margin-top:8px;padding:12px;font-size:14px" onclick="kartuBuka('${p.id}')">📄 Lihat Kartu Pinjaman</button>
       ${p.pencairan && p.pencairan.adaBukti ? `<button class="btn" style="margin-top:8px;padding:12px;font-size:14px;background:#6b7f99" onclick="buktiCairLihat('${esc(p.id)}', 'bcB-${esc(p.id)}')">🧾 Lihat Bukti Transfer Pencairan</button><div id="bcB-${esc(p.id)}"></div>` : ''}
       ${kwDaftarAnggota(p)}

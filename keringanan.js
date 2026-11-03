@@ -84,6 +84,7 @@ function renderKeringanan(){
   const belum = p.angsuran.jadwal.filter(j => j.status !== 'LUNAS'), t = belum[0];
   if(L.some(k => k.status === 'MENUNGGU' && k.id === p.id)){ $('krInfo').innerHTML = '⏳ Permohonan Anda sedang <b>menunggu keputusan pengurus</b>. Anda akan menerima pemberitahuan.'; return; }
   const terpakai = (dataSaya.krTerpakai || {})[p.id] || 0, maks = dataSaya.krMaks || 3;
+  if(!dataSaya.krAkses && terpakai < maks){ $('krInfo').innerHTML = '🔒 Tombol pengajuan keringanan <b>belum aktif</b>. Hubungi pengurus koperasi dan minta untuk mengaktifkannya; setelah diaktifkan, formulir ini terbuka (berlaku beberapa hari).'; return; }
   if(terpakai >= maks){ $('krInfo').innerText = 'Keringanan sudah disetujui ' + terpakai + ' kali untuk pinjaman ini (maksimal ' + maks + ' kali). Silakan hubungi pengurus koperasi.'; return; }
   $('krInfo').innerHTML = 'Bila bulan ini Anda tidak sanggup membayar angsuran secara penuh (misalnya gaji berkurang), ajukan permohonan di sini. Permohonan harus disetujui oleh <b>ketiga pengurus</b> (Penasehat, Ketua, Bendahara). Bila disetujui, kekurangannya digeser ke angsuran bulan berikutnya.<br>Keringanan yang sudah disetujui untuk pinjaman ini: <b>' + terpakai + ' dari maksimal ' + maks + ' kali</b>.';
   krKeAktif = t.ke; krSisaAktif = t.jumlah; form.style.display = 'block';
@@ -128,12 +129,51 @@ async function pkKrMuat(){
     const n = r.menunggu.length;
     $('byTabNK').innerText = n ? '(' + n + ')' : ''; pkTabNotif('K', n);
     pkBadge2('pbBerjalan', pkLapBase + n);
-    box.innerHTML = (n ? r.menunggu.map(k => pkKrKartu(k)).join('') : '<p class="small">Tidak ada permohonan keringanan yang menunggu. ✅</p>') +
+    let ra = null; try{ ra = await pkApi({a:'kra_daftar', token:pkToken}); }catch(e){}
+    box.innerHTML = kraPanel(ra) + (n ? r.menunggu.map(k => pkKrKartu(k)).join('') : '<p class="small">Tidak ada permohonan keringanan yang menunggu. ✅</p>') +
       (r.riwayat.length ? '<div style="font-weight:800;margin:14px 0 6px">Riwayat terakhir</div>' + r.riwayat.map(k => pkKrKartu(k, false)).join('') : '');
     if(n && !pkKrTabSet){ pkKrTabSet = true; if(!pkLapBase) pkBayarTab('K'); }
   }catch(e){ box.innerHTML = '<div class="err">Gagal memuat permohonan keringanan.</div>'; }
 }
-let pkKrTabSet = false;
+let pkKrTabSet = false, kraKand = [], kraNik = '';
+/* Akses tombol keringanan: dibuka salah satu pengurus (Penasehat/Ketua/Bendahara) atas permintaan anggota */
+function kraPanel(r){
+  if(!r || !r.ok) return '';
+  kraKand = r.kandidat || []; kraNik = '';
+  const aktif = (r.aktif || []).map(a => `<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #d6e6f8"><span><b>${esc(a.nama)}</b> • NIK ${esc(a.nik)}<br>dibuka ${esc(a.oleh)} • sampai ${tglf(a.berlaku)}</span>${r.bisaBuka ? `<button class="btn" style="width:auto;background:#6b7280;padding:6px 10px;font-size:12px" onclick="kraTutup('${esc(a.nik)}')">Tutup</button>` : ''}</div>`).join('');
+  return `<div class="ok" style="background:#faf5ff;border-color:#c4b5fd;margin-bottom:12px"><b>🔓 Aktifkan tombol keringanan anggota</b>
+    <p class="small" style="margin:2px 0 6px">Tombol Ajukan Keringanan di aplikasi anggota nonaktif. Aktifkan bila anggota meminta; berlaku 7 hari atau sampai permohonan dikirim.</p>
+    ${r.bisaBuka ? `<input type="search" id="kraCari" placeholder="🔍 Cari nama / NIK anggota..." oninput="kraCariIsi()" autocomplete="off"><div id="kraSaran"></div>
+    <button class="btn" id="kraBtn" style="display:none;margin-top:8px;background:#7c3aed" onclick="kraBuka()">Aktifkan tombol keringanan</button>` : '<p class="small">Hanya Penasehat, Ketua, dan Bendahara yang dapat mengaktifkan.</p>'}
+    ${aktif ? '<div style="font-weight:800;margin:10px 0 2px" class="small">Sedang aktif</div>' + aktif : ''}</div>`;
+}
+function kraCariIsi(){
+  kraNik = ''; $('kraBtn').style.display = 'none';
+  const q = ($('kraCari').value || '').trim().toLowerCase(), box = $('kraSaran'); if(!q){ box.innerHTML = ''; return; }
+  const hit = kraKand.filter(p => String(p.nama).toLowerCase().indexOf(q) >= 0 || String(p.nik).indexOf(q) >= 0).slice(0, 6);
+  box.innerHTML = hit.length ? hit.map(p => `<div class="small" style="padding:9px;border:1px solid #c4b5fd;border-radius:8px;margin:4px 0;background:#fff;cursor:pointer" onclick="kraPilih('${esc(p.nik)}')"><b>${esc(p.nama)}</b> • NIK ${esc(p.nik)} • ${esc(p.id)}</div>`).join('') : '<p class="small">Tidak ada anggota berpinjaman koperasi berjalan yang cocok (atau sudah aktif / masih menunggu keputusan).</p>';
+}
+function kraPilih(nik){ const x = kraKand.find(p => p.nik === nik); if(!x) return; kraNik = nik; $('kraCari').value = x.nama; $('kraSaran').innerHTML = ''; $('kraBtn').style.display = 'block'; }
+async function kraBuka(){
+  if(!kraNik){ alert('Pilih anggota terlebih dahulu.'); return; }
+  const x = kraKand.find(p => p.nik === kraNik) || {};
+  if(!await dialogKonfirmasi('Aktifkan tombol Ajukan Keringanan untuk ' + (x.nama || '') + '?\n\nAnggota akan mengisi permohonannya sendiri dan tetap harus disetujui ketiga pengurus.')) return;
+  try{
+    const r = await pkApi({a:'kra_buka', token:pkToken, nik:kraNik});
+    if(r.expired){ pkExpired(); return; }
+    alert(r.ok ? r.msg : '❌ ' + r.msg);
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+  pkKrMuat();
+}
+async function kraTutup(nik){
+  if(!await dialogKonfirmasi('Nonaktifkan kembali tombol keringanan anggota ini?')) return;
+  try{
+    const r = await pkApi({a:'kra_tutup', token:pkToken, nik});
+    if(r.expired){ pkExpired(); return; }
+    alert(r.ok ? r.msg : '❌ ' + r.msg);
+  }catch(e){ alert('Gagal terhubung ke server.'); }
+  pkKrMuat();
+}
 function pkKrKartu(k){
   const kid = esc(k.kid), geser = k.sisa - k.sanggup, st = KR_LABEL[k.status] || esc(k.status);
   return `<div class="ok" style="background:#fff;margin-bottom:12px" id="kr-${kid}">
