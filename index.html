@@ -269,7 +269,7 @@ body.kartu-open{overflow:hidden}
   </div>
   <nav class="nm-nav" aria-label="Menu utama">
     <button type="button" class="on" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>Beranda</button>
-    <button type="button" onclick="nmTab('ajukan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 15.5h5"/></svg>Ajukan</button>
+    <button type="button" onclick="nmTab('pinjaman')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 15.5h5"/></svg>Pinjaman</button>
     <button type="button" onclick="nmTab('riwayat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Riwayat</button>
     <button type="button" onclick="nmTab('profil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/></svg>Profil</button>
   </nav>
@@ -1078,11 +1078,11 @@ function landingAkun(){
   let foto=''; if(a){ try{ foto=localStorage.getItem('fa_'+a.nik)||''; }catch(e){} }
   av.style.backgroundImage=(foto && /^data:image\//.test(foto))?'url("'+foto+'")':'';
 }
-/* Bilah bawah beranda: SELALU lewat jalur yang sama dengan menu anggota (bukaMenu) agar semua aturan pengajuan tetap berlaku:
+/* Bilah bawah beranda: Pinjaman -> menu anggota; Riwayat -> lewat bukaMenu agar semua aturan pengajuan tetap berlaku:
    masa kerja, pinjaman berjalan / pengajuan ganda, kuota bulanan. Belum login -> layar login (tidak ada jalan pintas). */
 function nmTab(k){
   if(!(typeof anggotaAktif!=='undefined' && anggotaAktif) || (typeof sesiCek==='function' && !sesiCek())){ navigateAnggota(); return; }
-  if(k==='ajukan'){ const koperasiOff=document.getElementById('tlKoperasi').classList.contains('off'); bukaMenu(koperasiOff?'vKasbon':'formPinjam'); }
+  if(k==='pinjaman') go('anggota-menu'); // menu pinjaman: semua aturan tetap ditegakkan oleh tile di dalamnya (bukaMenu)
   else if(k==='riwayat') bukaMenu('vApproval');
   else if(k==='profil') profilBuka();
 }
