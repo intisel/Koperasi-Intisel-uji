@@ -1078,11 +1078,11 @@ function landingAkun(){
   let foto=''; if(a){ try{ foto=localStorage.getItem('fa_'+a.nik)||''; }catch(e){} }
   av.style.backgroundImage=(foto && /^data:image\//.test(foto))?'url("'+foto+'")':'';
 }
-/* Bilah bawah beranda: Pinjaman -> menu anggota; Riwayat -> lewat bukaMenu agar semua aturan pengajuan tetap berlaku:
+/* Bilah bawah beranda: Pinjaman -> Pinjaman Berjalan; Riwayat -> lewat bukaMenu agar semua aturan pengajuan tetap berlaku:
    masa kerja, pinjaman berjalan / pengajuan ganda, kuota bulanan. Belum login -> layar login (tidak ada jalan pintas). */
 function nmTab(k){
   if(!(typeof anggotaAktif!=='undefined' && anggotaAktif) || (typeof sesiCek==='function' && !sesiCek())){ navigateAnggota(); return; }
-  if(k==='pinjaman') go('anggota-menu'); // menu pinjaman: semua aturan tetap ditegakkan oleh tile di dalamnya (bukaMenu)
+  if(k==='pinjaman') bukaMenu('vBerjalan'); // Pinjaman Berjalan (hanya melihat)
   else if(k==='riwayat') bukaMenu('vApproval');
   else if(k==='profil') profilBuka();
 }
