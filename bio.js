@@ -4,7 +4,11 @@ const BIO_KEY = 'bio_v1';
 const bioDidukung = () => !!(window.isSecureContext && window.PublicKeyCredential && navigator.credentials && navigator.credentials.create);
 const bioBaca = () => { try{ return JSON.parse(localStorage.getItem(BIO_KEY) || 'null'); }catch(e){ return null; } };
 const bioSimpan = o => { try{ localStorage.setItem(BIO_KEY, JSON.stringify(o)); }catch(e){} };
-const bioHapusLokal = () => { try{ localStorage.removeItem(BIO_KEY); }catch(e){} };
+const bioHapusLokal = () => { try{ localStorage.removeItem(BIO_KEY); localStorage.removeItem('bio_gagal'); }catch(e){} };
+const BIO_GAGAL_MAKS = 3; // gagal berturut-turut sebelum anggota ditanya apakah sidik jari di HP ini dimatikan
+const bioLupaTawaran = nik => { try{ localStorage.removeItem('bio_tanya_' + nik); }catch(e){} }; // supaya setelah login PIN, aktifkan-ulang ditawarkan lagi
+const bioGagalTambah = () => { try{ const n = (parseInt(localStorage.getItem('bio_gagal') || '0', 10) || 0) + 1; localStorage.setItem('bio_gagal', String(n)); return n; }catch(e){ return 0; } };
+const bioGagalReset = () => { try{ localStorage.removeItem('bio_gagal'); }catch(e){} };
 const bioB64 = buf => btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const bioDariB64 = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while(s.length % 4) s += '='; const b = atob(s), u = new Uint8Array(b.length); for(let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
 async function bioTersedia(){ try{ return bioDidukung() && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }catch(e){ return false; } }
@@ -42,18 +46,29 @@ async function bioMatikan(semua){
 async function bioMasuk(){ // dari layar login
   if(cekBusy) return; const b = bioBaca(); if(!b || !bioDidukung()){ bioSegarkan(); return; }
   cekBusy = true; const btn = $('bioLoginBtn'); if(btn) btn.disabled = true;
-  let token = '', nik = b.nik;
+  let token = '', nik = b.nik, fase = 'hp', tanyaMati = false;
   try{
     await navigator.credentials.get({publicKey:{challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:bioDariB64(b.cid), transports:['internal']}], userVerification:'required', timeout:60000}});
+    bioGagalReset(); fase = 'server';
     if(typeof muatLayar === 'function') muatLayar(true); // sidik jari cocok: tampilkan animasi memuat selama data diambil
     const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'bio_login', nik, btoken:b.btoken})}).then(x => x.json());
-    if(!r.ok){ if(r.bioHabis) bioHapusLokal(); lgPesan(r.msg || 'Masuk dengan PIN.'); }
+    if(!r.ok){
+      if(r.bioHabis){ bioHapusLokal(); bioLupaTawaran(nik); } // token di server sudah mati: bersihkan di HP & tawarkan aktifkan ulang setelah masuk PIN
+      lgPesan(r.msg || (r.bioHabis ? 'Login sidik jari sudah kedaluwarsa. Masuk dengan PIN, lalu aktifkan lagi.' : 'Masuk dengan PIN.'));
+    }
     else{ bioSimpan(Object.assign({}, b, {btoken:r.btoken})); nikSimpanIngat(nik); $('nikInput').value = nik; token = r.atoken; }
-  }catch(e){ lgPesan(e && e.name ? bioPesanGalat(e) : 'Gagal terhubung ke server. Periksa internet lalu coba lagi.'); }
+  }catch(e){
+    if(fase === 'hp'){ tanyaMati = bioGagalTambah() >= BIO_GAGAL_MAKS; if(!tanyaMati) lgPesan(e && e.name ? bioPesanGalat(e) : 'Sidik jari tidak dapat dipakai. Masuk dengan PIN.'); } // gagal ke-3: cukup pertanyaan di bawah (tanpa pesan ganda)
+    else lgPesan('Gagal terhubung ke server. Periksa internet lalu coba lagi.');
+  }
   finally{ cekBusy = false; if(btn) btn.disabled = false; }
   bioSegarkan();
   if(token){ try{ await masukDenganToken(nik, token); await tungguDataAnggota(); }catch(e){} }
   if(typeof muatLayar === 'function') muatLayar(false);
+  if(tanyaMati){ // gagal berulang (mis. sidik jari HP diganti / kunci perangkat terhapus): beri pilihan, jangan menghapus diam-diam
+    if(await dialogKonfirmasi('Sidik jari gagal dipakai ' + BIO_GAGAL_MAKS + ' kali berturut-turut.\n\nMatikan login sidik jari di HP ini dan masuk dengan PIN? Setelah masuk dengan PIN, Anda bisa mengaktifkannya lagi.')){ bioHapusLokal(); bioLupaTawaran(nik); bioSegarkan(); lgPesan('Login sidik jari dimatikan di HP ini. Masuk dengan PIN.'); }
+    else bioGagalReset();
+  }
 }
 async function bioSegarkan(){ // tampilan layar login + kartu di profil
   const b = bioBaca(), ok = bioDidukung(), btn = $('bioLoginBtn');
