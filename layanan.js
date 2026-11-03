@@ -89,7 +89,7 @@ function anggotaRender(name){ // dipanggil router
 // Sesi HANYA dihapus saat anggota menekan Keluar (atau kedaluwarsa / ditolak server). Tombol back HP tidak menghapus sesi. NIK (tanpa token) diingat terus untuk memudahkan masuk kembali.
 const SESI_KEY = 'ang_sesi', NIK_KEY = 'ang_nik', SESI_JAM = 1;
 let sesiTetap = false, sesiLoginT = 0; // sesiTetap: true saat masuk otomatis (waktu login asli dipertahankan); sesiLoginT: waktu login sesi yang sedang berjalan
-function sesiSimpan(nik, atoken, nama){ let t = Date.now(); if(sesiTetap){ const lama = sesiBaca(); if(lama && lama.nik === nik) t = lama.t; } sesiLoginT = t; try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, atoken, nama: nama || '', t})); localStorage.setItem(NIK_KEY, nik); }catch(e){} }
+function sesiSimpan(nik, atoken, nama){ let t = Date.now(); if(sesiTetap){ const lama = sesiBaca(); if(lama && lama.nik === nik) t = lama.t; } sesiLoginT = t; try{ localStorage.setItem(SESI_KEY, JSON.stringify({nik, atoken, nama: nama || '', t})); localStorage.setItem(NIK_KEY, nik); if(nama) localStorage.setItem('ang_terakhir', JSON.stringify({nik, nama})); }catch(e){} }
 function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
 function sesiBaca(){
   try{
@@ -100,7 +100,7 @@ function sesiBaca(){
   }catch(e){ return null; }
 }
 function nikIngat(){ try{ return localStorage.getItem(NIK_KEY) || ''; }catch(e){ return ''; } }
-function nikLupakan(){ try{ localStorage.removeItem(NIK_KEY); }catch(e){} $('nikInput').value = ''; $('nikLupaWrap').style.display = 'none'; }
+function nikLupakan(){ try{ localStorage.removeItem(NIK_KEY); localStorage.removeItem('ang_terakhir'); }catch(e){} $('nikInput').value = ''; $('nikLupaWrap').style.display = 'none'; }
 async function sesiMasuk(s){ // masuk otomatis dari sesi tersimpan (token masih divalidasi server)
   try{
     sesiTetap = true;
