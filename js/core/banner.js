@@ -1,5 +1,5 @@
 /* BANNER: 3 gambar slideshow. Publik: pakai gambar kustom (cache lokal) bila ada. Pengurus: ganti dari menu Pengumuman > Banner. */
-const BN_KEY = 'banner_cache_v1', BN_W = 1200, BN_H = 900, BN_BAWAAN = ['hero-tower.png', 'slide-pantai.jpg', 'slide-kantor.jpg'];
+const BN_KEY = 'banner_cache_v1', BN_W = 1200, BN_H = 900, BN_BAWAAN = ['assets/img/hero-tower.png', 'assets/img/slide-pantai.jpg', 'assets/img/slide-kantor.jpg'];
 let bnCache = {}, bnBaru = {}; // bnBaru: hasil crop yang belum disimpan, per slot
 
 function bnBaca(){ try{ bnCache = JSON.parse(localStorage.getItem(BN_KEY) || '{}') || {}; }catch(e){ bnCache = {}; } }

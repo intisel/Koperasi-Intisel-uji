@@ -248,7 +248,7 @@ function blokir(jenis){ // '' bila boleh mengajukan, selain itu pesan alasan
   if(proses) return 'Anda masih memiliki pengajuan yang sedang diproses (' + proses.id + '). Tunggu keputusan pengurus dan pimpinan sebelum mengajukan lagi.';
   const bj = L.find(p => p.status === 'DISETUJUI');
   if(bj) return 'Anda masih memiliki pinjaman berjalan (' + bj.id + ', sisa ' + rpf(bj.angsuran ? bj.angsuran.sisa : 0) + '). Pengajuan baru bisa dilakukan setelah lunas' + (jenis === 'KOPERASI' ? ' dan melewati masa tunggu 3 bulan.' : '.');
-  // masa tunggu tidak lagi memblokir: dihitung terhadap bulan pencairan yang dipilih (lihat rencana.js)
+  // masa tunggu tidak lagi memblokir: dihitung terhadap bulan pencairan yang dipilih (lihat js/modules/pengurus/rencana.js)
   return '';
 }
 function terapkanBlokir(){
@@ -550,7 +550,7 @@ function kartuBuka(id, pLuar, namaLuar){ // pLuar/namaLuar: dipakai pengurus unt
     </div>
     ${k.penyelesaian ? `<div style="margin:6px 0;padding:6px 8px;border:1px solid #999;font-size:12px"><b>PENYELESAIAN KHUSUS</b> — ${esc(k.penyelesaian.jenisTeks)} (${esc(kTgl(k.penyelesaian.tgl))}). Sisa tagihan Rp ${kAngka(k.penyelesaian.sisaTagihan)}, diterima Rp ${kAngka(k.penyelesaian.dibayar)}, dihapuskan Rp ${kAngka(k.penyelesaian.dihapus)}. Disetujui: ${esc(k.penyelesaian.disetujui)}.</div>` : ''}
     <div style="overflow-x:auto"><table class="kartu-tbl"><thead><tr><th>NO</th><th>${kDua('Keterangan', 'Ket.')}</th><th>${kDua('Jatuh Tempo', 'Jatuh Tempo')}</th><th>${kDua('Tanggal Pembayaran', 'Tgl Bayar')}</th><th>${kDua('Jumlah Pembayaran', 'Jumlah')}</th><th>${kDua('Keterlambatan', 'Telat')}</th><th>${kDua('Keterangan', 'Status')}</th></tr></thead><tbody>${baris}</tbody></table></div>
-    <div class="kartu-ttd">${esc(kTglPanjang(new Date()))}<img src="logo-intisel.png" alt="Koperasi Intisel"><div style="height:34px"></div>Pengurus Koperasi</div>
+    <div class="kartu-ttd">${esc(kTglPanjang(new Date()))}<img src="assets/img/logo-intisel.png" alt="Koperasi Intisel"><div style="height:34px"></div>Pengurus Koperasi</div>
   </div>`;
   let m = document.getElementById('kartuModal');
   if(!m){ m = document.createElement('div'); m.id = 'kartuModal'; m.className = 'kartu-modal'; m.onclick = e => { if(e.target === m) kartuTutup(); }; document.body.appendChild(m); }
@@ -611,7 +611,7 @@ function kGambar(c, K, W, logo, dry){
 }
 async function kartuGambar(){
   const K = window.KARTU_CUR; if(!K) throw new Error('Kartu belum dibuka');
-  const W = 1200, logo = await kImg('logo-intisel.png');
+  const W = 1200, logo = await kImg('assets/img/logo-intisel.png');
   const h = kGambar(document.createElement('canvas').getContext('2d'), K, W, logo, true);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = h; const c = cv.getContext('2d');
   kGambar(c, K, W, logo, false);

@@ -8,7 +8,7 @@ self.addEventListener('push', e => {
   let j = {}; try{ j = e.data ? e.data.json() : {}; }catch(x){ try{ j = {data: {judul: 'Koperasi Intisel', isi: e.data.text()}}; }catch(y){} }
   const d = j.data || j.notification || j || {};
   const judul = d.judul || d.title || 'Koperasi Intisel', isi = d.isi || d.body || '';
-  e.waitUntil(self.registration.showNotification(judul, {body: isi, icon: 'icon-192.png', badge: 'icon-192.png', tag: d.tag || undefined, data: {url: d.url || './'}}));
+  e.waitUntil(self.registration.showNotification(judul, {body: isi, icon: 'assets/img/icon-192.png', badge: 'assets/img/icon-192.png', tag: d.tag || undefined, data: {url: d.url || './'}}));
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();

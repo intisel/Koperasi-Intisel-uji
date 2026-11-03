@@ -16,7 +16,7 @@ async function notifMessaging(){
 async function notifAmbilToken(){
   const reg = await navigator.serviceWorker.ready, m = await notifMessaging();
   const tok = await m.getToken({vapidKey: window.FCM_CFG.vapidKey, serviceWorkerRegistration: reg});
-  try{ m.onMessage(p => { const d = (p && p.data) || {}; if(d.judul && document.visibilityState === 'visible') reg.showNotification(d.judul, {body: d.isi || '', icon: 'icon-192.png', badge: 'icon-192.png', data: {url: d.url || './'}}); }); }catch(e){}
+  try{ m.onMessage(p => { const d = (p && p.data) || {}; if(d.judul && document.visibilityState === 'visible') reg.showNotification(d.judul, {body: d.isi || '', icon: 'assets/img/icon-192.png', badge: 'assets/img/icon-192.png', data: {url: d.url || './'}}); }); }catch(e){}
   return tok;
 }
 async function notifDaftarServer(tok, cabut){
