@@ -142,7 +142,42 @@ body.kartu-open{overflow:hidden}
 .pfhead[data-t=Silver]{background:linear-gradient(160deg,#7d8590,#dfe3e8);--tx:#1f2937;--tg:rgba(255,255,255,.55);--bt:#134e8a;--btx:#fff}
 .pfhead[data-t=Gold]{background:linear-gradient(160deg,#c98400,#ffe066);--tx:#3d2a00;--tg:rgba(255,255,255,.5);--bt:#3d2a00;--btx:#ffe066}
 .pfhead[data-t=Platinum]{background:linear-gradient(160deg,#8fa1b6,#f1f5f9);--tx:#1e2f45;--tg:rgba(255,255,255,.6);--bt:#1e2f45;--btx:#fff}
-.pfhead[data-t=Diamond]{background:linear-gradient(160deg,#000,#2a2a2a);--tx:#f3d36b;--tg:rgba(243,211,107,.18);--bt:#f3d36b;--btx:#1a1400;box-shadow:inset 0 0 0 1.5px #b88a10}</style>
+.pfhead[data-t=Diamond]{background:linear-gradient(160deg,#000,#2a2a2a);--tx:#f3d36b;--tg:rgba(243,211,107,.18);--bt:#f3d36b;--btx:#1a1400;box-shadow:inset 0 0 0 1.5px #b88a10}
+/* ===== BERANDA SOFT-UI (desain uji) ===== */
+#landing{--nm-bg:#e9eef6;--nm-hi:#fff;--nm-lo:#c5cfde;--nm-ink:#101a3a;--nm-mut:#3a4560;--nm-blue:#0b57d0;background:var(--nm-bg);padding-bottom:104px;min-height:100vh}
+#landing .nm-wrap{padding:6px 14px 0;max-width:560px;margin:0 auto}
+.nm-card{background:linear-gradient(145deg,#f4f7fc,#e8edf5);border-radius:22px;box-shadow:8px 8px 20px var(--nm-lo),-6px -6px 16px var(--nm-hi);border:1px solid rgba(255,255,255,.7);padding:18px 18px 20px;margin:14px 0}
+.nm-h{margin:0 0 12px;font-size:clamp(24px,7.4vw,32px);font-weight:800;color:var(--nm-ink);letter-spacing:-.4px}
+.nm-wave{display:inline-block;transform-origin:70% 70%;animation:nmwave 2.4s ease-in-out 1}
+@keyframes nmwave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}}
+.nm-addrrow{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.nm-addr{display:flex;gap:10px;align-items:flex-start;color:var(--nm-mut);font-size:14.5px;line-height:1.4;flex:1;min-width:0}
+.nm-addr svg{flex:none;color:var(--nm-blue);margin-top:2px}
+.nm-maps{flex:none;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--nm-blue);color:var(--nm-blue);border-radius:14px;padding:10px 12px;font-weight:800;font-size:14.5px;text-decoration:none;background:transparent}
+.nm-maps:active{background:#dbe7fb}
+.nm-grid{margin:0;gap:0}
+.nm-anggota{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.nm-anggota:active{transform:scale(.985);box-shadow:4px 4px 10px var(--nm-lo),-3px -3px 8px var(--nm-hi)}
+.nm-anghead{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
+.nm-avatar{flex:none;width:clamp(92px,28vw,116px);height:clamp(92px,28vw,116px);border-radius:24px;background:linear-gradient(145deg,#ffe58a,#ffd54a);display:flex;align-items:center;justify-content:center;font-size:clamp(54px,17vw,70px);box-shadow:inset 0 -4px 10px rgba(0,0,0,.06),0 4px 12px rgba(120,100,20,.2)}
+.nm-title{margin:2px 0 6px;font-size:clamp(30px,9.5vw,42px);font-weight:900;color:var(--nm-ink);letter-spacing:-.8px;line-height:1.05}
+.nm-desc{margin:0;color:var(--nm-mut);font-size:15px;line-height:1.5}
+.nm-login{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:17px 14px;border-radius:16px;background:linear-gradient(180deg,#1666e0,#0b52c8);color:#fff;font-weight:800;font-size:22px;box-shadow:0 8px 16px rgba(11,87,208,.35)}
+.nm-duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+.nm-small{display:flex;align-items:center;gap:12px;padding:14px 14px;border-radius:16px;border:1.5px solid #c9d2e0;background:linear-gradient(145deg,#f3f6fb,#e6ebf3);box-shadow:3px 3px 8px rgba(197,207,222,.7),-2px -2px 6px rgba(255,255,255,.8);color:var(--nm-ink);font:inherit;font-weight:600;font-size:15px;line-height:1.3;text-align:left;text-decoration:none;cursor:pointer;min-height:68px}
+.nm-small svg{flex:none;color:var(--nm-blue)}
+.nm-small:active{transform:scale(.97)}
+#landing .card{background:linear-gradient(145deg,#f4f7fc,#e8edf5);border-radius:22px;box-shadow:8px 8px 20px var(--nm-lo),-6px -6px 16px var(--nm-hi);border:1px solid rgba(255,255,255,.7);max-width:532px;margin-left:auto;margin-right:auto}
+@media(max-width:560px){#landing .card{margin-left:14px;margin-right:14px}}
+.nm-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:536px;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);background:linear-gradient(145deg,#f6f8fc,#e9eef6);border-radius:28px;box-shadow:0 -2px 16px rgba(120,135,160,.25),8px 8px 22px rgba(160,175,200,.45),-6px -6px 16px #fff;padding:10px 6px 12px;border:1px solid rgba(255,255,255,.8)}
+.nm-nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:5px;color:#4b5670;font:inherit;font-weight:700;font-size:14px;cursor:pointer;padding:4px 0;-webkit-tap-highlight-color:transparent}
+.nm-nav button svg{width:32px;height:32px}
+.nm-nav button.on{color:var(--nm-blue);font-weight:800}
+.nm-nav button.on svg{fill:currentColor}
+@media(max-width:400px){.nm-addrrow{flex-direction:column;align-items:stretch}.nm-maps{justify-content:center}.nm-small{gap:9px;padding:12px 10px;font-size:14px}.nm-small svg{width:28px;height:28px}}
+@media(max-width:320px){.nm-duo{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.nm-wave{animation:none}.nm-anggota,.nm-small{transition:none}}
+</style>
 </head>
 <body>
 
@@ -186,27 +221,29 @@ body.kartu-open{overflow:hidden}
     </div>
   </div>
 
-  <div class="card" style="text-align:center">
-    <b style="font-size:16px">Selamat Datang di Koperasi Intisel Lampung</b>
-    <p class="small" style="margin:8px 0 0">Jl. Arief Rahman Hakim Gg Rahayu No. 55A, Kel. Way Halim Permai, Kec. Way Halim - Bandar Lampung.<br><a href="https://maps.app.goo.gl/ht1Ati5vRUZkJKRb7" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:6px 14px;border-radius:999px;background:#134e8a;color:#fff;font-weight:700;text-decoration:none">📍 Lihat di Google Maps</a></p>
-  </div>
+  <!-- BERANDA GAYA SOFT-UI (desain uji) -->
+  <div class="nm-wrap">
+    <div class="nm-card nm-welcome">
+      <h2 class="nm-h">Selamat Datang <span class="nm-wave">&#128075;</span></h2>
+      <div class="nm-addrrow">
+        <div class="nm-addr"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.2A7 7 0 0 1 19 9.8C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.6"/></svg><span>Jl. Arief Rahman Hakim Gg Rahayu No. 55A, Way Halim, Bandar Lampung</span></div>
+        <a class="nm-maps" href="https://maps.app.goo.gl/ht1Ati5vRUZkJKRb7" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg>Google Maps</a>
+      </div>
+    </div>
 
-  <div class="choice-grid" id="choiceGrid">
-    <div class="choice-card utama" id="chAng" onclick="navigateAnggota()">
-      <div class="icon">👷‍♂️</div>
-      <b id="chAngJ">ANGGOTA</b>
-      <p>Ajukan pinjaman sesuai limit masa kerja Anda</p>
-      <div class="meta" style="margin-top:12px"><span class="btnlogin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 11c0 3-1 5.5-2.5 7.5"/><path d="M8.5 14c-.3 1.5-.9 3-1.8 4.3"/><path d="M15.5 11c0 2.7-.6 5-1.7 7"/><path d="M5 11a7 7 0 0 1 14 0c0 1.3-.1 2.6-.4 3.8"/><path d="M8 8.5A4.5 4.5 0 0 1 16.5 11"/><path d="M3.5 14.5c.3-1 .5-2.3.5-3.5"/></svg> Login</span></div>
+    <div class="choice-grid nm-grid" id="choiceGrid">
+      <div class="nm-card nm-anggota" id="chAng" role="button" tabindex="0" onclick="navigateAnggota()" onkeydown="if(event.key==='Enter')navigateAnggota()">
+        <div class="nm-anghead">
+          <div class="nm-avatar" aria-hidden="true">&#128119;&#8205;&#9794;&#65039;</div>
+          <div><h2 class="nm-title" id="chAngJ">Anggota</h2><p class="nm-desc">Masuk sebagai anggota untuk mengakses pinjaman, riwayat, dan layanan koperasi</p></div>
+        </div>
+        <span class="nm-login">Login <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+      <div class="nm-duo">
+        <button type="button" class="nm-small" id="chPk" onclick="navigatePengurus()"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><circle cx="12" cy="10" r="2.3"/><path d="M7.8 16.4c.8-1.9 2.4-2.9 4.2-2.9s3.4 1 4.2 2.9"/></svg><span id="chPkJ">Masuk Sebagai Pengurus</span></button>
+        <a class="nm-small" href="panduan-anggota.html" target="_blank" rel="noopener"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M9 8h6M9 11.5h6"/></svg><span>Panduan Penggunaan Aplikasi</span></a>
+      </div>
     </div>
-    <div class="choice-card yellow kecil" id="chPk" onclick="navigatePengurus()">
-      <div class="icon">🛡️</div>
-      <b id="chPkJ">Masuk Sebagai Pengurus</b>
-      <p>Kelola data, verifikasi pinjaman & laporan</p>
-      <div class="meta" style="margin-top:12px"><span class="btnlogin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 11c0 3-1 5.5-2.5 7.5"/><path d="M8.5 14c-.3 1.5-.9 3-1.8 4.3"/><path d="M15.5 11c0 2.7-.6 5-1.7 7"/><path d="M5 11a7 7 0 0 1 14 0c0 1.3-.1 2.6-.4 3.8"/><path d="M8 8.5A4.5 4.5 0 0 1 16.5 11"/><path d="M3.5 14.5c.3-1 .5-2.3.5-3.5"/></svg> Login</span></div>
-    </div>
-  </div>
-  <div style="margin:12px 14px 0">
-    <a href="panduan-anggota.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#fff;border:1.5px solid #134e8a;color:#134e8a;border-radius:12px;padding:12px 6px;font-weight:800;font-size:14px">📖 Panduan Penggunaan Aplikasi</a>
   </div>
 
   <div class="card hidden" id="apkBox" style="text-align:center;border-color:#b8d96b;background:#f4fbe6">
@@ -229,6 +266,12 @@ body.kartu-open{overflow:hidden}
       <p class="small">Contoh: 5 tahun kerja → masuk bracket 4 tahun → limit maks 3,5jt tenor maks 7 bulan, boleh ambil lebih cepat.</p>
     </details>
   </div>
+  <nav class="nm-nav" aria-label="Menu utama">
+    <button type="button" class="on" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>Beranda</button>
+    <button type="button" onclick="nmTab('anggota-koperasi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 15.5h5"/></svg>Ajukan</button>
+    <button type="button" onclick="nmTab('anggota-approval')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Riwayat</button>
+    <button type="button" onclick="nmTab('anggota-profil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/></svg>Profil</button>
+  </nav>
 </div>
 
 <!-- HALAMAN ANGGOTA -->
@@ -1010,13 +1053,14 @@ function keMenuUtama(){ // logo di header: ke menu utama sesuai peran yang sedan
 const PERAN_KEY='peran_terakhir';
 function peranIngat(){ try{ return localStorage.getItem(PERAN_KEY)||''; }catch(e){ return ''; } }
 function peranSimpan(p){ try{ localStorage.setItem(PERAN_KEY,p); }catch(e){} }
-function landingPeran(){
+function landingPeran(){ return; /* desain beranda baru: susunan tetap */
   const pk=peranIngat()==='pengurus', a=document.getElementById('chAng'), p=document.getElementById('chPk'), g=document.getElementById('choiceGrid'); if(!a||!p||!g) return;
   const utama=pk?p:a, kecil=pk?a:p;
   utama.className='choice-card utama'+(utama===p?' yellow':''); kecil.className='choice-card kecil'+(kecil===p?' yellow':'');
   document.getElementById('chAngJ').innerText=pk?'Masuk Sebagai Anggota':'ANGGOTA'; document.getElementById('chPkJ').innerText=pk?'PENGURUS':'Masuk Sebagai Pengurus';
   g.appendChild(kecil); g.insertBefore(utama,g.firstChild);
 }
+function nmTab(r){ if(typeof anggotaAktif!=='undefined' && anggotaAktif){ go(r); } else { navigateAnggota(); } }
 function navigateAnggota(){ peranSimpan('anggota'); landingPeran(); sesiBuka(); }
 function navigatePengurus(){ peranSimpan('pengurus'); landingPeran(); pengurusBuka(); }
 landingPeran();
