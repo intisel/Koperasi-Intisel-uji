@@ -161,6 +161,7 @@ body.kartu-open{overflow:hidden}
 .nm-anggota:active{transform:scale(.985);box-shadow:4px 4px 10px var(--nm-lo),-3px -3px 8px var(--nm-hi)}
 .nm-anghead{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
 .nm-avatar{flex:none;width:clamp(92px,28vw,116px);height:clamp(92px,28vw,116px);border-radius:24px;background:#fbe18d url(avatar-default.jpg) center/cover no-repeat;box-shadow:inset 0 -4px 10px rgba(0,0,0,.06),0 4px 12px rgba(120,100,20,.2)}
+.nm-avatar.nm-avatar-pk{background:linear-gradient(145deg,#2a7bd0,#0d3b6e)}
 .nm-title{word-break:break-word;margin:2px 0 6px;font-size:clamp(30px,9.5vw,42px);font-weight:900;color:var(--nm-ink);letter-spacing:-.8px;line-height:1.05}
 .nm-desc{margin:0;color:var(--nm-mut);font-size:15px;line-height:1.5}
 .nm-login{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:17px 14px;border-radius:16px;background:linear-gradient(180deg,#1666e0,#0b52c8);color:#fff;font-weight:800;font-size:22px;box-shadow:0 8px 16px rgba(11,87,208,.35)}
@@ -240,7 +241,15 @@ body.kartu-open{overflow:hidden}
         </div>
         <span class="nm-login"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 11c0 3-1 5.5-2.5 7.5"/><path d="M8.5 14c-.3 1.5-.9 3-1.8 4.3"/><path d="M15.5 11c0 2.7-.6 5-1.7 7"/><path d="M5 11a7 7 0 0 1 14 0c0 1.3-.1 2.6-.4 3.8"/><path d="M8 8.5A4.5 4.5 0 0 1 16.5 11"/><path d="M3.5 14.5c.3-1 .5-2.3.5-3.5"/></svg> Login</span>
       </div>
+      <div class="nm-card nm-anggota hidden" id="chPkBesar" role="button" tabindex="0" onclick="navigatePengurus()" onkeydown="if(event.key==='Enter')navigatePengurus()">
+        <div class="nm-anghead">
+          <div class="nm-avatar nm-avatar-pk" aria-hidden="true"><svg viewBox="0 0 24 24" width="62%" height="62%" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><circle cx="12" cy="10" r="2.3"/><path d="M7.8 16.4c.8-1.9 2.4-2.9 4.2-2.9s3.4 1 4.2 2.9"/></svg></div>
+          <div><h2 class="nm-title">Pengurus</h2><p class="nm-desc">Masuk sebagai pengurus untuk memvalidasi pinjaman, pencairan, dan laporan koperasi</p></div>
+        </div>
+        <span class="nm-login">Login <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
       <div class="nm-duo">
+        <button type="button" class="nm-small hidden" id="chAngKecil" onclick="navigateAnggota()"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/></svg><span>Masuk Sebagai Anggota</span></button>
         <button type="button" class="nm-small" id="chPk" onclick="navigatePengurus()"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><circle cx="12" cy="10" r="2.3"/><path d="M7.8 16.4c.8-1.9 2.4-2.9 4.2-2.9s3.4 1 4.2 2.9"/></svg><span id="chPkJ">Masuk Sebagai Pengurus</span></button>
         <a class="nm-small" href="panduan-anggota.html" target="_blank" rel="noopener"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M9 8h6M9 11.5h6"/></svg><span>Panduan Penggunaan Aplikasi</span></a>
       </div>
@@ -1055,12 +1064,9 @@ function keMenuUtama(){ // logo di header: ke menu utama sesuai peran yang sedan
 const PERAN_KEY='peran_terakhir';
 function peranIngat(){ try{ return localStorage.getItem(PERAN_KEY)||''; }catch(e){ return ''; } }
 function peranSimpan(p){ try{ localStorage.setItem(PERAN_KEY,p); }catch(e){} }
-function landingPeran(){ return; /* desain beranda baru: susunan tetap */
-  const pk=peranIngat()==='pengurus', a=document.getElementById('chAng'), p=document.getElementById('chPk'), g=document.getElementById('choiceGrid'); if(!a||!p||!g) return;
-  const utama=pk?p:a, kecil=pk?a:p;
-  utama.className='choice-card utama'+(utama===p?' yellow':''); kecil.className='choice-card kecil'+(kecil===p?' yellow':'');
-  document.getElementById('chAngJ').innerText=pk?'Masuk Sebagai Anggota':'ANGGOTA'; document.getElementById('chPkJ').innerText=pk?'PENGURUS':'Masuk Sebagai Pengurus';
-  g.appendChild(kecil); g.insertBefore(utama,g.firstChild);
+function landingPeran(){ // peran login terakhir di HP ini jadi kartu besar di atas; peran satunya jadi tombol kecil
+  const pk=peranIngat()==='pengurus', h=(id,sembunyi)=>{ const e=document.getElementById(id); if(e) e.classList.toggle('hidden',sembunyi); };
+  h('chAng',pk); h('chPkBesar',!pk); h('chPk',pk); h('chAngKecil',!pk);
 }
 
 /* Beranda: nama & foto pemilik akun terakhir yang login di perangkat ini (kosong/default bila belum pernah) */
