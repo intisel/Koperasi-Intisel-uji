@@ -1086,7 +1086,13 @@ function nmTab(k){
   else if(k==='riwayat') bukaMenu('vApproval');
   else if(k==='profil') profilBuka();
 }
-function navigateAnggota(){ peranSimpan('anggota'); landingPeran(); sesiBuka(); }
+/* Tombol Login di beranda: bila sidik jari sudah diaktifkan di HP ini, langsung minta sidik jari; jika dibatalkan/gagal atau belum aktif, tetap layar login PIN. */
+function navigateAnggota(){
+  peranSimpan('anggota'); landingPeran();
+  const adaSesi=(typeof anggotaAktif!=='undefined'&&anggotaAktif)||(typeof sesiBaca==='function'&&sesiBaca());
+  sesiBuka();
+  if(!adaSesi && currentRoute==='anggota' && typeof bioBaca==='function' && bioBaca() && bioDidukung()) setTimeout(()=>{ if(currentRoute==='anggota') bioMasuk(); },300);
+}
 function navigatePengurus(){ peranSimpan('pengurus'); landingPeran(); pengurusBuka(); }
 landingPeran();
 window.addEventListener('popstate',e=>{
