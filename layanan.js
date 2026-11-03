@@ -119,7 +119,18 @@ function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggo
   }
   const s = sesiBaca(); // setelah refresh: pulihkan dari sesi tersimpan (menu menggantikan layar login di riwayat)
   go('anggota');
-  if(s) sesiMasuk(s);
+  if(s){ muatLayar(true); sesiMasuk(s).finally(() => muatLayar(false)); } // layar login disembunyikan oleh animasi memuat selama data diambil
+}
+/* Animasi memuat layar penuh (menggantikan kilasan layar login saat masuk otomatis dari sesi tersimpan) */
+let muatTimer = 0;
+function muatLayar(tampil){
+  let e = document.getElementById('muatLayar');
+  if(!tampil){ clearTimeout(muatTimer); if(e) e.remove(); return; }
+  if(e) return;
+  if(!document.getElementById('muatLayarCss')){ const st = document.createElement('style'); st.id = 'muatLayarCss'; st.textContent = '#muatLayar{position:fixed;inset:0;z-index:9000;background:#e9eef6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#134e8a;font-weight:700;font-size:16px}#muatLayar i{width:54px;height:54px;border-radius:50%;border:6px solid #c9d6ea;border-top-color:#0b57d0;animation:muatPutar .85s linear infinite}@keyframes muatPutar{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#muatLayar i{animation-duration:2.4s}}'; document.head.appendChild(st); }
+  e = document.createElement('div'); e.id = 'muatLayar'; e.setAttribute('role', 'status'); e.setAttribute('aria-live', 'polite');
+  e.innerHTML = '<i></i><span>Memuat data Anda...</span>'; document.body.appendChild(e);
+  muatTimer = setTimeout(() => muatLayar(false), 25000); // pengaman: jangan pernah menutupi layar selamanya
 }
 /* Peringatan sebelum sesi habis: spanduk (tidak memblokir layar) selama SESI_PERINGATAN_MENIT menit terakhir; saat habis, otomatis keluar. */
 const SESI_PERINGATAN_MENIT = 5;
