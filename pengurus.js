@@ -52,7 +52,8 @@ function pkSesiHapus(){ // dipanggil saat berpindah ke Anggota: sesi pengurus di
 }
 function pengurusBuka(){ // tombol Pengurus di halaman depan: sesi aktif -> langsung ke dasbor; sesi anggota dihapus
   if(typeof anggotaSesiHapus === 'function') anggotaSesiHapus();
-  if(pkToken) go('pengurus-dashboard'); else go('pengurus');
+  if(pkToken) go('pengurus-dashboard');
+  else{ go('pengurus'); if(typeof bioPkBaca === 'function' && bioPkBaca() && bioDidukung()) bioPkMasuk(); } // sidik jari pengurus aktif: langsung minta sidik jari (gagal -> tetap di layar login)
 }
 
 /* --- login kode email --- */
@@ -151,7 +152,7 @@ async function pkMuat(){
   const pertama = !!pkToken && pkDataToken !== pkToken;
   if(pertama && typeof muatLayar === 'function') muatLayar(true, 'Memuat data pengurus...');
   try{ await pkMuatIsi(); }
-  finally{ if(pertama){ pkDataToken = pkToken; if(typeof muatLayar === 'function') muatLayar(false); } }
+  finally{ if(pertama){ pkDataToken = pkToken; if(typeof muatLayar === 'function') muatLayar(false); if(typeof bioPkTawarkan === 'function') setTimeout(bioPkTawarkan, 400); } }
 }
 async function pkMuatIsi(){
   $('pkMenunggu').innerHTML = '<p class="small">Memuat...</p>';

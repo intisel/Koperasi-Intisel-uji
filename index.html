@@ -644,6 +644,7 @@ body.kartu-open{overflow:hidden}
 <div id="pagePengurus" class="hidden">
   <div class="card" id="pkLogin">
     <div style="font-weight:800;font-size:17px;margin:2px 0 8px">Masuk Pengurus / Pimpinan</div>
+    <button type="button" class="btn" id="bioPkLoginBtn" style="display:none;margin:4px 0 10px;background:linear-gradient(135deg,#134e8a,#2563eb);font-size:16px" onclick="bioPkMasuk()">👆 Masuk dengan sidik jari<span id="bioPkLoginNama"></span></button>
     <label style="display:block;margin-top:4px">Email terdaftar</label>
     <input id="pkEmail" type="email" inputmode="email" autocapitalize="none" autocomplete="username" placeholder="email@contoh.com">
     <div style="display:flex;gap:8px;margin-bottom:12px">
@@ -1306,6 +1307,7 @@ function hitungAngsuran(){
 <script src="dispensasi.js"></script>
 <script src="pengampunan.js"></script>
 <script src="bio.js"></script>
+<script src="bio-pk.js"></script>
 <script src="budget.js"></script>
 <script src="rencana.js"></script>
 <script src="pinpad.js"></script>
