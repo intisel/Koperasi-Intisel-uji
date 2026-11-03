@@ -44,6 +44,7 @@ function jbProfilBuka(){
     <div class="pfcard"><div class="pfjudul">Data pengurus</div>
       ${baris('📅', 'Tanggal masuk', tgl)}${baris('⏳', 'Masa kerja', mk ? mk.y + ' tahun ' + mk.b + ' bulan' : '')}${baris('📱', 'Nomor HP', r.hp)}${baris('✉️', 'Email', r.email)}</div>
     ${i.tugas.length ? `<div class="pfcard"><div class="pfjudul">Tugas jabatan</div>${i.tugas.map(t => `<div class="pfrow"><span class="pfic" style="color:${i.warna}">●</span><div class="pfbd pfvl" style="font-size:14px;font-weight:600">${esc(t)}</div></div>`).join('')}</div>` : ''}
+    ${(typeof pkKetua !== 'undefined' && pkKetua && !pkAsliToken) ? `<div style="padding:12px 14px 0"><button class="btn" style="background:#0f766e" onclick="document.getElementById('jbProfil').remove();pkLihatPilih()">👁️ Lihat sebagai pengurus lain (baca saja)</button></div>` : ''}
     <div style="padding:14px 14px 0;display:flex;gap:8px"><button class="btn" onclick="document.getElementById('jbProfil').remove();fotoUbahPk()">📷 Ganti Foto</button><button class="btn" style="background:#6b7f99" onclick="document.getElementById('jbProfil').remove()">Tutup</button></div></div>`;
   document.body.appendChild(o);
   fotoTerapkan($('avJb'), fotoCache.pk, r.nama);
