@@ -161,6 +161,7 @@ body.kartu-open{overflow:hidden}
 .nm-anggota:active{transform:scale(.985);box-shadow:4px 4px 10px var(--nm-lo),-3px -3px 8px var(--nm-hi)}
 .nm-anghead{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
 .nm-avatar{flex:none;width:clamp(92px,28vw,116px);height:clamp(92px,28vw,116px);border-radius:24px;background:#fbe18d url(avatar-default.jpg) center/cover no-repeat;box-shadow:inset 0 -4px 10px rgba(0,0,0,.06),0 4px 12px rgba(120,100,20,.2)}
+.nm-avatar.foto svg{display:none}
 .nm-avatar.nm-avatar-pk{background:linear-gradient(145deg,#2a7bd0,#0d3b6e)}
 .nm-title{word-break:break-word;margin:2px 0 6px;font-size:clamp(30px,9.5vw,42px);font-weight:900;color:var(--nm-ink);letter-spacing:-.8px;line-height:1.05}
 .nm-desc{margin:0;color:var(--nm-mut);font-size:15px;line-height:1.5}
@@ -244,8 +245,8 @@ body.kartu-open{overflow:hidden}
       </div>
       <div class="nm-card nm-anggota hidden" id="chPkBesar" role="button" tabindex="0" onclick="navigatePengurus()" onkeydown="if(event.key==='Enter')navigatePengurus()">
         <div class="nm-anghead">
-          <div class="nm-avatar nm-avatar-pk" aria-hidden="true"><svg viewBox="0 0 24 24" width="62%" height="62%" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><circle cx="12" cy="10" r="2.3"/><path d="M7.8 16.4c.8-1.9 2.4-2.9 4.2-2.9s3.4 1 4.2 2.9"/></svg></div>
-          <div><h2 class="nm-title">Pengurus</h2><p class="nm-desc">Masuk sebagai pengurus untuk memvalidasi pinjaman, pencairan, dan laporan koperasi</p></div>
+          <div class="nm-avatar nm-avatar-pk" id="nmAvatarPk" aria-hidden="true"><svg viewBox="0 0 24 24" width="62%" height="62%" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><circle cx="12" cy="10" r="2.3"/><path d="M7.8 16.4c.8-1.9 2.4-2.9 4.2-2.9s3.4 1 4.2 2.9"/></svg></div>
+          <div><h2 class="nm-title" id="chPkBesarJ">Pengurus</h2><p class="nm-desc">Masuk sebagai pengurus untuk memvalidasi pinjaman, pencairan, dan laporan koperasi</p></div>
         </div>
         <span class="nm-login">Login <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </div>
@@ -1087,6 +1088,13 @@ function landingAkun(){
   t.style.fontSize=nama.length>14?'clamp(22px,6.6vw,30px)':'';
   let foto=''; if(a){ try{ foto=localStorage.getItem('fa_'+a.nik)||''; }catch(e){} }
   av.style.backgroundImage=(foto && /^data:image\//.test(foto))?'url("'+foto+'")':'';
+  av.classList.toggle('foto',!!(foto && /^data:image\//.test(foto)));
+  // kartu Pengurus: nama & foto pengurus yang terakhir login di HP ini (kosong -> tulisan "Pengurus" + ikon perisai)
+  const tp=document.getElementById('chPkBesarJ'), ap=document.getElementById('nmAvatarPk'); if(!tp||!ap) return;
+  let np='', fp=''; try{ const o=JSON.parse(localStorage.getItem('pk_terakhir')||'null'); np=(o&&o.nama)?String(o.nama).trim():''; fp=localStorage.getItem('pk_foto')||''; }catch(e){}
+  tp.textContent=np||'Pengurus'; tp.style.fontSize=np.length>14?'clamp(22px,6.6vw,30px)':'';
+  const adaFp=!!(np && fp && /^data:image\//.test(fp));
+  ap.style.backgroundImage=adaFp?'url("'+fp+'")':''; ap.classList.toggle('foto',adaFp);
 }
 /* Bilah bawah beranda: Pinjaman -> Pinjaman Berjalan; Riwayat -> lewat bukaMenu agar semua aturan pengajuan tetap berlaku:
    masa kerja, pinjaman berjalan / pengajuan ganda, kuota bulanan. Belum login -> layar login (tidak ada jalan pintas). */

@@ -86,19 +86,23 @@ function fotoUbahAnggota(){
 }
 
 /* ---------- Pengurus / pimpinan ---------- */
+function fotoSimpanPkLokal(foto){ // untuk beranda; tidak disimpan saat Ketua 'lihat sebagai pengurus lain'
+  if(typeof pkAsliToken !== 'undefined' && pkAsliToken) return;
+  try{ if(foto) localStorage.setItem('pk_foto', foto); else localStorage.removeItem('pk_foto'); }catch(e){}
+}
 async function fotoMuatPk(){
   if(!pkToken || fotoCache.pkToken === pkToken) return;
   fotoCache.pkToken = pkToken;
   try{
     const r = await fotoApi({a:'foto_pk_ambil', token:pkToken});
-    if(r.ok){ fotoCache.pk = r.foto || ''; fotoTerapkan($('avPk'), fotoCache.pk, $('pkNama').innerText); }
+    if(r.ok){ fotoCache.pk = r.foto || ''; fotoTerapkan($('avPk'), fotoCache.pk, $('pkNama').innerText); fotoSimpanPkLokal(fotoCache.pk); }
   }catch(e){ fotoCache.pkToken = ''; }
 }
 function fotoUbahPk(){
   const nama = $('pkNama').innerText;
   fotoEditor({judul:'Foto Profil ' + nama, nama, awal:fotoCache.pk,
     simpan: f => fotoApi({a:'foto_pk_simpan', token:pkToken, foto:f}),
-    selesai: f => { fotoCache.pk = f; fotoTerapkan($('avPk'), f, nama); }});
+    selesai: f => { fotoCache.pk = f; fotoTerapkan($('avPk'), f, nama); fotoSimpanPkLokal(f); }});
 }
 async function fotoMuatPelamar(list){ // foto pemohon di kartu validasi pinjaman
   const niks = Array.from(new Set((list || []).map(p => String(p.nik)))).slice(0, 10); if(!niks.length) return;

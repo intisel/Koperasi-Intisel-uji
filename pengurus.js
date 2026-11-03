@@ -151,6 +151,7 @@ async function pkMuat(){
     const r = await pkApi({a:'dasbor', token:pkToken});
     if(!r.ok){ if(r.expired) pkExpired(); else $('pkMenunggu').innerHTML = `<div class="err">${esc(r.msg)}</div>`; return; }
     pkBisaCatat = r.bisaCatat; pkKetua = !!r.ketua; if($('pkLihatBtn')) $('pkLihatBtn').classList.toggle('hidden', !pkKetua || !!pkAsliToken); if($('agTabBtnT')) $('agTabBtnT').classList.toggle('hidden', !r.bisaCatat); pkBisaVerif = !!r.bisaVerif; pkHariIni = r.hariIni; plLokasiBoleh = !!(r.lokasi !== undefined ? r.lokasi : r.ketua); $('plTabBtnL').classList.toggle('hidden', !plLokasiBoleh);
+    if(!(typeof pkAsliToken !== 'undefined' && pkAsliToken)){ try{ localStorage.setItem('pk_terakhir', JSON.stringify({nama: r.nama})); }catch(e){} } // diingat untuk beranda (bukan saat Ketua 'lihat sebagai pengurus lain')
     $('pkNama').innerText = r.nama; $('pkPeran').innerText = r.jabatan || r.peran; jbHeader(r); profilBarPk(r); if(!$('avPk').dataset.foto) fotoTerapkan($('avPk'), fotoCache.pk, r.nama); fotoMuatPk();
     const bj = r.rekap.berjalan;
     r.menunggu.sort((x, y) => ((y.disiplin && y.disiplin.tingkat === 'A+') ? 1 : 0) - ((x.disiplin && x.disiplin.tingkat === 'A+') ? 1 : 0)); // anggota teladan (A+) didahulukan, urutan lain tetap
