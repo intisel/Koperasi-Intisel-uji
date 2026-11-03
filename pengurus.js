@@ -145,7 +145,15 @@ async function pkKeluar(){
 function pkExpired(){ if(typeof pkAsliToken !== 'undefined' && pkAsliToken){ pkLihatKeluar(true); return; } pkToken = ''; sessionStorage.removeItem('pk_token'); goReplace('pengurus'); pkPesan('Sesi berakhir. Silakan masuk lagi.', true); }
 
 /* --- dasbor --- */
+/* Pemuatan data pengurus: animasi tower tampil pada pemuatan pertama setiap login (tidak untuk 'Muat ulang' / pindah menu berikutnya) dan hilang setelah data terbaca */
+let pkDataToken = '';
 async function pkMuat(){
+  const pertama = !!pkToken && pkDataToken !== pkToken;
+  if(pertama && typeof muatLayar === 'function') muatLayar(true, 'Memuat data pengurus...');
+  try{ await pkMuatIsi(); }
+  finally{ if(pertama){ pkDataToken = pkToken; if(typeof muatLayar === 'function') muatLayar(false); } }
+}
+async function pkMuatIsi(){
   $('pkMenunggu').innerHTML = '<p class="small">Memuat...</p>';
   try{
     const r = await pkApi({a:'dasbor', token:pkToken});
