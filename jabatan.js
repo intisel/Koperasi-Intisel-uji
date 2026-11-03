@@ -39,13 +39,21 @@ function jbProfilBuka(){
   const i = jbInfo(r.jabatan) || {warna:'#134e8a', muda:'#dbeafe', ikon:'👤', tugas:[]}, mk = masaKerjaDetail(r.tglMasuk);
   const baris = (ic, lb, v) => `<div class="pfrow"><span class="pfic">${ic}</span><div class="pfbd"><div class="pflb">${lb}</div><div class="pfvl${v ? '' : ' pfkosong'}">${v ? esc(v) : 'Belum diisi'}</div></div></div>`;
   const tgl = r.tglMasuk ? new Date(r.tglMasuk + 'T00:00:00').toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '';
-  const o = document.createElement('div'); o.id = 'jbProfil'; o.onclick = e => { if(e.target === o) o.remove(); };
+  const o = document.createElement('div'); o.id = 'jbProfil'; o.onclick = e => { if(e.target === o) jbTutup(); };
   o.innerHTML = `<div class="jbkartu"><div class="jbhead" style="background:linear-gradient(160deg,${i.warna},${i.warna}cc)"><span class="av" id="avJb"><i class="avcam" style="display:none">📷</i></span><b>${esc(r.nama)}</b>${jbBadge(r.jabatan || r.peran)}</div>
     <div class="pfcard"><div class="pfjudul">Data pengurus</div>
       ${baris('📅', 'Tanggal masuk', tgl)}${baris('⏳', 'Masa kerja', mk ? mk.y + ' tahun ' + mk.b + ' bulan' : '')}${baris('📱', 'Nomor HP', r.hp)}${baris('✉️', 'Email', r.email)}</div>
     ${i.tugas.length ? `<div class="pfcard"><div class="pfjudul">Tugas jabatan</div>${i.tugas.map(t => `<div class="pfrow"><span class="pfic" style="color:${i.warna}">●</span><div class="pfbd pfvl" style="font-size:14px;font-weight:600">${esc(t)}</div></div>`).join('')}</div>` : ''}
-    ${(typeof pkKetua !== 'undefined' && pkKetua && !pkAsliToken) ? `<div style="padding:12px 14px 0"><button class="btn" style="background:#0f766e" onclick="document.getElementById('jbProfil').remove();pkLihatPilih()">👁️ Lihat sebagai pengurus lain (baca saja)</button></div>` : ''}
-    <div style="padding:14px 14px 0;display:flex;gap:8px"><button class="btn" onclick="document.getElementById('jbProfil').remove();fotoUbahPk()">📷 Ganti Foto</button><button class="btn" style="background:#6b7f99" onclick="document.getElementById('jbProfil').remove()">Tutup</button></div></div>`;
+    ${(typeof pkKetua !== 'undefined' && pkKetua && !pkAsliToken) ? `<div style="padding:12px 14px 0"><button class="btn" style="background:#0f766e" onclick="jbTutup(pkLihatPilih)">👁️ Lihat sebagai pengurus lain (baca saja)</button></div>` : ''}
+    <div style="padding:14px 14px 0;display:flex;gap:8px"><button class="btn" onclick="jbTutup(fotoUbahPk)">📷 Ganti Foto</button><button class="btn" style="background:#6b7f99" onclick="jbTutup()">Tutup</button></div></div>`;
   document.body.appendChild(o);
   fotoTerapkan($('avJb'), fotoCache.pk, r.nama);
+  if(typeof modalPush === 'function'){ modalPush(jbTutupUI); jbPushed = true; } // popup ikut riwayat: tombol back HP = tutup popup profil
+}
+/* Tutup popup profil pengurus. Bila popup ikut riwayat, penutupan lewat history.back() agar entri riwayatnya ikut hilang; 'lalu' dijalankan sesudah tertutup. */
+let jbPushed = false;
+function jbTutupUI(){ const e = document.getElementById('jbProfil'); if(e) e.remove(); jbPushed = false; }
+function jbTutup(lalu){
+  if(jbPushed && window.modalRiwayat){ window.modalRiwayat = () => { jbTutupUI(); if(lalu) lalu(); }; history.back(); }
+  else { jbTutupUI(); if(lalu) lalu(); }
 }
