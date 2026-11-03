@@ -52,7 +52,7 @@ async function bioMasuk(){ // dari layar login
   }catch(e){ lgPesan(e && e.name ? bioPesanGalat(e) : 'Gagal terhubung ke server. Periksa internet lalu coba lagi.'); }
   finally{ cekBusy = false; if(btn) btn.disabled = false; }
   bioSegarkan();
-  if(token){ try{ await masukDenganToken(nik, token); }catch(e){} }
+  if(token){ try{ await masukDenganToken(nik, token); await tungguDataAnggota(); }catch(e){} }
   if(typeof muatLayar === 'function') muatLayar(false);
 }
 async function bioSegarkan(){ // tampilan layar login + kartu di profil

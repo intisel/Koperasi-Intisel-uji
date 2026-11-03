@@ -47,7 +47,9 @@ function inboxBadge(){
   const s = inboxSeen(), n = inboxData.filter(x => x.id > s).length;
   ['bellBadge', 'bellBadgePk'].forEach(id => { const e = $(id); if(!e) return; e.textContent = n > 9 ? '9+' : String(n); e.style.display = n ? 'block' : 'none'; });
 }
-async function inboxMuat(){
+let inboxP = null; // dilacak agar animasi memuat bisa menunggu
+function inboxMuat(){ inboxP = inboxMuatIsi(); return inboxP; }
+async function inboxMuatIsi(){
   const pk = inboxPk(), a = anggotaAktif; if(!pk && !a) return;
   const kunci = inboxKunci();
   try{ const r = await apiPost(pk ? {a: 'notif_inbox', token: pkToken} : {a: 'notif_inbox', nik: a.nik, atoken: a.atoken}); if(r && r.ok && kunci === inboxKunci()){ inboxData = r.list || []; inboxBadge(); return true; } }catch(e){}

@@ -119,7 +119,7 @@ function sesiBuka(){ // tombol Anggota di halaman depan & refresh di layar anggo
   }
   const s = sesiBaca(); // setelah refresh: pulihkan dari sesi tersimpan (menu menggantikan layar login di riwayat)
   go('anggota');
-  if(s){ muatLayar(true); sesiMasuk(s).finally(() => muatLayar(false)); } // layar login disembunyikan oleh animasi memuat selama data diambil
+  if(s){ muatLayar(true); sesiMasuk(s).then(tungguDataAnggota).finally(() => muatLayar(false)); } // layar login disembunyikan oleh animasi memuat selama data diambil
 }
 /* Animasi memuat layar penuh (menggantikan kilasan layar login saat masuk otomatis dari sesi tersimpan) */
 let muatTimer = 0;
@@ -261,7 +261,14 @@ function terapkanBlokir(){
 }
 
 /* ===== DATA SAYA (status, pinjaman, laporan) ===== */
-async function muatData(){
+let muatDataP = null; // permintaan data anggota yang sedang berjalan (dipakai animasi memuat agar menunggu sampai selesai)
+function muatData(){ muatDataP = muatDataIsi(); return muatDataP; }
+async function tungguDataAnggota(){ // menu sudah tampil, tetapi status/pinjaman/notifikasi masih dimuat: tunggu (maks 15 dtk)
+  if(!anggotaAktif) return;
+  const tunggu = [muatDataP, (typeof inboxP !== 'undefined' ? inboxP : null)].filter(Boolean).map(p => Promise.resolve(p).catch(() => {}));
+  await Promise.race([Promise.all(tunggu), new Promise(r => setTimeout(r, 15000))]);
+}
+async function muatDataIsi(){
   if(!anggotaAktif) return;
   try{
     const r = await apiPost({a:'status', nik:anggotaAktif.nik, atoken:anggotaAktif.atoken});
