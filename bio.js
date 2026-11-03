@@ -45,6 +45,7 @@ async function bioMasuk(){ // dari layar login
   let token = '', nik = b.nik;
   try{
     await navigator.credentials.get({publicKey:{challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:bioDariB64(b.cid), transports:['internal']}], userVerification:'required', timeout:60000}});
+    if(typeof muatLayar === 'function') muatLayar(true); // sidik jari cocok: tampilkan animasi memuat selama data diambil
     const r = await fetch(API_URL, {method:'POST', body:JSON.stringify({a:'bio_login', nik, btoken:b.btoken})}).then(x => x.json());
     if(!r.ok){ if(r.bioHabis) bioHapusLokal(); lgPesan(r.msg || 'Masuk dengan PIN.'); }
     else{ bioSimpan(Object.assign({}, b, {btoken:r.btoken})); nikSimpanIngat(nik); $('nikInput').value = nik; token = r.atoken; }
@@ -52,6 +53,7 @@ async function bioMasuk(){ // dari layar login
   finally{ cekBusy = false; if(btn) btn.disabled = false; }
   bioSegarkan();
   if(token){ try{ await masukDenganToken(nik, token); }catch(e){} }
+  if(typeof muatLayar === 'function') muatLayar(false);
 }
 async function bioSegarkan(){ // tampilan layar login + kartu di profil
   const b = bioBaca(), ok = bioDidukung(), btn = $('bioLoginBtn');

@@ -1091,7 +1091,7 @@ function navigateAnggota(){
   peranSimpan('anggota'); landingPeran();
   const adaSesi=(typeof anggotaAktif!=='undefined'&&anggotaAktif)||(typeof sesiBaca==='function'&&sesiBaca());
   sesiBuka();
-  if(!adaSesi && currentRoute==='anggota' && typeof bioBaca==='function' && bioBaca() && bioDidukung()) setTimeout(()=>{ if(currentRoute==='anggota') bioMasuk(); },300);
+  if(!adaSesi && currentRoute==='anggota' && typeof bioBaca==='function' && bioBaca() && bioDidukung()) bioMasuk(); // langsung pada ketukan tombol (sebagian browser HP hanya mengizinkan sidik jari tepat setelah ketukan)
 }
 function navigatePengurus(){ peranSimpan('pengurus'); landingPeran(); pengurusBuka(); }
 landingPeran();
